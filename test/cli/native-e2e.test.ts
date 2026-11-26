@@ -8,7 +8,11 @@ import { bundleApp } from '../../src/compiler/bundle'
 const root = path.resolve(__dirname, '../..')
 const nativeDir = path.join(root, 'native')
 const headlessTarget = path.join(nativeDir, 'target', 'headless')
-const bin = path.join(headlessTarget, 'debug', 'tardis-native')
+const bin = path.join(
+  headlessTarget,
+  'debug',
+  process.platform === 'win32' ? 'tardis-native.exe' : 'tardis-native'
+)
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'tardis-e2e-'))
 
 interface Dump {
