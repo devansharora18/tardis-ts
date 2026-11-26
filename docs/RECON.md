@@ -117,3 +117,21 @@ Confirmed v0 costs from code:
 Dioxus status here: 0.6.3 stable / 0.8.0-alpha.3 latest. Desktop is buildable
 with the installed webkit2gtk-4.1. Web needs wasm32 + wasm-bindgen/dx, which are
 not installed. No fair head-to-head has been run; do not claim one.
+
+## Production input/a11y pass (2026-11-27)
+
+Current state:
+
+- Keyboard/focus exists: pointer down focuses the deepest node, key events
+  bubble, Enter/Space activates clickables, `focusNode` is public.
+- No text editing, selection, caret, clipboard, or IME.
+- The web host renders every view/text node as `<div>`; intrinsic tags such as
+  `button`, `h1`, and `p` lose their semantics. There are no `role`/`aria-*`
+  attributes.
+- The scene protocol carries kind/style/text but no tag or accessibility props.
+- Native accessibility (accesskit) is not wired.
+- Forms have no primitives.
+
+This pass starts at the top of the production list: semantics, ARIA, focus/blur,
+a controlled single-line TextField, and clipboard. IME, selection, multiline,
+and native accesskit are explicitly out of this slice.
