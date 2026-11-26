@@ -15,7 +15,7 @@ use tiny_skia::{
 };
 
 use crate::layout::{ComputedLayout, Rect};
-use crate::scene::{Color, NodeKind, Scene, TextAlign, TextOverflow};
+use crate::scene::{Color, NodeKind, Scene, TextAlign, TextOverflow, WhiteSpace};
 use crate::text::TextEngine;
 
 pub struct RenderOptions {
@@ -32,9 +32,11 @@ struct ResolvedText {
     size: f32,
     line_height: f32,
     weight: u16,
+    family: Option<String>,
     color: Color,
     align: TextAlign,
     overflow: TextOverflow,
+    white_space: WhiteSpace,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -387,16 +389,28 @@ fn draw_text(
         );
     }
     let content = if style.overflow == TextOverflow::Ellipsis {
-        text_engine.ellipsize(content, style.size * scale, style.weight, rect.width)
+        text_engine.ellipsize(
+            content,
+            style.size * scale,
+            style.weight,
+            style.family.as_deref(),
+            rect.width,
+        )
     } else {
         content.to_string()
+    };
+    let layout_width = if style.white_space == WhiteSpace::NoWrap {
+        f32::MAX / 4.0
+    } else {
+        rect.width
     };
     let buffer = text_engine.buffer(
         &content,
         style.size * scale,
         style.line_height * scale,
         style.weight,
-        rect.width,
+        style.family.as_deref(),
+        layout_width,
     );
     let TextEngine {
         font_system,
@@ -439,9 +453,11 @@ fn resolve_text_style(scene: &Scene, node_id: u32) -> ResolvedText {
         size: 16.0,
         line_height: 16.0 * 1.4,
         weight: 400,
+        family: None,
         color: Color::rgb(0xed, 0xed, 0xed),
         align: TextAlign::Left,
         overflow: TextOverflow::Clip,
+        white_space: WhiteSpace::Normal,
     };
     for id in chain {
         let Some(node) = scene.nodes.get(&id) else {
@@ -457,10 +473,14 @@ fn resolve_text_style(scene: &Scene, node_id: u32) -> ResolvedText {
         if let Some(weight) = node.style.font_weight {
             style.weight = weight;
         }
+        if let Some(family) = &node.style.font_family {
+            style.family = Some(family.clone());
+        }
         if let Some(color) = node.style.color {
             style.color = color;
         }
         style.overflow = node.style.text_overflow;
+        style.white_space = node.style.white_space;
         style.align = node.style.text_align;
     }
     style

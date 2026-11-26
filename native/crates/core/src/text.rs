@@ -7,7 +7,10 @@ use crate::scene::Style;
 
 const REGULAR: &[u8] = include_bytes!("../assets/LiberationSans-Regular.ttf");
 const BOLD: &[u8] = include_bytes!("../assets/LiberationSans-Bold.ttf");
+const MONO_REGULAR: &[u8] = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
+const MONO_BOLD: &[u8] = include_bytes!("../assets/JetBrainsMono-Bold.ttf");
 const FAMILY: &str = "Liberation Sans";
+const MONO_FAMILY: &str = "JetBrains Mono";
 
 pub struct TextEngine {
     pub font_system: FontSystem,
@@ -19,6 +22,8 @@ impl TextEngine {
         let mut font_system = FontSystem::new();
         font_system.db_mut().load_font_data(REGULAR.to_vec());
         font_system.db_mut().load_font_data(BOLD.to_vec());
+        font_system.db_mut().load_font_data(MONO_REGULAR.to_vec());
+        font_system.db_mut().load_font_data(MONO_BOLD.to_vec());
         Self {
             font_system,
             swash_cache: SwashCache::new(),
@@ -29,16 +34,17 @@ impl TextEngine {
         let size = style.font_size.unwrap_or(16.0);
         let line_height = style.line_height.unwrap_or(size * 1.4);
         let weight = style.font_weight.unwrap_or(400);
+        let family = style.font_family.as_deref();
         let mut buffer = Buffer::new(&mut self.font_system, Metrics::new(size, line_height));
-        buffer.set_size(
-            &mut self.font_system,
-            max_width.filter(|width| *width > 0.0),
-            None,
-        );
+        let limit = match style.white_space {
+            crate::scene::WhiteSpace::NoWrap => None,
+            crate::scene::WhiteSpace::Normal => max_width.filter(|width| *width > 0.0),
+        };
+        buffer.set_size(&mut self.font_system, limit, None);
         buffer.set_text(
             &mut self.font_system,
             text,
-            attrs(weight),
+            attrs(weight, family),
             Shaping::Advanced,
         );
 
@@ -52,12 +58,19 @@ impl TextEngine {
     }
 
     /// Truncate the first line to `max_width`, appending an ellipsis.
-    pub fn ellipsize(&mut self, text: &str, size: f32, weight: u16, max_width: f32) -> String {
+    pub fn ellipsize(
+        &mut self,
+        text: &str,
+        size: f32,
+        weight: u16,
+        family: Option<&str>,
+        max_width: f32,
+    ) -> String {
         let line = text.lines().next().unwrap_or("");
         if max_width <= 0.0 {
             return String::new();
         }
-        if self.line_width(line, size, weight) <= max_width {
+        if self.line_width(line, size, weight, family) <= max_width {
             return line.to_string();
         }
         let chars: Vec<char> = line.chars().collect();
@@ -67,7 +80,7 @@ impl TextEngine {
             let mid = (low + high).div_ceil(2);
             let mut candidate: String = chars[..mid].iter().collect();
             candidate.push('\u{2026}');
-            if self.line_width(&candidate, size, weight) <= max_width {
+            if self.line_width(&candidate, size, weight, family) <= max_width {
                 low = mid;
             } else {
                 high = mid - 1;
@@ -78,13 +91,13 @@ impl TextEngine {
         result
     }
 
-    fn line_width(&mut self, text: &str, size: f32, weight: u16) -> f32 {
+    fn line_width(&mut self, text: &str, size: f32, weight: u16, family: Option<&str>) -> f32 {
         let mut buffer = Buffer::new(&mut self.font_system, Metrics::new(size, size * 1.4));
         buffer.set_size(&mut self.font_system, Some(f32::MAX / 4.0), None);
         buffer.set_text(
             &mut self.font_system,
             text,
-            attrs(weight),
+            attrs(weight, family),
             Shaping::Advanced,
         );
         buffer
@@ -99,6 +112,7 @@ impl TextEngine {
         size: f32,
         line_height: f32,
         weight: u16,
+        family: Option<&str>,
         width: f32,
     ) -> Buffer {
         let mut buffer = Buffer::new(&mut self.font_system, Metrics::new(size, line_height));
@@ -106,7 +120,7 @@ impl TextEngine {
         buffer.set_text(
             &mut self.font_system,
             text,
-            attrs(weight),
+            attrs(weight, family),
             Shaping::Advanced,
         );
         buffer
@@ -119,9 +133,13 @@ impl Default for TextEngine {
     }
 }
 
-fn attrs(weight: u16) -> Attrs<'static> {
+fn attrs(weight: u16, family: Option<&str>) -> Attrs<'static> {
+    let family = match family {
+        Some("monospace") | Some("JetBrains Mono") => MONO_FAMILY,
+        _ => FAMILY,
+    };
     Attrs::new()
-        .family(Family::Name(FAMILY))
+        .family(Family::Name(family))
         .weight(if weight >= 600 {
             Weight::BOLD
         } else {

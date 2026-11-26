@@ -350,17 +350,17 @@ fn focus_op_tracks_and_validates_the_focused_node() {
 #[test]
 fn ellipsis_truncates_to_the_available_width() {
     let mut text = tardis_core::TextEngine::new();
-    let short = text.ellipsize("Hi", 16.0, 400, 100.0);
+    let short = text.ellipsize("Hi", 16.0, 400, None, 100.0);
     assert_eq!(short, "Hi");
 
-    let long = text.ellipsize("Hello wonderful world", 16.0, 400, 60.0);
+    let long = text.ellipsize("Hello wonderful world", 16.0, 400, None, 60.0);
     assert!(
         long.ends_with('\u{2026}'),
         "expected ellipsis, got {long:?}"
     );
     assert!(long.chars().count() < "Hello wonderful world".chars().count());
 
-    let narrow = text.ellipsize("Hello", 16.0, 400, 1.0);
+    let narrow = text.ellipsize("Hello", 16.0, 400, None, 1.0);
     assert_eq!(narrow, "\u{2026}");
 }
 
@@ -395,4 +395,10 @@ fn render_rgba_returns_opaque_rgba_bytes() {
     assert_eq!((width, height), (2, 2));
     assert_eq!(pixels.len(), 2 * 2 * 4);
     assert_eq!(&pixels[0..4], &[0x0a, 0x0a, 0x0a, 0xff]);
+}
+
+#[test]
+fn parses_transparent_colors() {
+    let color = tardis_core::Color::parse("transparent").unwrap();
+    assert_eq!(color.a, 0);
 }

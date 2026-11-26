@@ -55,6 +55,14 @@ impl Color {
     }
 
     pub fn parse(value: &str) -> Option<Self> {
+        if value == "transparent" {
+            return Some(Self {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 0,
+            });
+        }
         let hex = value.strip_prefix('#')?;
         match hex.len() {
             3 => {
@@ -134,6 +142,13 @@ pub enum Position {
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum WhiteSpace {
+    #[default]
+    Normal,
+    NoWrap,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum TextOverflow {
     #[default]
     Clip,
@@ -184,10 +199,12 @@ pub struct Style {
     pub overflow_hidden: bool,
     pub font_size: Option<f32>,
     pub font_weight: Option<u16>,
+    pub font_family: Option<String>,
     pub color: Option<Color>,
     pub line_height: Option<f32>,
     pub text_align: TextAlign,
     pub text_overflow: TextOverflow,
+    pub white_space: WhiteSpace,
 }
 
 impl Default for Style {
@@ -219,10 +236,12 @@ impl Default for Style {
             overflow_hidden: false,
             font_size: None,
             font_weight: None,
+            font_family: None,
             color: None,
             line_height: None,
             text_align: TextAlign::Left,
             text_overflow: TextOverflow::Clip,
+            white_space: WhiteSpace::Normal,
         }
     }
 }
@@ -355,6 +374,7 @@ impl Style {
             }
             "fontSize" => self.font_size = number().filter(|v| *v > 0.0),
             "fontWeight" => self.font_weight = number().map(|v| v as u16),
+            "fontFamily" => self.font_family = string().map(str::to_string),
             "lineHeight" => self.line_height = number().filter(|v| *v > 0.0),
             "textAlign" => {
                 self.text_align = match string() {
@@ -362,6 +382,13 @@ impl Style {
                     Some("right") => TextAlign::Right,
                     Some("left") | None => TextAlign::Left,
                     Some(other) => return Err(format!("unknown textAlign: {other}")),
+                }
+            }
+            "whiteSpace" => {
+                self.white_space = match string() {
+                    Some("nowrap") => WhiteSpace::NoWrap,
+                    Some("normal") | None => WhiteSpace::Normal,
+                    Some(other) => return Err(format!("unknown whiteSpace: {other}")),
                 }
             }
             "textOverflow" => {
