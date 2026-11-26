@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import vm from 'node:vm'
 import { bundleApp, resolveRuntimeEntry } from '../../src/compiler/bundle'
 import type { Patch } from '../../src/scene/index'
 
@@ -60,7 +60,26 @@ describe('bundleApp', () => {
     ): void => {
       patches.push(JSON.parse(json) as Patch)
     }
-    await import(/* @vite-ignore */ pathToFileURL(outfile).href)
+    const previous = (globalThis as unknown as Record<string, unknown>)[
+      '__tardis_flush'
+    ]
+    ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] = (
+      json: string
+    ): void => {
+      patches.push(JSON.parse(json) as Patch)
+    }
+    try {
+      new vm.Script(code).runInThisContext()
+    } finally {
+      if (previous === undefined) {
+        delete (globalThis as unknown as Record<string, unknown>)[
+          '__tardis_flush'
+        ]
+      } else {
+        ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] =
+          previous
+      }
+    }
     const ops = patches.flatMap((patch) => patch.ops)
     expect(ops.some((op) => op.op === 'text' && op.value === 'Count: 2')).toBe(true)
     expect(ops.some((op) => op.op === 'create' && op.kind === 'view')).toBe(true)
