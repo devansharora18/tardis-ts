@@ -209,6 +209,7 @@ Do not claim one.
 - Devtools shows the scene and patch stream; no time travel or owner view.
 - ScrollView thumb is draggable; content height is still explicit.
 - Native AccessKit tree exists; verify screen readers on each host.
+- `--backend wgpu` presents CPU frames through wgpu; no GPU geometry yet.
 - Clipboard is system-backed when available; otherwise memory.
 - Hydration is a remount, not node adoption; no streaming SSR.
 - No Dioxus frame-time benchmark.

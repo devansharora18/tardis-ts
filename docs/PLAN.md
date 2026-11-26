@@ -251,3 +251,12 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - Native `borderWidth`/`borderColor`/`borderRadius` draw an inset rounded stroke
   with clipping; web maps the same keys to CSS.
 - 131 JS / 16 core / 3 accesskit tests.
+
+## wgpu slice result (2026-11-27)
+
+- Optional `wgpu` feature and `--backend wgpu`: CPU RGBA frame -> sRGB texture ->
+  fullscreen triangle -> surface, FIFO vsync, resize/scale hooks.
+- Verified under Xvfb with Mesa GL; Vulkan surface failure falls back to
+  softbuffer instead of terminating.
+- Release binaries build with `--features wgpu`; CI type-checks the feature.
+- Still CPU rasterization: no GPU geometry/text pipeline.

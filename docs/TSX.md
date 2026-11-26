@@ -303,6 +303,14 @@ devtools.dispose()
 The overlay shows the live scene tree (ids, tags, roles, text) and the last 12
 patch frames. It is DOM-only and intended for development.
 
+## Native presentation backend
+
+`tardis run` (or the built binary) accepts `--backend softbuffer` (default) or
+`--backend wgpu`. wgpu presents the CPU-rasterized RGBA frame through a wgpu
+surface with FIFO vsync, resize, and scale handling; if adapter/surface creation
+fails it logs and falls back to softbuffer. The published binary is built with
+the `wgpu` feature. Geometry and text are not GPU-rasterized yet.
+
 ## HiDPI
 
 Native windows read the winit scale factor: layout stays in logical pixels while

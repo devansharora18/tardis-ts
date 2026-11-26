@@ -42,6 +42,9 @@ There is no second grammar.
 - **Boundary** — render-time try/catch with fallback/reset.
 - **AccessKit** — scene nodes map to roles/names/values/bounds; scene focus is
   exported, and focus/click/set-value actions dispatch back into the scene.
+- **wgpu presentation** — optional `wgpu` feature; uploads the CPU RGBA frame to
+  an sRGB texture and presents it through a wgpu surface. Adapter/surface failure
+  falls back to softbuffer. Not a GPU geometry renderer.
 - **Form state** — `createForm` values/touched/errors/submitting; `FormField`.
 - **Resources** — `createResource` loading/error/refetch with last-request-wins.
 - **Router** — path signal, `:param` matching, memory or browser history.

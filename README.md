@@ -118,6 +118,9 @@ app.tsx ─ compiler ─ bundle
   addition to `TextField` and `Checkbox`.
 - **Async resources** — `createResource` with loading, error, refetch,
   `AbortSignal` cancellation, and last-request-wins semantics.
+- **wgpu backend** — `tardis run --backend wgpu` presents native frames through a
+  wgpu surface (vsync, resize, HiDPI) with automatic fallback to softbuffer.
+  Rasterization is still CPU; a GPU geometry pipeline is not implemented.
 - **Native accessibility** — the scene maps to an AccessKit tree with roles,
   names, values, bounds, focus, and focus/click/set-value actions. Web renders
   semantic DOM elements with ARIA attributes.
@@ -229,6 +232,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
   keep the last frame.
 - ScrollView needs an explicit content height; its scrollbar is draggable.
 - Ellipsis is opt-in with `textOverflow: 'ellipsis'` (single line).
+- The wgpu backend presents CPU-rasterized frames; it does not yet rasterize
+  geometry/text on the GPU.
 - Mobile is not started.
 - Browser full-list updates are slower than Dioxus (see benchmarks);
   virtualized lists are the supported large-list shape.
