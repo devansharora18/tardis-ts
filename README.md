@@ -19,28 +19,35 @@ QuickJS) or in a browser (DOM host). Mobile is deferred.
 
 ## Quick start
 
-### Web
+```sh
+npx @devansharora18/tardisjs create
+```
+
+The scaffolder asks for platforms (native, web, or both), styling (Tardis style
+objects or Tailwind on web), a template (counter, form, or 100k-row sheet), the
+package manager, dependency install, and git initialization. Every prompt has
+a non-interactive flag:
 
 ```sh
-npx @devansharora18/tardisjs init
+npx @devansharora18/tardisjs create my-app \
+  --platform both --styling default --template sheet --pm npm --yes
+```
+
+Then:
+
+```sh
+cd my-app
 npm install
-npx tardis dev --target web
+npm run dev        # native, if selected
+npm run dev:web    # browser, if selected
 ```
 
-No Rust needed for the web target. `tardis build --target web` writes
+No Rust is needed for the web target. `tardis build --target web` writes
 `dist/web/app.js` plus a generated `index.html`; `tardis preview` serves it.
-
-### Native
-
-npm installs a prebuilt runtime for Linux, macOS, and Windows through optional
-platform packages. If your platform is missing, build from source:
-
-```sh
-cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml
-npx tardis dev
-```
-
-See [docs/PACKAGING.md](docs/PACKAGING.md) for the release/signing process.
+npm installs a prebuilt native runtime through optional platform packages; if
+your platform is missing, build from source with
+`cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml`.
+See [docs/PACKAGING.md](docs/PACKAGING.md).
 
 ### From this repository
 
@@ -78,6 +85,16 @@ render(() => <App />)
 `@devansharora18/tardisjs/web` boots the DOM host in a browser. In QuickJS there
 is no `document`, so the import is a no-op and the native host receives the
 same scene patches.
+
+## Example applications
+
+- **Tardis Code** (`examples/editor`) — VS Code-style activity bar, explorer,
+  tabs, breadcrumbs, command palette (Ctrl/Cmd+Shift+P), minimap, line/column
+  status, minimap, and a working editor on native and web. Compared with Zed in
+  [docs/EDITORS.md](docs/EDITORS.md).
+- **Tardis Sheet** (`examples/spreadsheet`) — 100,000 × 8 virtualized grid with
+  selection, formula bar, arithmetic, and SUM/AVERAGE/MIN/MAX. Compared with a
+  Dioxus virtualized grid in [docs/SHEETS.md](docs/SHEETS.md).
 
 ## How it works
 
@@ -165,6 +182,12 @@ Dioxus is ~1.54x faster on that stress workload; both miss 60 fps. Tardis wins
 startup/size and native paint, and virtualized lists update in 0.55 ms. See
 [docs/BENCHMARKS.md](docs/BENCHMARKS.md) for method and the optimization plan.
 
+Virtualized spreadsheet scrolling with 100,000 rows is a tie: **Tardis 60.2 fps
+(p95 17.5 ms) vs Dioxus 60.3 fps (p95 17.0 ms)**. The editor comparison with Zed
+1.30.2: **410 ms / 45.5 MiB startup+RSS vs 624 ms / 363 MiB**. Zed wins on
+features by a wide margin; Tardis wins on startup, memory, size, and web support.
+See [docs/SHEETS.md](docs/SHEETS.md) and [docs/EDITORS.md](docs/EDITORS.md).
+
 ## Server rendering
 
 Export the component and guard the client render:
@@ -242,6 +265,13 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Mobile is not started.
 - Browser full-list updates are slower than Dioxus (see benchmarks);
   virtualized lists are the supported large-list shape.
+- The editor has no syntax highlighting, LSP, find/replace, multi-cursor, undo,
+  Git, or terminal yet.
+- The spreadsheet edits through the formula bar; there is no horizontal scroll,
+  clipboard range, CSV import/export, or direct cell typing.
+- Tailwind classes apply on web only; native uses the inline style objects.
+- Scaffolding defaults install dependencies; the alpha package is not published
+  yet, so pass `--yes` or answer "no" to install locally.
 
 ## Docs
 
@@ -251,6 +281,9 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - [Decisions](docs/DECISIONS.md)
 - [TODO](docs/TODO.md)
 - [Benchmarks](docs/BENCHMARKS.md)
+- [Editor vs Zed](docs/EDITORS.md)
+- [100k spreadsheet comparison](docs/SHEETS.md)
+- [Packaging and signing](docs/PACKAGING.md)
 - [ADR 0003 — TSX-only v2](docs/adr/0003-tsx-only-v2.md)
 - [ADR 0004 — web DOM adapter](docs/adr/0004-web-dom-adapter.md)
 - [ADR 0005 — engine and performance strategy](docs/adr/0005-runtime-engine-and-performance.md)

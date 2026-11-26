@@ -53,7 +53,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "publish:check": "npm run build && npm run typecheck && npm test && npm pack --dry-run",
-    "prepublishOnly": "npm run publish:check"
+    "prepublishOnly": "npm run publish:check",
+    "bench:web": "node bench/web-frame/run.mjs",
+    "bench:sheet": "node bench/sheet-frame/run.mjs"
   },
   "keywords": [
     "tsx",

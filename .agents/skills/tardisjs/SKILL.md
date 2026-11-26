@@ -24,8 +24,10 @@ Repo map:
 - `src/cli/` — build/run/screenshot/dev/preview/init
 - `native/crates/core` — patch decode, layout, text, raster
 - `native/crates/js` — QuickJS host (`__tardis_flush`, `__tardis_event`)
-- `native/crates/cli` — headless PNG + winit/softbuffer window
-- `examples/native-counter/app.tsx` — cross-platform reference app
+- `native/crates/cli` — headless PNG + winit/softbuffer/wgpu window
+- `examples/native-counter/app.tsx` — minimal reference app
+- `examples/editor/app.tsx` — VS Code-style editor (compare: docs/EDITORS.md)
+- `examples/spreadsheet/app.tsx` — 100k-row spreadsheet (docs/SHEETS.md)
 
 ## App shape
 
@@ -49,6 +51,8 @@ render(() => <App />)
 
 ## API
 
+- CLI: `tardis create` (interactive: platform, styling, template, pm, install,
+  git) or `--platform/--styling/--template/--pm/--yes`; `--css` on build/dev
 - `createSignal(v) -> [get, set]`; setter accepts `(prev) => next`
 - `createMemo(fn) -> get`, `createEffect(fn)`, `batch(fn)`, `untrack(fn)`
 - `createRoot((dispose) => ...)`, `onCleanup(fn)`
@@ -64,7 +68,9 @@ render(() => <App />)
 - `Checkbox({ checked, onChange?, label?, ariaLabel? })`
 - `Select({ value, options, onChange, placeholder?, ariaLabel?, width?, disabled? })`
 - `RadioGroup({ value, options, onChange, ariaLabel?, direction? })`
-- accessibility props: `role`, `tabIndex`, `aria-*` (web attributes, native stored)
+- accessibility props: `role`, `tabIndex`, `className`, `aria-*` (web
+  attributes; native stores them; `className` is web-only)
+- compiler CSS shell link: `tardis build --css dist/web/app.css`
 - `createForm({ initial, validate?, validateAsync?, onSubmit?, onSubmitError? })`
   → values/touched/errors, submitting/submitted, submitError, submit/reset,
   `field(key)`

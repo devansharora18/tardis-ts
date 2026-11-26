@@ -283,3 +283,19 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   14 MB wgpu-enabled binary and a valid package manifest.
 - npm publish was skipped because this was a `workflow_dispatch` run, not a tag;
   publishing still requires `NPM_TOKEN` and signing secrets.
+
+## Scaffolder, editor, and spreadsheet slice result (2026-11-27)
+
+- `tardis create` interactive prompts plus flags: platform, styling, template,
+  package manager, install, git. Non-TTY defaults never install.
+- Tailwind on web via `className`; `tardis build --css` links the stylesheet.
+- `examples/editor`: VS Code-style activity bar, explorer, tabs, breadcrumbs,
+  command palette, minimap, status bar; native and web tests.
+- `examples/spreadsheet`: 100k × 8 virtualized grid, formula bar, arithmetic and
+  SUM/AVERAGE/MIN/MAX, formula tests; native screenshot.
+- Zed 1.30.2: Tardis 410 ms / 45.5 MiB / 10.6 MB vs Zed 624 ms / 363 MiB /
+  229 MB; feature table in `docs/EDITORS.md`.
+- Dioxus 100k virtualized scroll: Tardis 60.2 fps (p95 17.5 ms) vs Dioxus
+  60.3 fps (p95 17.0 ms); tie documented in `docs/SHEETS.md`.
+- 152 JS / 21 Rust tests before the final app tests; benchmark harnesses in
+  `bench/web-frame/dioxus-sheet` and `bench/sheet-frame`.

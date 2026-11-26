@@ -95,3 +95,8 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 89 | Dialogs stay mounted and toggle `display` | Keeps the panel id stable for the focus trap and restores focus reliably |
 | 90 | The CI matrix runs on Node 22 + Rust 1.96 on Linux, macOS, and Windows | Rust 1.96 avoids the `objc2 0.4` breakage with newer compilers until accesskit/winit are upgraded |
 | 91 | Mutations track the latest call only | Concurrent writes should not let an old response overwrite newer state |
+| 92 | Scaffolder prompts for platforms, styling, template, package manager, install, and git | Matches the Flutter-style onboarding the user asked for; flags cover CI and non-TTY runs |
+| 93 | Tailwind is web-only; `className` becomes a web `class` attribute and native ignores it | Native has no CSS engine; inline style objects remain the cross-platform baseline |
+| 94 | Editor UI follows VS Code interaction patterns with original styling/assets | Familiar layout without copying Microsoft artwork, icons, or code |
+| 95 | Dioxus spreadsheet is a rendering baseline, not a feature clone | Isolates the virtualized 100k-row frame path; formula/app parity would measure app code |
+| 96 | Zed comparison reports startup/RSS/size and a feature table, not typing latency | No low-latency input instrumentation that can sample both apps fairly |

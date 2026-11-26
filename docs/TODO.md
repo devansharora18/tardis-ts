@@ -59,12 +59,23 @@ npx tardis screenshot examples/native-counter/app.tsx -o check.png
 - **Core panic boundary** — a Rust panic is not yet converted into a rejected
   patch + last-frame fallback.
 
+## Applications
+
+- **Editor** — add syntax highlighting, LSP, find/replace, multi-cursor, undo,
+  Git, and a terminal. Current UI: activity bar, explorer, tabs, breadcrumbs,
+  command palette, minimap, status bar.
+- **Spreadsheet** — direct cell typing, horizontal scrolling, scroll-to-active,
+  clipboard ranges, CSV import/export, and undo. Current app edits through the
+  formula bar and has arithmetic + SUM/AVERAGE/MIN/MAX.
+- **Zed typing latency** — not measured; only startup, RSS, size, and features.
+
 ## Performance
 
 - **Web full-list update** — Dioxus is ~1.54x faster on 10k mounted rows. Add a
   raw-text-node fast path and effect batching, then re-run
   `bench/web-frame/run.mjs`.
-- **Virtualized browser head-to-head** — not run yet.
+- **Virtualized spreadsheet** — measured a tie: Tardis 60.2 fps vs Dioxus
+  60.3 fps on 100k rows. See [SHEETS.md](SHEETS.md).
 - **Native frame comparison with Dioxus** — desktop paint timing is not exposed
   by Dioxus' webview.
 - **Glyph atlas / shaped-buffer cache** — re-measure after the text fast path.
@@ -93,7 +104,10 @@ npx tardis screenshot examples/native-counter/app.tsx -o check.png
 
 ## Known honest gaps in claims
 
-- Line count is ~15.4k framework/tests/docs/bench, not 40k. No padding is added.
+- Line count is ~19k framework/examples/tests/docs/bench, not 40k. No padding
+  is added.
 - "Production-grade" is not claimed while the items above are open.
-- The Dioxus web frame benchmark is a measured loss, published in
-  [BENCHMARKS.md](BENCHMARKS.md).
+- The Dioxus web full-list benchmark is a measured loss, published in
+  [BENCHMARKS.md](BENCHMARKS.md). The 100k virtualized sheet comparison is a tie,
+  published in [SHEETS.md](SHEETS.md). The editor beats Zed on startup/memory/
+  size and loses on features, published in [EDITORS.md](EDITORS.md).
