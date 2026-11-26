@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createWebHost, type WebHost } from '../../src/web/index'
 import {
   createRouter,
@@ -102,6 +102,98 @@ describe('Router', () => {
     const router = createRouter({ initial: '/', history: true })
     router.navigate('/about')
     expect(window.location.pathname).toBe('/about')
+    router.dispose()
+  })
+})
+
+describe('router guards and lazy routes', () => {
+  it('redirects when a guard returns a path', async () => {
+    const router = createRouter({ initial: '/admin' })
+    handle = render(() =>
+      jsx(Router, {
+        router,
+        routes: {
+          '/admin': () => jsx('p', {}, 'admin'),
+          '/login': () => jsx('p', {}, 'login'),
+        },
+        guards: { '/admin': () => '/login' },
+      })
+    )
+    await Promise.resolve()
+    flushNow()
+    expect(router.path()).toBe('/login')
+    expect(app().textContent).toBe('login')
+  })
+
+  it('blocks a route when a guard returns false', () => {
+    const router = createRouter({ initial: '/admin' })
+    handle = render(() =>
+      jsx(Router, {
+        router,
+        routes: { '/admin': () => jsx('p', {}, 'admin') },
+        guards: { '/admin': () => false },
+        fallback: () => jsx('p', {}, 'denied'),
+      })
+    )
+    expect(app().textContent).toBe('denied')
+  })
+
+  it('loads a lazy route once and renders loading first', async () => {
+    let resolve: ((renderer: (params: Record<string, string>) => any) => void) | null =
+      null
+    const router = createRouter({ initial: '/' })
+    handle = render(() =>
+      jsx(Router, {
+        router,
+        routes: { '/': () => jsx('p', {}, 'eager') },
+        lazy: {
+          '/': () =>
+            new Promise((done) => {
+              resolve = done
+            }),
+        },
+        loading: () => jsx('p', {}, 'loading'),
+      })
+    )
+    expect(app().textContent).toBe('loading')
+    resolve!(() => jsx('p', {}, 'lazy'))
+    await new Promise((done) => setTimeout(done, 0))
+    flushNow()
+    expect(app().textContent).toBe('lazy')
+  })
+
+  it('marks links as accessible links', () => {
+    const router = createRouter({ initial: '/' })
+    handle = render(() =>
+      jsx(Link, { router, to: '/about' }, 'about link')
+    )
+    const link = app().querySelector('[role="link"]') as HTMLElement
+    expect(link).not.toBeNull()
+    expect(link.getAttribute('tabindex')).toBe('0')
+  })
+})
+
+describe('history scroll restoration', () => {
+  it('saves and restores scroll positions per path', async () => {
+    window.history.replaceState({}, '', '/')
+    const scrollTo = vi.fn()
+    window.scrollTo = scrollTo
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 120,
+    })
+    const router = createRouter({ initial: '/', history: true })
+    router.navigate('/about')
+    await Promise.resolve()
+    expect(scrollTo).toHaveBeenCalledWith(0, 0)
+
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 300,
+    })
+    router.navigate('/')
+    await Promise.resolve()
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 120)
     router.dispose()
   })
 })
