@@ -134,6 +134,13 @@ pub enum Position {
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum TextOverflow {
+    #[default]
+    Clip,
+    Ellipsis,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum TextAlign {
     #[default]
     Left,
@@ -178,6 +185,7 @@ pub struct Style {
     pub color: Option<Color>,
     pub line_height: Option<f32>,
     pub text_align: TextAlign,
+    pub text_overflow: TextOverflow,
 }
 
 impl Default for Style {
@@ -210,6 +218,7 @@ impl Default for Style {
             color: None,
             line_height: None,
             text_align: TextAlign::Left,
+            text_overflow: TextOverflow::Clip,
         }
     }
 }
@@ -338,6 +347,13 @@ impl Style {
                     Some("right") => TextAlign::Right,
                     Some("left") | None => TextAlign::Left,
                     Some(other) => return Err(format!("unknown textAlign: {other}")),
+                }
+            }
+            "textOverflow" => {
+                self.text_overflow = match string() {
+                    Some("ellipsis") => TextOverflow::Ellipsis,
+                    Some("clip") | None => TextOverflow::Clip,
+                    Some(other) => return Err(format!("unknown textOverflow: {other}")),
                 }
             }
             "display" => self.display = !matches!(string(), Some("none")),

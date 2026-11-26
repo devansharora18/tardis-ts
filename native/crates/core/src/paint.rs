@@ -15,7 +15,7 @@ use tiny_skia::{
 };
 
 use crate::layout::{ComputedLayout, Rect};
-use crate::scene::{Color, NodeKind, Scene, TextAlign};
+use crate::scene::{Color, NodeKind, Scene, TextAlign, TextOverflow};
 use crate::text::TextEngine;
 
 pub struct RenderOptions {
@@ -34,6 +34,7 @@ struct ResolvedText {
     weight: u16,
     color: Color,
     align: TextAlign,
+    overflow: TextOverflow,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -349,8 +350,13 @@ fn draw_text(
             clip,
         );
     }
+    let content = if style.overflow == TextOverflow::Ellipsis {
+        text_engine.ellipsize(content, style.size * scale, style.weight, rect.width)
+    } else {
+        content.to_string()
+    };
     let buffer = text_engine.buffer(
-        content,
+        &content,
         style.size * scale,
         style.line_height * scale,
         style.weight,
@@ -399,6 +405,7 @@ fn resolve_text_style(scene: &Scene, node_id: u32) -> ResolvedText {
         weight: 400,
         color: Color::rgb(0xed, 0xed, 0xed),
         align: TextAlign::Left,
+        overflow: TextOverflow::Clip,
     };
     for id in chain {
         let Some(node) = scene.nodes.get(&id) else {
@@ -417,6 +424,7 @@ fn resolve_text_style(scene: &Scene, node_id: u32) -> ResolvedText {
         if let Some(color) = node.style.color {
             style.color = color;
         }
+        style.overflow = node.style.text_overflow;
         style.align = node.style.text_align;
     }
     style

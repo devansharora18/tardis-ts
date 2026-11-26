@@ -51,6 +51,48 @@ impl TextEngine {
         (width, height)
     }
 
+    /// Truncate the first line to `max_width`, appending an ellipsis.
+    pub fn ellipsize(&mut self, text: &str, size: f32, weight: u16, max_width: f32) -> String {
+        let line = text.lines().next().unwrap_or("");
+        if max_width <= 0.0 {
+            return String::new();
+        }
+        if self.line_width(line, size, weight) <= max_width {
+            return line.to_string();
+        }
+        let chars: Vec<char> = line.chars().collect();
+        let mut low = 0usize;
+        let mut high = chars.len();
+        while low < high {
+            let mid = (low + high).div_ceil(2);
+            let mut candidate: String = chars[..mid].iter().collect();
+            candidate.push('\u{2026}');
+            if self.line_width(&candidate, size, weight) <= max_width {
+                low = mid;
+            } else {
+                high = mid - 1;
+            }
+        }
+        let mut result: String = chars[..low].iter().collect();
+        result.push('\u{2026}');
+        result
+    }
+
+    fn line_width(&mut self, text: &str, size: f32, weight: u16) -> f32 {
+        let mut buffer = Buffer::new(&mut self.font_system, Metrics::new(size, size * 1.4));
+        buffer.set_size(&mut self.font_system, Some(f32::MAX / 4.0), None);
+        buffer.set_text(
+            &mut self.font_system,
+            text,
+            attrs(weight),
+            Shaping::Advanced,
+        );
+        buffer
+            .layout_runs()
+            .map(|run| run.line_w)
+            .fold(0.0, f32::max)
+    }
+
     pub fn buffer(
         &mut self,
         text: &str,

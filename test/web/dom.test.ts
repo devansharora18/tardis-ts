@@ -65,6 +65,27 @@ describe('web host', () => {
     expect(card.style.display).toBe('flex')
   })
 
+  it('maps text overflow and nowrap to CSS', () => {
+    const app = mount(() =>
+      jsx(
+        'span',
+        {
+          style: {
+            width: 80,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+          },
+        },
+        'A long label'
+      )
+    )
+    const label = byText(app, 'A long label')
+    expect(label.style.textOverflow).toBe('ellipsis')
+    expect(label.style.whiteSpace).toBe('nowrap')
+    expect(label.style.overflow).toBe('hidden')
+  })
+
   it('updates dynamic text in place', () => {
     const [count, setCount] = createSignal(0)
     const app = mount(() => jsx('h1', {}, 'Count: ', dynamic(() => count())))

@@ -45,6 +45,7 @@ export const CSS_PROPERTIES: Record<string, string> = {
   color: 'color',
   lineHeight: 'line-height',
   textAlign: 'text-align',
+  textOverflow: 'text-overflow',
 }
 
 export const PIXEL_PROPERTIES = new Set([

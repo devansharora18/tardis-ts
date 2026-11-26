@@ -346,3 +346,20 @@ fn focus_op_tracks_and_validates_the_focused_node() {
     assert!(err.contains("does not exist"));
     assert_eq!(engine.scene.focused, before);
 }
+
+#[test]
+fn ellipsis_truncates_to_the_available_width() {
+    let mut text = tardis_core::TextEngine::new();
+    let short = text.ellipsize("Hi", 16.0, 400, 100.0);
+    assert_eq!(short, "Hi");
+
+    let long = text.ellipsize("Hello wonderful world", 16.0, 400, 60.0);
+    assert!(
+        long.ends_with('\u{2026}'),
+        "expected ellipsis, got {long:?}"
+    );
+    assert!(long.chars().count() < "Hello wonderful world".chars().count());
+
+    let narrow = text.ellipsize("Hello", 16.0, 400, 1.0);
+    assert_eq!(narrow, "\u{2026}");
+}
