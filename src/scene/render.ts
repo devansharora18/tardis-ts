@@ -5,6 +5,7 @@ import type { EventHandler, SceneEvent, SceneNode } from './types'
 
 let installed = false
 let pressed: number | null = null
+let focused: number | null = null
 
 function installEventHook(): void {
   if (installed) return
@@ -43,11 +44,16 @@ export function render(factory: () => unknown): RenderHandle {
   }
 }
 
+export function focusNode(id: number | null): void {
+  focused = id
+}
+
 export function dispatchEvent(event: SceneEvent): void {
   if (event.type === 'pointer') {
     const target = typeof event.node === 'number' ? event.node : null
     if (event.phase === 'down') {
       pressed = target
+      focused = target
       return
     }
     if (event.phase === 'up') {
@@ -60,6 +66,26 @@ export function dispatchEvent(event: SceneEvent): void {
       flushNow()
       return
     }
+    return
+  }
+  if (event.type === 'key') {
+    const phase = event.phase ?? 'down'
+    if (phase === 'down' && (event.key === 'Enter' || event.key === ' ')) {
+      const entry = focused !== null ? clickableAncestor(focused) : null
+      entry?.handler(event)
+    }
+    let node: SceneNode | null =
+      focused !== null ? getNode(focused) ?? null : null
+    while (node) {
+      const handler =
+        node.handlers[phase === 'up' ? 'onKeyUp' : 'onKeyDown']
+      if (handler) {
+        handler(event)
+        break
+      }
+      node = node.parent
+    }
+    flushNow()
     return
   }
   if (event.type === 'wheel') {

@@ -13,6 +13,8 @@ export interface SceneEvent {
   value?: string
   dx?: number
   dy?: number
+  repeat?: boolean
+  mods?: { ctrl: boolean; shift: boolean; alt: boolean; meta: boolean }
   [key: string]: unknown
 }
 

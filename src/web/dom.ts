@@ -177,6 +177,29 @@ export class WebHost {
     }
     this.container.addEventListener('wheel', wheel, { passive: false })
     this.listeners.push({ target: this.container, type: 'wheel', fn: wheel })
+
+    for (const [type, phase] of [
+      ['keydown', 'down'],
+      ['keyup', 'up'],
+    ] as const) {
+      const key = (event: Event): void => {
+        const keyboard = event as KeyboardEvent
+        dispatchEvent({
+          type: 'key',
+          phase,
+          key: keyboard.key,
+          repeat: keyboard.repeat,
+          mods: {
+            ctrl: keyboard.ctrlKey,
+            shift: keyboard.shiftKey,
+            alt: keyboard.altKey,
+            meta: keyboard.metaKey,
+          },
+        })
+      }
+      window.addEventListener(type, key)
+      this.listeners.push({ target: window, type, fn: key })
+    }
   }
 
   flush(json: string): void {

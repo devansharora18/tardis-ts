@@ -208,6 +208,7 @@ mod window {
     };
     use tardis_js::JsHost;
     use winit::event::{ElementState, Event, MouseButton, MouseScrollDelta, WindowEvent};
+    use winit::keyboard::{Key, NamedKey};
     use winit::event_loop::{ControlFlow, EventLoop};
     use winit::window::WindowBuilder;
 
@@ -241,6 +242,7 @@ mod window {
 
         let mut cursor = (0.0_f32, 0.0_f32);
         let mut dirty = true;
+        let mut modifiers = winit::keyboard::ModifiersState::empty();
 
         event_loop
             .run(move |event, elwt| {
@@ -259,6 +261,39 @@ mod window {
                         }
                         WindowEvent::CursorMoved { position, .. } => {
                             cursor = (position.x as f32, position.y as f32);
+                        }
+                        WindowEvent::ModifiersChanged(next) => {
+                            modifiers = next.state();
+                        }
+                        WindowEvent::KeyboardInput { event, .. } => {
+                            let phase = if event.state == ElementState::Pressed {
+                                "down"
+                            } else {
+                                "up"
+                            };
+                            let key = match &event.logical_key {
+                                Key::Character(value) => value.to_string(),
+                                Key::Named(NamedKey::Space) => " ".to_string(),
+                                Key::Named(named) => format!("{named:?}"),
+                                _ => String::new(),
+                            };
+                            let event_json = serde_json::json!({
+                                "type": "key",
+                                "phase": phase,
+                                "key": key,
+                                "repeat": event.repeat,
+                                "mods": {
+                                    "ctrl": modifiers.control_key(),
+                                    "shift": modifiers.shift_key(),
+                                    "alt": modifiers.alt_key(),
+                                    "meta": modifiers.super_key(),
+                                }
+                            })
+                            .to_string();
+                            if let Err(err) = host.dispatch(&event_json) {
+                                eprintln!("tardis: {err}");
+                            }
+                            dirty = true;
                         }
                         WindowEvent::MouseWheel { delta, .. } => {
                             let dy = match delta {
