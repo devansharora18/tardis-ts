@@ -84,3 +84,5 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 78 | Form async validation runs at submit time | Avoids racing per-keystroke validation; sync rules still update immediately |
 | 79 | Submit rejections become `submitError` | Forms should not produce unhandled rejections; callers can render the error |
 | 80 | Resources abort the previous request | `fetch` stops work and stale responses are already token-guarded |
+| 81 | Hydration adopts server nodes by structural order, not scene ids | Server and client id counters can differ; DOM order is stable and patch ids are remapped |
+| 82 | Unclaimed server nodes are removed after the first flush | Prevents stale markup surviving a shorter client tree |

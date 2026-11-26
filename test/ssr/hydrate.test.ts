@@ -32,10 +32,12 @@ describe('hydrate', () => {
     const server = renderToString(App)
     document.body.innerHTML = `<div id="app">${server}</div>`
     const container = document.getElementById('app')!
+    const serverButton = container.querySelector('button')
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     try {
       hydrated = hydrate(App, container)
       expect(warn).not.toHaveBeenCalled()
+      expect(container.querySelector('button')).toBe(serverButton)
       expect(container.textContent).toContain('Count: 0')
       const plus = Array.from(
         container.querySelectorAll<HTMLElement>('[data-tardis]')

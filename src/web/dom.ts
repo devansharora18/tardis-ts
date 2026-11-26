@@ -11,6 +11,8 @@ export interface WebHostOptions {
   force?: boolean
   background?: string
   color?: string
+  /** Reuse server-rendered `[data-tardis]` nodes in place. */
+  adopt?: boolean
 }
 
 import { BASE_CSS, CSS_PROPERTIES, defaultStyle, rootStyle, toCssValue } from './style'
@@ -38,6 +40,8 @@ export class WebHost {
   private readonly flushFn: (json: string) => void
   private ime: HTMLTextAreaElement | null = null
   private composing = false
+  private adopting = false
+  private adoptQueue: HTMLElement[] = []
   private disposed = false
 
   constructor(options: WebHostOptions = {}) {
@@ -47,15 +51,27 @@ export class WebHost {
     const doc = document
     ensureBaseStyles(doc)
     this.container = options.container ?? doc.getElementById('app') ?? doc.body
-    this.root = doc.createElement('div')
-    this.root.setAttribute('data-tardis', '0')
-    for (const [key, value] of Object.entries(
-      rootStyle(options.background, options.color)
-    )) {
-      this.applyStyle(this.root, key, value)
+    const existing = options.adopt
+      ? (this.container.querySelector('[data-tardis="0"]') as HTMLElement | null)
+      : null
+    if (existing) {
+      this.root = existing
+      this.adopting = true
+      this.elements.set(0, existing)
+      this.adoptQueue = Array.from(
+        existing.querySelectorAll<HTMLElement>('[data-tardis]')
+      )
+    } else {
+      this.root = doc.createElement('div')
+      this.root.setAttribute('data-tardis', '0')
+      for (const [key, value] of Object.entries(
+        rootStyle(options.background, options.color)
+      )) {
+        this.applyStyle(this.root, key, value)
+      }
+      this.container.appendChild(this.root)
+      this.elements.set(0, this.root)
     }
-    this.container.appendChild(this.root)
-    this.elements.set(0, this.root)
 
     this.flushFn = (json: string): void => this.flush(json)
     ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] =
@@ -247,6 +263,21 @@ export class WebHost {
     if (this.disposed) return
     const patch = JSON.parse(json) as Patch
     for (const op of patch.ops) this.apply(op)
+    if (this.adopting) {
+      this.adopting = false
+      this.removeUnclaimed()
+    }
+  }
+
+  /** Drop server nodes the client patch stream did not claim. */
+  private removeUnclaimed(): void {
+    const claimed = new Set(this.elements.values())
+    for (const element of Array.from(
+      this.root.querySelectorAll<HTMLElement>('[data-tardis]')
+    )) {
+      if (!claimed.has(element)) element.remove()
+    }
+    this.adoptQueue.length = 0
   }
 
   private apply(op: HostOp): void {
@@ -256,6 +287,25 @@ export class WebHost {
         if (!parent) {
           console.warn(`tardis web: missing parent ${op.parent}`)
           return
+        }
+        const reused = this.elements.get(op.id)
+        if (reused) {
+          const reference = parent.children.item(op.index) ?? null
+          if (reference !== reused) parent.insertBefore(reused, reference)
+          break
+        }
+        if (this.adoptQueue.length > 0) {
+          const at = this.adoptQueue.findIndex(
+            (candidate) => candidate.parentElement === parent
+          )
+          if (at !== -1) {
+            const adopted = this.adoptQueue.splice(at, 1)[0]!
+            adopted.setAttribute('data-tardis', String(op.id))
+            const reference = parent.children.item(op.index) ?? null
+            if (reference !== adopted) parent.insertBefore(adopted, reference)
+            this.elements.set(op.id, adopted)
+            break
+          }
         }
         const element = this.createElement(op.kind, op.tag)
         element.setAttribute('data-tardis', String(op.id))

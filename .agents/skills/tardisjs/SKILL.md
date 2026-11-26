@@ -56,7 +56,8 @@ render(() => <App />)
 - `jsx`, `dynamic`, `Fragment` (compiler output; rarely used directly)
 - `installWebHost(options?)` for custom web mounting; auto-installed on `#app`
 - `VirtualList({ items, rowHeight, height, renderRow, overscan?, scrollTop?, onScroll? })`
-- `createRouter({ initial?, history? })`, `Router({ router, routes, fallback? })`,
+- `createRouter({ initial?, history?, scrollRestoration? })`,
+  `Router({ router, routes, fallback?, guards?, lazy?, loading?, error? })`,
   `Link({ router, to, children })`, `matchPath(pattern, path)`
 - `focusNode(id)`; keyboard handlers `onKeyDown`/`onKeyUp`; wheel `onWheel`
 - `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?, multiline?, rows?, onSubmit?, onBlur?, onFocus? })`

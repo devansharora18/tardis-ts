@@ -217,7 +217,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Native accessibility trees use AccessKit; screen-reader behavior still needs
   host testing on macOS/Windows/Linux.
 - Native HiDPI is handled with the window scale factor; verify on Retina hosts.
-- Hydration is a verified remount (content compared), not server-node adoption.
+- Hydration adopts server DOM nodes in place (matching by structure, then
+  updating styles/text/ARIA); the content comparison still warns on mismatch.
 - No streaming SSR or data prefetch; no server bundle CLI yet.
 - Boundary catches render and subtree effect errors; native core panics still
   keep the last frame.

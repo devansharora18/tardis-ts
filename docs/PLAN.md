@@ -228,3 +228,12 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - Windows fixes: CRLF JSX whitespace, file-URL bundle loading, targeted key
   activation; clippy `question_mark` cleanup.
 - 126 JS / 18 Rust tests.
+
+## SSR adoption slice result (2026-11-27)
+
+- Web host `adopt` mode reuses server `[data-tardis]` nodes structurally,
+  remaps ids, patches in place, and prunes unclaimed nodes after first flush.
+- `hydrate` no longer stages/remounts; it keeps node identity, warns on text
+  mismatch, and clears stale markup when no server root exists.
+- Router guards/redirects, cached lazy routes, scroll restoration, link roles.
+- 10 router tests, 2 hydration tests.

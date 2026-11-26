@@ -1,13 +1,9 @@
 // Client takeover for server-rendered markup.
 //
-// The scene runtime emits direct DOM operations, so there is no virtual tree to
-// adopt. Hydration here is a deterministic remount: the factory renders into a
-// detached staging container, server and client text are compared as a sanity
-// check, then the client root replaces the server nodes and the WebHost moves
-// its listeners to the real container. No flash if the markup is equivalent.
-//
-// Not implemented: adopting the existing server nodes in place. A content
-// mismatch warns but still mounts.
+// The web host runs in adopt mode: patch `create` ops reuse the server nodes
+// with the same `data-tardis` id, and style/text/aria ops update them in place.
+// Unclaimed server nodes are removed after the first flush. Text is compared
+// before and after the takeover to report a mismatch.
 
 import { render } from '../scene/render'
 import type { RenderHandle } from '../scene/render'
@@ -30,25 +26,23 @@ export function hydrate(
   if (typeof document === 'undefined') {
     throw new Error('tardis: hydrate needs a DOM; use renderToString on the server')
   }
-  const staging = document.createElement('div')
-  const host = createWebHost({ container: staging })
-  const handle: RenderHandle = render(factory)
-
-  const serverText = container.textContent ?? ''
-  const clientText = staging.textContent ?? ''
-  if (serverText !== clientText) {
-    if (options.onMismatch) options.onMismatch(serverText, clientText)
-    else {
-      console.warn(
-        '[tardis] hydration content mismatch; replacing server markup'
-      )
-    }
-  }
-
   if (!(container instanceof HTMLElement)) {
     throw new Error('tardis: hydrate needs an HTMLElement container')
   }
-  host.setContainer(container, true)
+  const serverText = container.textContent ?? ''
+  if (!container.querySelector('[data-tardis="0"]')) {
+    container.replaceChildren()
+  }
+  const host = createWebHost({ container, adopt: true })
+  const handle: RenderHandle = render(factory)
+
+  const clientText = container.textContent ?? ''
+  if (serverText !== clientText) {
+    if (options.onMismatch) options.onMismatch(serverText, clientText)
+    else {
+      console.warn('[tardis] hydration content mismatch; patched server markup')
+    }
+  }
 
   return {
     root: host.getRootElement(),
