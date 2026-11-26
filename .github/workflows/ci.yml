@@ -4,6 +4,13 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: ${{ matrix.os }}
@@ -19,6 +26,8 @@ jobs:
           node-version: 22
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
       - name: Install Linux window dependencies
         if: runner.os == 'Linux'
         run: |
@@ -28,5 +37,11 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-      - run: cargo test --workspace --manifest-path native/Cargo.toml
+      - run: cargo fmt --manifest-path native/Cargo.toml --check
+      - run: cargo clippy --manifest-path native/Cargo.toml --workspace --all-targets -- -D warnings
+      - run: cargo test --manifest-path native/Cargo.toml --workspace
       - run: cargo build --release --manifest-path native/Cargo.toml
+      - name: Native screenshot smoke
+        run: node dist/bin/tardis.js screenshot examples/forms/app.tsx -o forms.png
+      - name: Verify screenshot
+        run: node -e "if (!require('node:fs').existsSync('forms.png')) process.exit(1)"

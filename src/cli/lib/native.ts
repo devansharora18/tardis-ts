@@ -32,7 +32,16 @@ export function findNativeBinary(cwd: string): string {
   }
   const exe = process.platform === 'win32' ? '.exe' : ''
   const here = path.dirname(fileURLToPath(import.meta.url))
+  const platform = `${process.platform}-${process.arch}`
   const candidates = [
+    path.resolve(
+      cwd,
+      `node_modules/@devansharora18/tardisjs-${platform}/bin/tardis-native${exe}`
+    ),
+    path.resolve(
+      here,
+      `../../../@devansharora18/tardisjs-${platform}/bin/tardis-native${exe}`
+    ),
     path.resolve(cwd, `native/target/release/tardis-native${exe}`),
     path.resolve(cwd, `native/target/debug/tardis-native${exe}`),
     path.resolve(here, `../../native/target/release/tardis-native${exe}`),
@@ -47,6 +56,7 @@ export function findNativeBinary(cwd: string): string {
   }
   throw new Error(
     'Native runtime not found.\n' +
+      `  Platform package: @devansharora18/tardisjs-${platform}\n` +
       '  In an installed app:\n' +
       '    cargo build --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml\n' +
       '  In the TardisJS repo:\n' +

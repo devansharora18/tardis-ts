@@ -30,12 +30,15 @@ No Rust needed for the web target. `tardis build --target web` writes
 
 ### Native
 
-Build the runtime once (the npm tarball ships the Rust sources):
+npm installs a prebuilt runtime for Linux, macOS, and Windows through optional
+platform packages. If your platform is missing, build from source:
 
 ```sh
 cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml
 npx tardis dev
 ```
+
+See [docs/PACKAGING.md](docs/PACKAGING.md) for the release/signing process.
 
 ### From this repository
 

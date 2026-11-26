@@ -6,24 +6,46 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
 jobs:
   native:
+    name: ${{ matrix.platform }}-${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: tardis-native-linux-x64
-            binary: native/target/release/tardis-native
+            platform: linux
+            arch: x64
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+          - os: macos-13
+            platform: darwin
+            arch: x64
           - os: macos-latest
-            artifact: tardis-native-darwin-arm64
-            binary: native/target/release/tardis-native
+            platform: darwin
+            arch: arm64
           - os: windows-latest
-            artifact: tardis-native-win32-x64
-            binary: native/target/release/tardis-native.exe
+            platform: win32
+            arch: x64
     runs-on: ${{ matrix.os }}
+    env:
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - uses: dtolnay/rust-toolchain@stable
       - name: Linux window dependencies
         if: runner.os == 'Linux'
@@ -31,7 +53,94 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev
       - run: cargo build --release --manifest-path native/Cargo.toml
+
+      - name: Import macOS certificate
+        if: runner.os == 'macOS' && env.MACOS_CERTIFICATE != ''
+        run: |
+          echo "$MACOS_CERTIFICATE" | base64 --decode > /tmp/tardis-cert.p12
+          security create-keychain -p actions tardis.keychain
+          security default-keychain -s tardis.keychain
+          security unlock-keychain -p actions tardis.keychain
+          security import /tmp/tardis-cert.p12 -k tardis.keychain -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k actions tardis.keychain
+          codesign --force --options runtime --timestamp --sign "$MACOS_SIGN_IDENTITY" native/target/release/tardis-native
+          codesign --verify --verbose native/target/release/tardis-native
+      - name: Notarize macOS binary
+        if: runner.os == 'macOS' && env.MACOS_CERTIFICATE != '' && env.APPLE_ID != ''
+        run: |
+          ditto -c -k --keepParent native/target/release/tardis-native /tmp/tardis-native.zip
+          xcrun notarytool submit /tmp/tardis-native.zip \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait
+
+      - name: Sign Windows binary
+        if: runner.os == 'Windows' && env.WINDOWS_CERTIFICATE != ''
+        shell: pwsh
+        run: |
+          [IO.File]::WriteAllBytes("cert.pfx", [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+          & signtool sign /f cert.pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD `
+            /tr http://timestamp.digicert.com /td sha256 /fd sha256 `
+            native/target/release/tardis-native.exe
+
+      - name: Assemble platform package
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
+            VERSION="$(node -p "require('./package.json').version")"
+          fi
+          BINARY="native/target/release/tardis-native"
+          if [ "${{ matrix.platform }}" = "win32" ]; then BINARY="$BINARY.exe"; fi
+          node scripts/package-native.mjs \
+            --platform "${{ matrix.platform }}" \
+            --arch "${{ matrix.arch }}" \
+            --binary "$BINARY" \
+            --version "$VERSION" \
+            --out platform-dist
+
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.binary }}
+          name: tardis-native-${{ matrix.platform }}-${{ matrix.arch }}
+          path: platform-dist/
+          if-no-files-found: error
+
+  publish:
+    name: npm
+    needs: native
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/download-artifact@v4
+        with:
+          path: platform-dist
+          pattern: tardis-native-*
+          merge-multiple: true
+      - name: Publish platform packages
+        if: env.NODE_AUTH_TOKEN != ''
+        shell: bash
+        run: |
+          for dir in platform-dist/*/; do
+            (cd "$dir" && npm publish --access public)
+          done
+      - name: Publish root package
+        if: env.NODE_AUTH_TOKEN != ''
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          node scripts/inject-optional-deps.mjs "$VERSION"
+          npm publish --access public

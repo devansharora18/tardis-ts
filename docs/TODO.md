@@ -100,3 +100,16 @@ npm publish --tag alpha
   history).
 - Record short captures of the native window, the web app, and the headless
   screenshot flow.
+
+## RUN ON HOST
+
+- Configure npm publishing: add the `NPM_TOKEN` repository secret, then run the
+  `release` workflow with a `v*` tag.
+- Configure macOS signing/notarization secrets (`MACOS_CERTIFICATE`,
+  `MACOS_CERTIFICATE_PASSWORD`, `MACOS_SIGN_IDENTITY`, `APPLE_ID`,
+  `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD`).
+- Configure Windows signing secrets (`WINDOWS_CERTIFICATE`,
+  `WINDOWS_CERTIFICATE_PASSWORD`).
+- Run the GUI smoke on real hardware:
+  `npx tardis dev` on macOS and Windows, and verify a screen reader reads the
+  AccessKit tree.
