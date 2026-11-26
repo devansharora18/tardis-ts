@@ -8,6 +8,7 @@ export interface ScreenshotOptions extends BuildOptions {
   dump?: string
   width?: number
   height?: number
+  scale?: number
 }
 
 export interface ScreenshotResult {
@@ -34,6 +35,7 @@ export async function screenshotApp(
     '--out',
     png,
   ]
+  if (options.scale !== undefined) args.push('--scale', String(options.scale))
   if (dump) args.push('--dump', dump)
 
   const result = await capture(binary, args)

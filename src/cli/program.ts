@@ -53,15 +53,26 @@ export function createProgram(): Command {
 		.description('Build and open the native window')
 		.option('--width <px>', 'window width', '800')
 		.option('--height <px>', 'window height', '600')
+		.option('--scale <factor>', 'device pixel ratio')
+		.option('--backend <name>', 'softbuffer or wgpu', 'softbuffer')
 		.action(
 			async (
 				entry: string | undefined,
-				options: { width: string; height: string }
+				options: {
+					width: string
+					height: string
+					scale?: string
+					backend: string
+				}
 			) => {
 				const code = await runApp(process.cwd(), {
 					entry,
 					width: parseSize(options.width, 'width'),
 					height: parseSize(options.height, 'height'),
+					scale: options.scale
+						? Number.parseFloat(options.scale)
+						: undefined,
+					backend: options.backend,
 				})
 				if (code !== 0) process.exitCode = code
 			}
@@ -74,6 +85,7 @@ export function createProgram(): Command {
 		.option('--dump <path>', 'write the laid-out scene as JSON')
 		.option('--width <px>', 'viewport width', '800')
 		.option('--height <px>', 'viewport height', '600')
+		.option('--scale <factor>', 'device pixel ratio')
 		.action(
 			async (
 				entry: string | undefined,
@@ -82,6 +94,7 @@ export function createProgram(): Command {
 					dump?: string
 					width: string
 					height: string
+					scale?: string
 				}
 			) => {
 				const result = await screenshotApp(process.cwd(), {
@@ -90,6 +103,9 @@ export function createProgram(): Command {
 					dump: options.dump,
 					width: parseSize(options.width, 'width'),
 					height: parseSize(options.height, 'height'),
+					scale: options.scale
+						? Number.parseFloat(options.scale)
+						: undefined,
 				})
 				console.log(`wrote ${displayPath(process.cwd(), result.png)}`)
 				if (result.dump) {

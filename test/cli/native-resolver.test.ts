@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import path from 'node:path'
 import { nativeBinaryCandidates } from '../../src/cli/lib/native'
+import { nativeRunArgs } from '../../src/cli/commands/run'
 
 describe('native binary resolution', () => {
   it('finds the platform package next to an installed scope', () => {
@@ -23,5 +24,29 @@ describe('native binary resolution', () => {
     const candidates = nativeBinaryCandidates('C:/app', here, 'win32', 'x64')
     expect(candidates[0].endsWith('tardis-native.exe')).toBe(true)
     expect(candidates[0]).toContain('tardisjs-win32-x64')
+  })
+})
+
+describe('native run arguments', () => {
+  it('forwards scale and backend', () => {
+    expect(
+      nativeRunArgs('/tmp/app.js', {
+        width: 640,
+        height: 480,
+        scale: 2,
+        backend: 'wgpu',
+      })
+    ).toEqual([
+      '--bundle',
+      '/tmp/app.js',
+      '--width',
+      '640',
+      '--height',
+      '480',
+      '--scale',
+      '2',
+      '--backend',
+      'wgpu',
+    ])
   })
 })
