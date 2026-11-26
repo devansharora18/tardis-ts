@@ -1,9 +1,10 @@
-// Native app bundler.
+// App bundler for both targets.
 //
-// esbuild handles module resolution and bundling; a load plugin routes `.tsx`
-// through the scene compiler. The runtime is aliased to the in-repo source (or
-// the built bundle in a published package) so apps import the scoped scene path
-// without a second package.
+// Native: IIFE for QuickJS, `platform: neutral`.
+// Web: IIFE for the browser plus a generated index.html shell.
+//
+// The same TSX entry is used. The web host is imported by the app for its side
+// effect; in QuickJS `typeof document === 'undefined'`, so it is a no-op.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -11,17 +12,23 @@ import { fileURLToPath } from 'node:url'
 import { build, type Plugin } from 'esbuild'
 import { compileTsx } from './tsx'
 
+export type BundleTarget = 'native' | 'web'
+
 export interface BundleOptions {
   entry: string
   outfile: string
   minify?: boolean
   sourcemap?: boolean
+  target?: BundleTarget
   runtime?: string
+  webRuntime?: string
+  title?: string
 }
 
 export interface BundleResult {
   outfile: string
   bytes: number
+  shell?: string
 }
 
 export function resolveRuntimeEntry(): string {
@@ -40,6 +47,25 @@ export function resolveRuntimeEntry(): string {
   }
   throw new Error(
     'tardis: scene runtime not found. Build the package or set TARDIS_SCENE_ENTRY.'
+  )
+}
+
+export function resolveWebEntry(): string {
+  if (process.env['TARDIS_WEB_ENTRY']) {
+    return process.env['TARDIS_WEB_ENTRY']
+  }
+  const here = path.dirname(fileURLToPath(import.meta.url))
+  const candidates = [
+    path.resolve(here, '../web/index.ts'),
+    path.resolve(here, '../../src/web/index.ts'),
+    path.resolve(here, '../web/index.mjs'),
+    path.resolve(here, '../../dist/web/index.mjs'),
+  ]
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate
+  }
+  throw new Error(
+    'tardis: web host not found. Build the package or set TARDIS_WEB_ENTRY.'
   )
 }
 
@@ -75,19 +101,24 @@ export async function bundleApp(options: BundleOptions): Promise<BundleResult> {
   }
   const outfile = path.resolve(options.outfile)
   fs.mkdirSync(path.dirname(outfile), { recursive: true })
+  const target = options.target ?? 'native'
+  const sceneRuntime = options.runtime ?? resolveRuntimeEntry()
+  const webRuntime = options.webRuntime ?? resolveWebEntry()
 
   await build({
     entryPoints: [entry],
     outfile,
     bundle: true,
     format: 'iife',
-    platform: 'neutral',
+    platform: target === 'web' ? 'browser' : 'neutral',
     target: 'es2020',
     minify: options.minify ?? false,
     sourcemap: options.sourcemap ?? false,
     alias: {
-      'tardisjs/scene': options.runtime ?? resolveRuntimeEntry(),
-      '@devansharora18/tardisjs/scene': options.runtime ?? resolveRuntimeEntry(),
+      'tardisjs/scene': sceneRuntime,
+      '@devansharora18/tardisjs/scene': sceneRuntime,
+      'tardisjs/web': webRuntime,
+      '@devansharora18/tardisjs/web': webRuntime,
     },
     plugins: [tsxPlugin()],
     logLevel: 'silent',
@@ -96,5 +127,54 @@ export async function bundleApp(options: BundleOptions): Promise<BundleResult> {
     },
   })
 
-  return { outfile, bytes: fs.statSync(outfile).size }
+  const result: BundleResult = {
+    outfile,
+    bytes: fs.statSync(outfile).size,
+  }
+  if (target === 'web') {
+    result.shell = await writeShell(outfile, options.title)
+  }
+  return result
+}
+
+async function writeShell(outfile: string, title = 'Tardis app'): Promise<string> {
+  const dir = path.dirname(outfile)
+  const shell = path.join(dir, 'index.html')
+  const script = path.basename(outfile)
+  const safeTitle = title.replace(/[<>&"]/g, (char) => {
+    switch (char) {
+      case '<':
+        return '&lt;'
+      case '>':
+        return '&gt;'
+      case '&':
+        return '&amp;'
+      default:
+        return '&quot;'
+    }
+  })
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<title>${safeTitle}</title>
+<style>
+  html, body, #app { height: 100%; margin: 0; }
+  body {
+    background: #0a0a0a;
+    color: #ededed;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="./${script}"></script>
+</body>
+</html>
+`
+  await fs.promises.writeFile(shell, html, 'utf8')
+  return shell
 }

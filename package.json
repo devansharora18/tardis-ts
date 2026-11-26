@@ -1,7 +1,7 @@
 {
   "name": "@devansharora18/tardisjs",
   "version": "2.0.0-alpha.0",
-  "description": "TSX-native UI framework with a Rust renderer.",
+  "description": "TSX-native UI framework for desktop and web with a Rust renderer.",
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
@@ -21,6 +21,10 @@
     "./compiler": {
       "types": "./dist/src/compiler/index.d.ts",
       "import": "./dist/compiler/index.mjs"
+    },
+    "./web": {
+      "types": "./dist/src/web/index.d.ts",
+      "import": "./dist/web/index.mjs"
     }
   },
   "files": [
@@ -32,9 +36,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "build:lib": "rollup -c",
-    "build:bin": "rollup -c rollup.cli.config.js && chmod +x dist/bin/tardis.js",
+    "build:bin": "rollup -c rollup.cli.config.js && node -e \"if(process.platform!=='win32')require('node:fs').chmodSync('dist/bin/tardis.js',0o755)\"",
     "build:native": "cargo build --manifest-path native/Cargo.toml --release",
     "build": "npm run clean && npm run build:lib && npm run build:bin",
     "test": "vitest run",
@@ -64,6 +68,7 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/node": "^22.0.0",
+    "jsdom": "^29.1.1",
     "rollup": "^4.0.0",
     "tslib": "^2.0.0",
     "vitest": "^1.0.0"

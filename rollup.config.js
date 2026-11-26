@@ -15,6 +15,12 @@ export default [
     output: { file: 'dist/scene/index.mjs', format: 'esm', sourcemap: true },
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
   },
+  // web host subpath — DOM patch adapter
+  {
+    input: 'src/web/index.ts',
+    output: { file: 'dist/web/index.mjs', format: 'esm', sourcemap: true },
+    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+  },
   // compiler subpath — tsx transform + bundler
   {
     input: 'src/compiler/index.ts',
