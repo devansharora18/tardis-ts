@@ -103,6 +103,11 @@ app.tsx ─ compiler ─ bundle
 - **Images** — native decodes PNGs with a cached raster; web uses `<img>`.
 - **Clipping** — `overflow: hidden` clips children in the native renderer, so
   virtual lists and nested content do not bleed.
+- **Accessible forms** — `TextField` and `Checkbox` with caret editing,
+  focus/blur, `role`/`aria-*`, tab focus, copy/cut/paste, and native
+  `arboard`/web `navigator.clipboard` bridges.
+- **Semantic web output** — `button`, `h1`, `p`, `ul`, `li`, `label`, `strong`,
+  and `em` render as real elements instead of generic divs.
 
 ## Measured performance
 
@@ -147,8 +152,10 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Styles are objects, not CSS. Web maps them to CSS; native maps them to taffy.
 - Web layout is DOM/CSS, native is taffy; font metrics and line breaks can differ.
 - Dynamic arrays rebuild; keyed reuse is not implemented.
-- No text input, IME, or clipboard yet. Keyboard events and focus are basic.
+- Text input is single-line and caret-only; no selection, multiline, or IME.
+- Clipboard is system-backed on web and native when a display is available.
 - Native text clipping is rectangle clipping; no ellipsis.
+- Native accessibility attributes are stored but accesskit is not wired yet.
 - Native HiDPI is not handled (1x).
 - No web SSR/hydration yet.
 - Mobile is not started.

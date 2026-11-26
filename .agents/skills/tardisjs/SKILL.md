@@ -59,6 +59,9 @@ render(() => <App />)
 - `createRouter({ initial?, history? })`, `Router({ router, routes, fallback? })`,
   `Link({ router, to, children })`, `matchPath(pattern, path)`
 - `focusNode(id)`; keyboard handlers `onKeyDown`/`onKeyUp`; wheel `onWheel`
+- `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?, onSubmit? })`
+- `Checkbox({ checked, onChange?, label?, ariaLabel? })`
+- accessibility props: `role`, `tabIndex`, `aria-*` (web attributes, native stored)
 
 ## JSX rules
 
@@ -93,6 +96,18 @@ Pointer down focuses a node; `onKeyDown`/`onKeyUp` bubble to the nearest handler
 Enter/Space activate the nearest clickable ancestor. Web listens on `window`;
 native maps winit keyboard input. Wheel events reach `onWheel`. Text input, IME,
 and clipboard are not implemented.
+
+## Forms and accessibility
+
+`TextField` is single-line and controlled/uncontrolled; Home/End/arrows,
+Backspace/Delete, Enter (`onSubmit`), Ctrl/Cmd+C/X/V. Clipboard uses memory +
+`navigator.clipboard` on web, `arboard` natively when a display exists.
+`Checkbox` toggles on click/Enter/Space with `role="checkbox"`/`aria-checked`.
+No selection, multiline, or IME yet.
+
+Intrinsic tags render as real web elements (`button`, `h1`, `p`, `ul`, ...).
+`role`, `tabIndex`, and `aria-*` become an `a11y` op. Native stores them; the
+accesskit tree is not wired.
 
 ## Large lists, routing, images
 
@@ -149,7 +164,8 @@ Do not claim one.
 - Native window is 1x scale; no HiDPI.
 - `overflow: hidden` is rectangular clipping; no ellipsis.
 - Native images are PNG only; scroll is VirtualList windowing, not a scroll node.
-- Keyboard/focus exists; no text input, IME, or clipboard.
+- TextField is single-line/caret-only; no selection, multiline, or IME.
+- Clipboard is system-backed when available; otherwise memory.
 - No web SSR/hydration.
 - No Dioxus frame-time benchmark.
 - Sending a native bundle through a headless-only build? Keep the window build

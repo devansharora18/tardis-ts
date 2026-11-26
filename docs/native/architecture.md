@@ -27,8 +27,11 @@ There is no second grammar.
 - **Scene tree** — retained nodes with integer ids and typed style records.
 - **Dynamic regions** — fragments whose children are reconciled in an effect;
   each evaluation gets a fresh owner.
-- **Events** — pointer down/up, wheel, keyboard; focus by pointer or
-  `focusNode`; nearest clickable/key ancestor.
+- **Events** — pointer down/up, wheel, keyboard, focus/blur; pointer down
+  focuses and fires `onPointerDown`/`onFocus`; the previous node gets `onBlur`.
+- **Forms** — `TextField` (caret, editing, clipboard) and `Checkbox`.
+- **A11y** — `role`/`tabIndex`/`aria-*` travel in an `a11y` patch op; web applies
+  DOM attributes and semantic tags; native stores them for accesskit.
 - **VirtualList** — visible-window windowing with wheel scrolling; ~40 nodes for
   10,000 rows.
 - **Router** — path signal, `:param` matching, memory or browser history.

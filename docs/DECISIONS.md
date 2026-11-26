@@ -48,3 +48,9 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 42 | Paint culls offscreen subtrees and clips `overflow: hidden` | 10k paint 150 ms -> 1.9 ms; virtual lists do not bleed |
 | 43 | 10k rows require virtualization; the virtual window is the production shape | Fully mounted 10k still updates in 23 ms; the 40-node window updates in 0.55 ms |
 | 44 | Dioxus desktop is a startup/size baseline only | No frame-time instrumentation; web blocked without wasm toolchain; no blanket claim |
+| 45 | Intrinsic tags travel in create ops; web renders real semantic elements | Restores button/heading/paragraph/accessibility semantics lost by generic divs |
+| 46 | `role`/`tabIndex`/`aria-*` travel in an `a11y` op | Web sets attributes; native stores them for accesskit; native ignores visually |
+| 47 | Pointer down sets focus, fires blur/focus/pointerdown; up fires pointerup/click | A usable focus lifecycle without a platform focus tree |
+| 48 | TextField is a scene composition, not a native input node | Same TSX on both hosts; single-line caret editing now, IME/native input later |
+| 49 | Clipboard uses memory + navigator.clipboard + native arboard | Works without a display; system clipboard where available |
+| 50 | Selection, multiline, and IME are deferred | They require platform text/IME plumbing, not fakeable in this slice |

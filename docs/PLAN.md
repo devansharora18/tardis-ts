@@ -130,3 +130,14 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
    functions using `arboard` when a display is available.
 6. **Example + docs + tests** — `examples/forms`, jsdom tests, native e2e still
    green. IME, selection, multiline, accesskit: TODO.
+
+## Input/a11y slice result (2026-11-27)
+
+- Semantic tags in create ops; web emits `<button>`, `<h1>`, `<p>`, `<ul>`,
+  `<li>`, `<label>`, `<strong>`, `<em>`, `<img>`.
+- `role`/`tabIndex`/`aria-*` via an `a11y` op; web attributes, native storage.
+- Focus lifecycle: pointerdown/focus/blur/pointerup/click.
+- `TextField` (single-line caret editing, clipboard) and `Checkbox`; native
+  `arboard` + web `navigator.clipboard` bridges.
+- Forms example renders natively; 82 JS / 11 Rust tests.
+- Still deferred: selection, multiline, IME, native accesskit, form validation.

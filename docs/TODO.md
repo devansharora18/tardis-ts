@@ -63,13 +63,15 @@ npm publish --tag alpha
   wheel offsets.
 - HiDPI: pass `scale_factor` through layout, text, and pointer coordinates
   (native windows are 1x today).
-- Text input, IME, clipboard, and a real focus tree (basic keyboard/focus
-  exists).
+- Text selection, multiline fields, IME composition, and a spatial focus tree.
+  Basic single-line TextField and clipboard exist.
 - Mouse hover/press visual states; web currently has no cursor affordance.
 - Window close lifecycle and multiple windows.
 - Error boundary for panics in the Rust core (reject patch, keep last frame).
-- Web accessibility audit (the DOM host keeps native elements; verify roles and
-  keyboard navigation once focus lands).
+- Web accessibility audit (semantic tags and role/aria exist; run axe and a
+  screen-reader pass).
+- Native accesskit tree wired from the stored a11y attributes.
+- Form validation helpers and error/empty/loading states.
 
 ## Developer experience
 

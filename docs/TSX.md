@@ -263,6 +263,40 @@ events bubble to the nearest handler. Enter and Space activate the nearest
 Web listens on `window`; native listens for winit keyboard input. Text input,
 IME, and clipboard are not implemented.
 
+## Forms
+
+```tsx
+import { Checkbox, TextField } from '@devansharora18/tardisjs/scene'
+
+const [name, setName] = createSignal('')
+const [subscribe, setSubscribe] = createSignal(false)
+
+<TextField
+  value={() => name()}
+  onChange={setName}
+  placeholder="Name"
+  ariaLabel="Name"
+  onSubmit={() => submit()}
+/>
+<Checkbox
+  checked={() => subscribe()}
+  onChange={setSubscribe}
+  label="Subscribe"
+/>
+```
+
+`TextField` is single-line and controlled (`value` + `onChange`) or uncontrolled.
+It supports Home/End/arrows/Backspace/Delete, Enter (`onSubmit`), and
+Ctrl/Cmd+C/X/V. The caret is visible while focused. `Checkbox` toggles on click,
+Enter, or Space and exposes `role="checkbox"`/`aria-checked`.
+
+Accessibility props on any node: `role`, `tabIndex`, and `aria-*` (for example
+`aria-label`, `aria-checked`). They are applied as DOM attributes on web and
+stored in the native scene for a future accesskit tree.
+
+Limits: no text selection, multiline, or IME yet. Focus is pointer/tab-based;
+there is no spatial focus tree.
+
 ## Images
 
 ```tsx
@@ -309,7 +343,9 @@ npx vitest run test/web test/compiler/web-bundle.test.ts
 - Native images are PNG only and need explicit dimensions.
 - Scroll offsets exist in the protocol but are not painted; `VirtualList`
   implements its own windowing with wheel input.
-- Keyboard/focus exists; text input, IME, and clipboard do not.
+- Text input is single-line and caret-only; no selection, multiline, or IME.
+- Clipboard is system-backed when available; otherwise in-memory.
+- Native accessibility attributes are stored; accesskit is not wired.
 - Native window scaling is 1x.
 - Web has no SSR/hydration; it is client-rendered.
 - Web layout is CSS; native layout is taffy. Pixel parity is not guaranteed.
