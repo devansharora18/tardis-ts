@@ -8,6 +8,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+use base64::Engine as _;
 use cosmic_text::{SwashContent, SwashImage};
 use tiny_skia::{
     FillRule, Paint, Path, PathBuilder, Pixmap, PixmapPaint, PremultipliedColorU8, Rect as SkRect,
@@ -228,7 +229,20 @@ fn scale_rect(rect: Rect, scale: f32) -> Rect {
 }
 
 thread_local! {
-    static IMAGE_CACHE: RefCell<HashMap<String, Option<Pixmap>>> = RefCell::new(HashMap::new());
+    static IMAGE_CACHE: RefCell<(HashMap<String, Option<Pixmap>>, Vec<String>)> =
+        RefCell::new((HashMap::new(), Vec::new()));
+}
+
+const IMAGE_CACHE_LIMIT: usize = 24;
+
+fn load_image(src: &str) -> Option<Pixmap> {
+    if let Some(encoded) = src.strip_prefix("data:image/png;base64,") {
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(encoded)
+            .ok()?;
+        return Pixmap::decode_png(&bytes).ok();
+    }
+    Pixmap::load_png(src).ok()
 }
 
 fn draw_image(pixmap: &mut Pixmap, rect: Rect, src: Option<&str>, clip: Clip) {
@@ -247,10 +261,18 @@ fn draw_image(pixmap: &mut Pixmap, rect: Rect, src: Option<&str>, clip: Clip) {
     };
     IMAGE_CACHE.with(|cache| {
         let mut cache = cache.borrow_mut();
-        let image = cache
-            .entry(src.to_string())
-            .or_insert_with(|| Pixmap::load_png(src).ok());
-        if let Some(image) = image {
+        if !cache.0.contains_key(src) {
+            if cache.1.len() >= IMAGE_CACHE_LIMIT {
+                if let Some(old) = cache.1.first().cloned() {
+                    cache.1.remove(0);
+                    cache.0.remove(&old);
+                }
+            }
+            cache.0.insert(src.to_string(), load_image(src));
+            cache.1.push(src.to_string());
+        }
+        let image = cache.0.get(src);
+        if let Some(Some(image)) = image {
             let sx = rect.width / image.width() as f32;
             let sy = rect.height / image.height() as f32;
             pixmap.draw_pixmap(
