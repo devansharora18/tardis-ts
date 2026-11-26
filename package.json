@@ -25,6 +25,9 @@
   },
   "files": [
     "dist",
+    "native/Cargo.toml",
+    "native/Cargo.lock",
+    "native/crates",
     "README.md",
     "LICENSE"
   ],

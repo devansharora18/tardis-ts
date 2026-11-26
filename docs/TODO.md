@@ -24,7 +24,8 @@ npm publish --tag alpha
 ## Packaging
 
 - Build npm platform packages (`tardis-native-linux-x64`, `-darwin-arm64`,
-  `-win32-x64`) as optional dependencies, the esbuild/swc pattern.
+  `-win32-x64`) as optional dependencies, the esbuild/swc pattern. Until then the
+  tarball ships the Rust sources and the user builds once with cargo.
 - Add a GitHub Actions matrix: Node typecheck/tests + cargo test on Linux,
   macOS, Windows; cache cargo; build release binaries.
 - Include the license for the bundled Liberation fonts in release artifacts

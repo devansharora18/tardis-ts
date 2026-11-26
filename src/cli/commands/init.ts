@@ -45,9 +45,13 @@ npx tardis dev
 - \`tardis build\` writes \`dist/app.js\`.
 - \`tardis screenshot -o shot.png\` renders one frame headlessly.
 
-The native runtime is built from the TardisJS repository:
-\`cargo build --manifest-path native/Cargo.toml\`, or point
-\`TARDIS_NATIVE_BIN\` at the binary.
+Build the native runtime once:
+
+\`\`\`sh
+cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml
+\`\`\`
+
+Then \`npx tardis dev\`. Set \`TARDIS_NATIVE_BIN\` to use a binary elsewhere.
 `
 
 export async function initProject(cwd = process.cwd()): Promise<void> {

@@ -19,9 +19,10 @@ Alpha, desktop-first. Linux/X11 verified end to end, including the window and
 headless click tests. macOS/Windows have not been packaged. There is no web
 target.
 
-The npm tarball does not ship the native binary yet. Build it from this repo
-(`cargo build --manifest-path native/Cargo.toml`) or point `TARDIS_NATIVE_BIN`
-at a binary. See [docs/TODO.md](docs/TODO.md).
+The npm tarball ships the Rust sources, not prebuilt binaries yet. Build the
+runtime once (in an app: `cargo build --release --manifest-path
+node_modules/@devansharora18/tardisjs/native/Cargo.toml`), or point
+`TARDIS_NATIVE_BIN` at a binary. See [docs/TODO.md](docs/TODO.md).
 
 ## Requirements
 
@@ -45,6 +46,7 @@ From an empty app directory:
 ```sh
 npx @devansharora18/tardisjs init
 npm install
+cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml
 npx tardis dev
 ```
 

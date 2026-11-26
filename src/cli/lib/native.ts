@@ -47,7 +47,10 @@ export function findNativeBinary(cwd: string): string {
   }
   throw new Error(
     'Native runtime not found.\n' +
-      '  Build it: cargo build --manifest-path native/Cargo.toml\n' +
+      '  In an installed app:\n' +
+      '    cargo build --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml\n' +
+      '  In the TardisJS repo:\n' +
+      '    cargo build --manifest-path native/Cargo.toml\n' +
       '  Or set TARDIS_NATIVE_BIN to the binary path.'
   )
 }
