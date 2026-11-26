@@ -1,9 +1,9 @@
 ---
-name: tardisjs
-description: Use when editing TardisJS v2 apps or framework code. TardisJS is a TSX-only UI framework for Linux, macOS, Windows, and web (signals, retained scene tree, Rust native renderer, DOM web host) — not React, not the old .tardis blueprint DSL.
+name: tardis-ts
+description: Use when editing Tardis TS v2 apps or framework code. Tardis TS is a TSX-only UI framework for Linux, macOS, Windows, and web (signals, retained scene tree, Rust native renderer, DOM web host) — not React, not the old .tardis blueprint DSL.
 ---
 
-# TardisJS v2
+# Tardis TS v2
 
 TSX-only. No `.tardis` files, no directives, no virtual DOM. Components run once;
 signals bind updates to a retained scene tree. Two hosts consume the same patch
@@ -23,7 +23,7 @@ Repo map:
 - `src/web/` — DOM host (`WebHost`, `installWebHost`)
 - `src/cli/` — build/run/screenshot/dev/preview/init
 - `native/crates/core` — patch decode, layout, text, raster
-- `native/crates/js` — QuickJS host (`__tardis_flush`, `__tardis_event`)
+- `native/crates/js` — QuickJS host (`__tardis_ts_flush`, `__tardis_ts_event`)
 - `native/crates/cli` — headless PNG + winit/softbuffer/wgpu window
 - `examples/native-counter/app.tsx` — minimal reference app
 - `examples/editor/app.tsx` — VS Code-style editor (compare: docs/EDITORS.md)
@@ -32,8 +32,8 @@ Repo map:
 ## App shape
 
 ```tsx
-import '@devansharora18/tardisjs/web' // no-op in QuickJS
-import { createSignal, render } from '@devansharora18/tardisjs/scene'
+import '@devansharora18/tardis-ts/web' // no-op in QuickJS
+import { createSignal, render } from '@devansharora18/tardis-ts/scene'
 
 const [count, setCount] = createSignal(0)
 
@@ -51,7 +51,7 @@ render(() => <App />)
 
 ## API
 
-- CLI: `tardis create` (interactive: platform, styling, template, pm, install,
+- CLI: `tardis-ts create` (interactive: platform, styling, template, pm, install,
   git) or `--platform/--styling/--template/--pm/--yes`; `--css` on build/dev
 - `createSignal(v) -> [get, set]`; setter accepts `(prev) => next`
 - `createMemo(fn) -> get`, `createEffect(fn)`, `batch(fn)`, `untrack(fn)`
@@ -72,7 +72,7 @@ render(() => <App />)
 - `RadioGroup({ value, options, onChange, ariaLabel?, direction? })`
 - accessibility props: `role`, `tabIndex`, `className`, `aria-*` (web
   attributes; native stores them; `className` is web-only)
-- compiler CSS shell link: `tardis build --css dist/web/app.css`
+- compiler CSS shell link: `tardis-ts build --css dist/web/app.css`
 - `createForm({ initial, validate?, validateAsync?, onSubmit?, onSubmitError? })`
   → values/touched/errors, submitting/submitted, submitError, submit/reset,
   `field(key)`
@@ -82,12 +82,12 @@ render(() => <App />)
 - `createMutation((input, signal) => Promise, { onSuccess?, onError?, initial? })`
   → mutate/data/error/loading/reset/dispose, latest call wins
 - `renderToString(App)`, `renderDocument(body, { title?, head?, script? })`,
-  `hydrate(App, container, { onMismatch? })` from `tardisjs/ssr`
+  `hydrate(App, container, { onMismatch? })` from `tardis-ts/ssr`
 - `ScrollView({ height, contentHeight, scrollTop?, onScroll?, children })`
 - `Boundary({ content, fallback?, onError?, onReset? })` — catches render and
   subtree effect errors
 - `Dialog({ open, onClose, title?, width?, children })` — modal + focus trap
-- `installDevtools({ container?, startOpen? })` from `tardisjs/devtools`
+- `installDevtools({ container?, startOpen? })` from `tardis-ts/devtools`
 - native `--scale` (headless) and window scale-factor support
 
 ## JSX rules
@@ -116,7 +116,7 @@ heights are explicit on block text; font metrics still differ by host.
 ## Events
 
 `onClick` / `onPress` (equivalent). Native hit-tests the pointer; web delegates
-`pointerdown`/`pointerup` through `closest('[data-tardis]')`. Both bubble to the
+`pointerdown`/`pointerup` through `closest('[data-tardis-ts]')`. Both bubble to the
 nearest clickable ancestor.
 
 Pointer down focuses a node; `onKeyDown`/`onKeyUp` bubble to the nearest handler.
@@ -147,7 +147,7 @@ actions dispatch back into JS.
 ## Server rendering
 
 Export the component and guard the client render with
-`typeof document !== 'undefined'` (or `|| typeof __tardis_flush === 'function'`
+`typeof document !== 'undefined'` (or `|| typeof __tardis_ts_flush === 'function'`
 for native). Server: `renderToString(App)`, then `renderDocument(body, {...})`.
 Client: `hydrate(App, document.getElementById('app')!)`.
 
@@ -160,7 +160,7 @@ streaming, or data prefetch. Base CSS comes from `renderDocument`.
 `ScrollView` clips content, scrolls on wheel, and draws an indicator; pass
 `contentHeight` explicitly. `Boundary` catches render errors and effect errors
 from effects created inside its content. Native HiDPI keeps layout logical and scales raster/text/
-bounds; `tardis-native --scale 2` renders physical screenshots.
+bounds; `tardis-ts-native --scale 2` renders physical screenshots.
 
 ## Large lists, routing, images
 
@@ -174,21 +174,21 @@ bounds; `tardis-native --scale 2` renders physical screenshots.
 ## CLI
 
 ```
-tardis init
-tardis build [entry] --target native|web --out <path> --minify
-tardis run [entry] --width 800 --height 600
-tardis dev [entry] --target native|web --port 4173
-tardis screenshot [entry] -o shot.png --dump scene.json
-tardis preview --dir dist/web --port 4173
+tardis-ts init
+tardis-ts build [entry] --target native|web --out <path> --minify
+tardis-ts run [entry] --width 800 --height 600
+tardis-ts dev [entry] --target native|web --port 4173
+tardis-ts screenshot [entry] -o shot.png --dump scene.json
+tardis-ts preview --dir dist/web --port 4173
 ```
 
 Default entry: `app.tsx`, `src/app.tsx`, `index.tsx`, or `src/index.tsx`.
-Native binary lookup: `TARDIS_NATIVE_BIN`, `native/target/{release,debug}`,
-`node_modules/.bin/tardis-native` (`.exe` on Windows).
+Native binary lookup: `TARDIS_TS_NATIVE_BIN`, `native/target/{release,debug}`,
+`node_modules/.bin/tardis-ts-native` (`.exe` on Windows).
 
 ## Performance
 
-Release core harness (`cargo run -p tardis-bench --release -- --rows 1000`):
+Release core harness (`cargo run -p tardis-ts-bench --release -- --rows 1000`):
 
 - 1k update 1.97 ms; 10k fully mounted update 23.0 ms; 10k paint 1.87 ms.
 - Virtualized 10k window: 0.55 ms update, 3.1 ms mount.
@@ -202,15 +202,15 @@ Do not claim one.
 ## Testing
 
 - Compiler: `npx vitest run test/compiler/tsx.test.ts`
-- Scene runtime: fake host with `globalThis.__tardis_flush = (json) => ...`
+- Scene runtime: fake host with `globalThis.__tardis_ts_flush = (json) => ...`
 - Web host: jsdom (`test/web/dom.test.ts`)
 - Web bundle: `test/compiler/web-bundle.test.ts` renders and clicks in jsdom
 - Static server: `test/cli/server.test.ts`
 - Native end to end: `test/cli/native-e2e.test.ts` (builds headless into
   `native/target/headless`)
-- Window smoke: `xvfb-run -a target/debug/tardis-native --bundle dist/app.js`
+- Window smoke: `xvfb-run -a target/debug/tardis-ts-native --bundle dist/app.js`
   (unset `WAYLAND_DISPLAY`, set `WINIT_UNIX_BACKEND=x11` if needed)
-- Real browser smoke: build `--target web`, `tardis preview`, open Chrome
+- Real browser smoke: build `--target web`, `tardis-ts preview`, open Chrome
 
 ## Gotchas
 
