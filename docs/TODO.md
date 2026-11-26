@@ -93,7 +93,7 @@ npx tardis screenshot examples/native-counter/app.tsx -o check.png
 
 ## Known honest gaps in claims
 
-- Line count is ~14k framework/tests/docs, not 40k. No padding is added.
+- Line count is ~15.4k framework/tests/docs/bench, not 40k. No padding is added.
 - "Production-grade" is not claimed while the items above are open.
 - The Dioxus web frame benchmark is a measured loss, published in
   [BENCHMARKS.md](BENCHMARKS.md).
