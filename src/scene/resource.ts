@@ -14,7 +14,7 @@ export interface Resource<T> {
 }
 
 export function createResource<T>(
-  fetcher: () => Promise<T>,
+  fetcher: (signal?: AbortSignal) => Promise<T>,
   options: { initial?: T } = {}
 ): Resource<T> {
   const [data, setData] = createSignal<T | undefined>(options.initial)
@@ -22,13 +22,16 @@ export function createResource<T>(
   const [loading, setLoading] = createSignal(true)
   let disposed = false
   let token = 0
+  let controller: AbortController | null = null
 
   const load = (): void => {
     if (disposed) return
+    controller?.abort()
+    controller = typeof AbortController !== 'undefined' ? new AbortController() : null
     const current = ++token
     setLoading(true)
     setError(undefined)
-    fetcher().then(
+    fetcher(controller?.signal).then(
       (value) => {
         if (disposed || current !== token) return
         setData(value)
@@ -45,6 +48,8 @@ export function createResource<T>(
   const dispose = (): void => {
     disposed = true
     token++
+    controller?.abort()
+    controller = null
   }
 
   onCleanup(dispose)

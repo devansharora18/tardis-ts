@@ -12,7 +12,10 @@ export type FormErrors<T> = Partial<Record<keyof T, string>>
 export interface FormOptions<T extends Record<string, unknown>> {
   initial: T
   validate?: (values: T) => FormErrors<T>
+  /** Runs after sync validation passes, before `onSubmit`. */
+  validateAsync?: (values: T) => Promise<FormErrors<T>>
   onSubmit?: (values: T) => void | Promise<void>
+  onSubmitError?: (error: Error) => void
 }
 
 export interface FormFieldBinding<T, K extends keyof T> {
@@ -28,6 +31,7 @@ export interface Form<T extends Record<string, unknown>> {
   touched: () => Partial<Record<keyof T, boolean>>
   submitting: () => boolean
   submitted: () => boolean
+  submitError: () => Error | undefined
   setValue: <K extends keyof T>(key: K, value: T[K]) => void
   blur: (key: keyof T) => void
   submit: () => Promise<void>
@@ -53,6 +57,7 @@ export function createForm<T extends Record<string, unknown>>(
   >({})
   const [submitting, setSubmitting] = createSignal(false)
   const [submitted, setSubmitted] = createSignal(false)
+  const [submitError, setSubmitError] = createSignal<Error | undefined>(undefined)
 
   const validate = (next: T): FormErrors<T> =>
     options.validate ? options.validate(next) : {}
@@ -77,13 +82,24 @@ export function createForm<T extends Record<string, unknown>>(
       Object.keys(values()).map((key) => [key, true])
     ) as Partial<Record<keyof T, boolean>>
     setTouched(allTouched)
-    const nextErrors = validate(values())
+    let nextErrors = validate(values())
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
     setSubmitting(true)
+    setSubmitError(undefined)
     try {
+      if (options.validateAsync) {
+        nextErrors = await options.validateAsync(values())
+        setErrors(nextErrors)
+        if (Object.keys(nextErrors).length > 0) return
+      }
       await options.onSubmit?.(values())
       setSubmitted(true)
+    } catch (reason) {
+      const error =
+        reason instanceof Error ? reason : new Error(String(reason))
+      setSubmitError(error)
+      options.onSubmitError?.(error)
     } finally {
       setSubmitting(false)
     }
@@ -94,6 +110,7 @@ export function createForm<T extends Record<string, unknown>>(
     setErrors({})
     setTouched({})
     setSubmitted(false)
+    setSubmitError(undefined)
   }
 
   const field = <K extends keyof T>(key: K): FormFieldBinding<T, K> => ({
@@ -109,6 +126,7 @@ export function createForm<T extends Record<string, unknown>>(
     touched,
     submitting,
     submitted,
+    submitError,
     setValue,
     blur,
     submit,
