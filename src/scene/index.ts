@@ -39,7 +39,7 @@ export type {
   LinkProps,
 } from './router'
 export type { VirtualListProps } from './virtual'
-export { render, dispatchEvent, focusNode } from './render'
+export { render, dispatchEvent, focusNode, focusNext, getFocusedNode } from './render'
 export { flushNow } from './tree'
 export {
   createSignal,
