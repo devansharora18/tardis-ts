@@ -1516,6 +1516,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tardis-bench"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tardis-core",
+]
+
+[[package]]
 name = "tardis-core"
 version = "0.1.0"
 dependencies = [
