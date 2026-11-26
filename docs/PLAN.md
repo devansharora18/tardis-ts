@@ -266,3 +266,12 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - `Dialog` with `role=dialog`, `aria-modal`, focus trap, Escape close, and focus
   restore. Buttons/anchors are tabbable by default in the scene order.
 - 134 JS tests. Screen-reader modal verification still needs host testing.
+
+## CI and mutation slice result (2026-11-27)
+
+- GitHub Actions `ci` is green on ubuntu-latest, macos-latest, and
+  windows-latest: typecheck, 136 JS tests, build, fmt, clippy (default and
+  wgpu), Rust tests, release build, and native screenshot smoke.
+- `createMutation` added with latest-call-wins state and AbortSignal.
+- Platform binary resolver fixed for the installed scope layout.
+- Remaining gaps are tracked in `docs/TODO.md`; none are padded.

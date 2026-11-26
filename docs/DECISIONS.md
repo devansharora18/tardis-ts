@@ -93,3 +93,5 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 87 | wgpu init panics are caught and fall back to softbuffer | A bad adapter must not take down the window |
 | 88 | Buttons and anchors get a default `tabIndex` of 0 | Native Tab traversal needs an explicit scene tab order; web also gets the attribute |
 | 89 | Dialogs stay mounted and toggle `display` | Keeps the panel id stable for the focus trap and restores focus reliably |
+| 90 | The CI matrix runs on Node 22 + Rust 1.96 on Linux, macOS, and Windows | Rust 1.96 avoids the `objc2 0.4` breakage with newer compilers until accesskit/winit are upgraded |
+| 91 | Mutations track the latest call only | Concurrent writes should not let an old response overwrite newer state |

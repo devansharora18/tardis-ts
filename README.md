@@ -1,5 +1,7 @@
 # TardisJS
 
+[![ci](https://github.com/devansharora18/tardisjs/actions/workflows/ci.yml/badge.svg)](https://github.com/devansharora18/tardisjs/actions/workflows/ci.yml)
+
 **TSX-native UI framework for Linux, macOS, Windows, and the web.**
 
 Pre-alpha. One TSX entry runs in a native window (Rust renderer, embedded
@@ -118,8 +120,9 @@ app.tsx ─ compiler ─ bundle
   addition to `TextField` and `Checkbox`.
 - **Dialog** — modal overlay with `aria-modal`, a Tab focus trap, Escape close,
   and focus restoration.
-- **Async resources** — `createResource` with loading, error, refetch,
-  `AbortSignal` cancellation, and last-request-wins semantics.
+- **Async data** — `createResource` (loading/error/refetch, `AbortSignal`,
+  last-request-wins) and `createMutation` (mutate/loading/error/data, latest call
+  wins, abort on dispose).
 - **wgpu backend** — `tardis run --backend wgpu` presents native frames through a
   wgpu surface (vsync, resize, HiDPI) with automatic fallback to softbuffer.
   Rasterization is still CPU; a GPU geometry pipeline is not implemented.

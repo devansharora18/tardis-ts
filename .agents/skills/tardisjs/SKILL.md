@@ -71,6 +71,8 @@ render(() => <App />)
 - `FormField({ label, error?, hint?, children })`
 - `createResource((signal) => Promise, { initial? })` → data/error/loading/
   refetch/dispose, aborts on refetch/dispose
+- `createMutation((input, signal) => Promise, { onSuccess?, onError?, initial? })`
+  → mutate/data/error/loading/reset/dispose, latest call wins
 - `renderToString(App)`, `renderDocument(body, { title?, head?, script? })`,
   `hydrate(App, container, { onMismatch? })` from `tardisjs/ssr`
 - `ScrollView({ height, contentHeight, scrollTop?, onScroll?, children })`
