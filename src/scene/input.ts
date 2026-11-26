@@ -24,6 +24,7 @@ export interface TextFieldProps {
   width?: MaybeGetter<number>
   disabled?: MaybeGetter<boolean>
   onSubmit?: () => void
+  onBlur?: () => void
 }
 
 export function TextField(props: TextFieldProps): SceneNode {
@@ -138,7 +139,10 @@ export function TextField(props: TextFieldProps): SceneNode {
       }),
       onKeyDown,
       onFocus: () => setFocused(true),
-      onBlur: () => setFocused(false),
+      onBlur: () => {
+        setFocused(false)
+        props.onBlur?.()
+      },
       role: 'textbox',
       'aria-label': () => label(),
       'aria-disabled': () => (disabled() ? 'true' : 'false'),
