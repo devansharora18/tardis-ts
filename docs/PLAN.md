@@ -245,3 +245,9 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - Result: Tardis 143.1 ms/frame (7.0 fps) vs Dioxus 93.2 ms/frame (10.7 fps).
   A measured Tardis loss; documented with causes and next steps.
 - Startup/size still favors Tardis (451 ms/7.3 MB vs 625 ms/8.7 MB).
+
+## Borders slice result (2026-11-27)
+
+- Native `borderWidth`/`borderColor`/`borderRadius` draw an inset rounded stroke
+  with clipping; web maps the same keys to CSS.
+- 131 JS / 16 core / 3 accesskit tests.

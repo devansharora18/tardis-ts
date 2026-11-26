@@ -106,6 +106,8 @@ app.tsx ─ compiler ─ bundle
 - **Images** — native decodes PNGs with a cached raster; web uses `<img>`.
 - **Clipping** — `overflow: hidden` clips children in the native renderer, so
   virtual lists and nested content do not bleed.
+- **Borders** — `borderWidth`, `borderColor`, and `borderRadius` draw inset
+  rounded borders; web maps them to CSS.
 - **Accessible forms** — `TextField` and `Checkbox` with caret editing,
   selection, multiline, word/vertical navigation, IME composition, focus/blur,
   Tab/Shift+Tab traversal, `role`/`aria-*`, copy/cut/paste, and native

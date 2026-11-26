@@ -88,3 +88,4 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 82 | Unclaimed server nodes are removed after the first flush | Prevents stale markup surviving a shorter client tree |
 | 83 | The Dioxus web loss is published, not hidden | The benchmark was pre-registered as same-workload; changing the workload after seeing results would be reward hacking |
 | 84 | Web patches bypass JSON and pass objects to the host | Cuts serialization on every flush; native keeps the JSON protocol |
+| 85 | Borders are inset, not centered on the layout box | Prevents clipping at parent edges and keeps hit/layout bounds stable |
