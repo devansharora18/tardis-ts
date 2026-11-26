@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createWebHost, type WebHost } from '../../src/web/index'
 import {
   createSignal,
+  dispatchEvent,
   flushNow,
   focusNode,
   jsx,
@@ -200,5 +201,84 @@ describe('TextField multiline', () => {
     handle = render(() => jsx(TextField, { multiline: true, rows: 3 }))
     const field = fieldElement()
     expect(field.style.minHeight).toBe(`${3 * 22 + 16}px`)
+  })
+})
+
+describe('focus tree', () => {
+  it('moves tab focus forward and backward', () => {
+    const [first, setFirst] = createSignal('')
+    const [second, setSecond] = createSignal('')
+    const focusFirst = vi.fn()
+    const focusSecond = vi.fn()
+    handle = render(() =>
+      jsx(
+        'div',
+        {},
+        jsx(TextField, {
+          value: () => first(),
+          onChange: setFirst,
+          onFocus: focusFirst,
+          ariaLabel: 'First',
+        }),
+        jsx(TextField, {
+          value: () => second(),
+          onChange: setSecond,
+          onFocus: focusSecond,
+          ariaLabel: 'Second',
+        })
+      )
+    )
+    const fields = app().querySelectorAll<HTMLElement>('[role="textbox"]')
+    focusNode(Number(fields[0].getAttribute('data-tardis')))
+    focusFirst.mockClear()
+    key('Tab')
+    expect(focusSecond).toHaveBeenCalledTimes(1)
+    type('x')
+    expect(second()).toBe('x')
+    expect(first()).toBe('')
+
+    key('Tab', { shiftKey: true })
+    expect(focusFirst).toHaveBeenCalledTimes(1)
+    type('y')
+    expect(first()).toBe('y')
+    expect(second()).toBe('x')
+  })
+})
+
+describe('IME composition', () => {
+  it('previews composition text and commits it', () => {
+    const [value, setValue] = createSignal('')
+    handle = render(() =>
+      jsx(TextField, { value: () => value(), onChange: setValue, ariaLabel: 'Name' })
+    )
+    focusField()
+    key('ArrowLeft')
+    const ime = document.querySelector('textarea')!
+    expect(ime).not.toBeNull()
+
+    ime.dispatchEvent(new window.CompositionEvent('compositionstart', { data: '' }))
+    ime.dispatchEvent(
+      new window.CompositionEvent('compositionupdate', { data: 'にほ' })
+    )
+    flushNow()
+    expect(app().textContent).toContain('にほ')
+    expect(value()).toBe('')
+
+    ime.dispatchEvent(
+      new window.CompositionEvent('compositionend', { data: '日本' })
+    )
+    flushNow()
+    expect(value()).toBe('日本')
+    expect(app().textContent).not.toContain('にほ')
+  })
+
+  it('accepts committed IME text through the scene event bridge', () => {
+    const [value, setValue] = createSignal('')
+    handle = render(() =>
+      jsx(TextField, { value: () => value(), onChange: setValue })
+    )
+    focusField()
+    dispatchEvent({ type: 'text', composition: 'end', text: '日本' })
+    expect(value()).toBe('日本')
   })
 })
