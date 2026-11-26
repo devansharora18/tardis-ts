@@ -74,3 +74,27 @@ Delivered after the follow-up plan:
 
 Deviations: web layout is CSS, so pixel parity with native is not guaranteed;
 web SSR/hydration remains future work; mobile is deferred.
+
+## M5 performance run (2026-11-27)
+
+Milestone: measured native performance with a repeatable harness, then close the
+known costs. No "better than Dioxus" claim without a fair head-to-head.
+
+1. **Benchmark crate** — `native/crates/bench`: scenes of 100/1,000/10,000 rows;
+   measure mount, single-text update, single-style update, relayout, and paint.
+   JSON output; five runs; median and p95.
+2. **Zero-clone patches** — validate style/text-only patches first, then apply in
+   place. Structural patches keep the atomic clone path. Tests for atomicity.
+3. **Incremental layout** — keep the taffy tree; on style/text-only patches call
+   `set_style`/`mark_dirty`, then recompute. Rebuild only on structural changes.
+4. **Text** — measurement cache keyed by (text, size, weight, max width); direct
+   glyph mask blending into the target pixmap, no per-glyph `Pixmap`.
+5. **Paint culling** — skip fully offscreen text/image nodes and contained views;
+   record the viewport in `RenderOptions`.
+6. **10k-row app** — benchmark the full TSX → QuickJS → patches → layout → paint
+   path with a native `--bench` hook.
+7. **Targets** — 10k-row single update p95 ≤ 16.6 ms; visible paint ≤ 8 ms;
+   mount ≤ 500 ms. These are gates, not marketing numbers; publish actuals.
+8. **Dioxus** — desktop startup/binary baseline where measurable; web blocked by
+   missing wasm toolchain, log host commands. No claim without both sides.
+9. **Tests/docs** — regression tests, benchmark report, README, TODO.
