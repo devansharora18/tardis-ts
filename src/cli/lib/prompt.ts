@@ -27,11 +27,11 @@ export function isInteractive(): boolean {
   )
 }
 
-export function createPrompter(): Prompter {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
+export function createPrompter(
+  input: NodeJS.ReadableStream = process.stdin,
+  output: NodeJS.WritableStream = process.stdout
+): Prompter {
+  const rl = readline.createInterface({ input, output })
 
   return {
     async text(question, fallback = '', validate) {
