@@ -203,6 +203,10 @@ export function TextField(props: TextFieldProps): SceneNode {
     }
     if (event.composition === 'end') {
       setPreedit('')
+      if (event.replace) {
+        setAnchor(0)
+        setCaret(value().length)
+      }
       insert(text)
       return
     }
