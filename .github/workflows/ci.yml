@@ -37,10 +37,14 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-      - run: cargo fmt --manifest-path native/Cargo.toml --check
-      - run: cargo clippy --manifest-path native/Cargo.toml --workspace --all-targets -- -D warnings
-      - run: cargo test --manifest-path native/Cargo.toml --workspace
-      - run: cargo build --release --manifest-path native/Cargo.toml
+      - run: cargo fmt --all --check
+        working-directory: native
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+        working-directory: native
+      - run: cargo test --workspace
+        working-directory: native
+      - run: cargo build --release
+        working-directory: native
       - name: Native screenshot smoke
         run: node dist/bin/tardis.js screenshot examples/forms/app.tsx -o forms.png
       - name: Verify screenshot
