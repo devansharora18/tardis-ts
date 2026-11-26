@@ -39,3 +39,7 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 33 | The native e2e builds into `native/target/headless` | Tests must not overwrite the window-enabled binary |
 | 34 | The native e2e appends `.exe` on Windows | Cross-platform binary lookup |
 | 35 | The default build target stays native; web is `--target web` | The native renderer is the differentiator; web is explicit |
+| 36 | QuickJS stays for the alpha but is not the performance engine; V8 is gated on benchmarks | ADR 0005; QuickJS was a size/simplicity choice, not a speed claim |
+| 37 | No performance claim without pre-registered benchmarks; publish losses | Anti-reward-hacking; the harness must be able to show Tardis losing |
+| 38 | "Better than Dioxus" means 1.25x on 4 of 6 primary metrics, no >10% regressions, feature parity, and TSX DX | One microbenchmark is not a framework win |
+| 39 | Frame-critical work moves to Rust: virtualization, incremental layout, glyph atlas/batching, wgpu | The JS engine cannot fix rendering cost |

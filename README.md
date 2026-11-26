@@ -124,5 +124,7 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - [Frame protocol](docs/native/protocol.md)
 - [Decisions](docs/DECISIONS.md)
 - [TODO](docs/TODO.md)
+- [Benchmarks](docs/BENCHMARKS.md)
 - [ADR 0003 — TSX-only v2](docs/adr/0003-tsx-only-v2.md)
 - [ADR 0004 — web DOM adapter](docs/adr/0004-web-dom-adapter.md)
+- [ADR 0005 — engine and performance strategy](docs/adr/0005-runtime-engine-and-performance.md)
