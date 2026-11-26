@@ -5,9 +5,13 @@
 // the viewport and to every `overflow: hidden` view, and culls fully offscreen
 // subtrees.
 
+use std::cell::RefCell;
+use std::collections::HashMap;
+
 use cosmic_text::{SwashContent, SwashImage};
 use tiny_skia::{
-    FillRule, Paint, Path, PathBuilder, Pixmap, PremultipliedColorU8, Rect as SkRect, Transform,
+    FillRule, Paint, Path, PathBuilder, Pixmap, PixmapPaint, PremultipliedColorU8,
+    Rect as SkRect, Transform,
 };
 
 use crate::layout::{ComputedLayout, Rect};
@@ -170,15 +174,55 @@ fn draw_node(
             );
         }
         NodeKind::Image => {
+            draw_image(pixmap, rect, node.src.as_deref(), clip);
+        }
+    }
+}
+
+thread_local! {
+    static IMAGE_CACHE: RefCell<HashMap<String, Option<Pixmap>>> = RefCell::new(HashMap::new());
+}
+
+fn draw_image(pixmap: &mut Pixmap, rect: Rect, src: Option<&str>, clip: Clip) {
+    if rect.width <= 0.0 || rect.height <= 0.0 || !clip.contains(rect) {
+        return;
+    }
+    let Some(src) = src else {
+        draw_rect(
+            pixmap,
+            rect,
+            Color::rgb(0x26, 0x26, 0x26),
+            rect.width.min(rect.height) / 2.0,
+            clip,
+        );
+        return;
+    };
+    IMAGE_CACHE.with(|cache| {
+        let mut cache = cache.borrow_mut();
+        let image = cache
+            .entry(src.to_string())
+            .or_insert_with(|| Pixmap::load_png(src).ok());
+        if let Some(image) = image {
+            let sx = rect.width / image.width() as f32;
+            let sy = rect.height / image.height() as f32;
+            pixmap.draw_pixmap(
+                rect.x as i32,
+                rect.y as i32,
+                image.as_ref(),
+                &PixmapPaint::default(),
+                Transform::from_scale(sx, sy),
+                None,
+            );
+        } else {
             draw_rect(
                 pixmap,
                 rect,
                 Color::rgb(0x26, 0x26, 0x26),
-                node.style.border_radius,
+                rect.width.min(rect.height) / 2.0,
                 clip,
             );
         }
-    }
+    });
 }
 
 fn draw_rect(pixmap: &mut Pixmap, rect: Rect, color: Color, radius: f32, clip: Clip) {

@@ -198,3 +198,37 @@ fn clips_overflow_hidden_children_to_the_parent() {
     let outside = pixmap.pixel(10, 120).unwrap();
     assert!(outside.red() < 60, "child leaked below the clip");
 }
+
+#[test]
+fn renders_png_images() {
+    use tardis_core::scene::{Node, NodeKind};
+
+    let dir = tempfile::tempdir().unwrap();
+    let image_path = dir.path().join("red.png");
+    let mut image = Pixmap::new(2, 2).unwrap();
+    {
+        let red = tiny_skia::PremultipliedColorU8::from_rgba(255, 0, 0, 255).unwrap();
+        for pixel in image.pixels_mut() {
+            *pixel = red;
+        }
+    }
+    image.save_png(&image_path).unwrap();
+
+    let mut engine = Engine::new(20.0, 20.0);
+    let mut node = Node::new(1, NodeKind::Image);
+    node.parent = Some(0);
+    node.src = Some(image_path.to_string_lossy().to_string());
+    node.style.width = Some(10.0);
+    node.style.height = Some(10.0);
+    engine.scene.nodes.insert(1, node);
+    engine.scene.nodes.get_mut(&0).unwrap().children.push(1);
+    engine.relayout().unwrap();
+
+    let frame_path = dir.path().join("frame.png");
+    engine.render_png(frame_path.to_str().unwrap()).unwrap();
+    let frame = Pixmap::load_png(&frame_path).unwrap();
+    let pixel = frame.pixel(5, 5).unwrap();
+    assert!(pixel.red() > 200 && pixel.green() < 60);
+    let outside = frame.pixel(15, 15).unwrap();
+    assert!(outside.red() < 60);
+}
