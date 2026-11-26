@@ -100,3 +100,4 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 94 | Editor UI follows VS Code interaction patterns with original styling/assets | Familiar layout without copying Microsoft artwork, icons, or code |
 | 95 | Dioxus spreadsheet is a rendering baseline, not a feature clone | Isolates the virtualized 100k-row frame path; formula/app parity would measure app code |
 | 96 | Zed comparison reports startup/RSS/size and a feature table, not typing latency | No low-latency input instrumentation that can sample both apps fairly |
+| 97 | The editor highlighter tokenizes each visible line, not the document | Keeps it reactive and cheap for the demo; tree-sitter is the production path |

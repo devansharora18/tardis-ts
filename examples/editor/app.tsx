@@ -10,6 +10,7 @@ import {
   writeClipboard,
   type SceneEvent,
 } from '@devansharora18/tardisjs/scene'
+import { tokenize, type Language } from './syntax'
 
 interface File {
   id: string
@@ -37,9 +38,9 @@ The same file runs native and on the web.
 - Enter: keeps indentation
 
 ## Status
-This is a focused editor demo, not a
-full IDE. It has no syntax highlighting,
-LSP, terminals, or Git integration yet.
+Basic per-line syntax colors are on.
+This is still a focused editor demo:
+no LSP, terminals, or Git yet.
 `,
   },
   {
@@ -116,6 +117,14 @@ const caretInfo = (): { line: number; column: number } => {
 }
 
 const lineCount = (): number => active().content.split('\n').length
+
+const language = (): Language => {
+  const name = active().name
+  if (name.endsWith('.css')) return 'css'
+  if (name.endsWith('.md')) return 'markdown'
+  if (name.endsWith('.ts') || name.endsWith('.tsx')) return 'ts'
+  return 'text'
+}
 
 const selectFile = (id: string): void => {
   setActiveId(id)
@@ -357,6 +366,7 @@ function App(): ReturnType<typeof jsx> {
     wrap: false,
     onCaretChange: setCaret,
     onKeyDown: onKey,
+    highlightLine: (line) => tokenize(line, language()),
     onFocus: () => setStatus('Editing'),
     lineStyle: (index) =>
       index + 1 === info().line ? { backgroundColor: '#232323' } : undefined,

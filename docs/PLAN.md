@@ -290,7 +290,8 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   package manager, install, git. Non-TTY defaults never install.
 - Tailwind on web via `className`; `tardis build --css` links the stylesheet.
 - `examples/editor`: VS Code-style activity bar, explorer, tabs, breadcrumbs,
-  command palette, minimap, status bar; native and web tests.
+  command palette, minimap, status bar, and a per-line syntax tokenizer;
+  native and web tests.
 - `examples/spreadsheet`: 100k × 8 virtualized grid, formula bar, arithmetic and
   SUM/AVERAGE/MIN/MAX, formula tests; native screenshot.
 - Zed 1.30.2: Tardis 410 ms / 45.5 MiB / 10.6 MB vs Zed 624 ms / 363 MiB /

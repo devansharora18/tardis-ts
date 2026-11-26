@@ -61,9 +61,9 @@ npx tardis screenshot examples/native-counter/app.tsx -o check.png
 
 ## Applications
 
-- **Editor** — add syntax highlighting, LSP, find/replace, multi-cursor, undo,
-  Git, and a terminal. Current UI: activity bar, explorer, tabs, breadcrumbs,
-  command palette, minimap, status bar.
+- **Editor** — replace the per-line highlighter with tree-sitter/LSP, and add
+  find/replace, multi-cursor, undo, Git, and a terminal. Current UI: activity
+  bar, explorer, tabs, breadcrumbs, command palette, minimap, status bar.
 - **Spreadsheet** — direct cell typing, horizontal scrolling, scroll-to-active,
   clipboard ranges, CSV import/export, and undo. Current app edits through the
   formula bar and has arithmetic + SUM/AVERAGE/MIN/MAX.

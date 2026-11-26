@@ -35,7 +35,7 @@ typing-latency claim is deliberately not made.
 | Tabs, explorer, breadcrumbs, status bar | yes | yes |
 | Command palette | yes (Ctrl/Cmd+Shift+P) | yes |
 | Minimap | simple line map | full scaled minimap |
-| Syntax highlighting | **no** | tree-sitter, many languages |
+| Syntax highlighting | basic per-line tokenizer | tree-sitter, many languages |
 | LSP, diagnostics, completions | **no** | yes |
 | Multi-cursor, find/replace | **no** | yes |
 | Git integration, terminal, collaboration | **no** | yes |

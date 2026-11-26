@@ -69,6 +69,14 @@ function lineIndexAt(lines: Line[], caret: number): number {
   return lines.length - 1
 }
 
+export interface TextToken {
+  start: number
+  end: number
+  color?: string
+  backgroundColor?: string
+  fontWeight?: number
+}
+
 export interface TextFieldProps {
   value?: MaybeGetter<string>
   onChange?: (value: string) => void
@@ -81,6 +89,7 @@ export interface TextFieldProps {
   wrap?: MaybeGetter<boolean>
   onCaretChange?: (offset: number) => void
   onKeyDown?: (event: SceneEvent) => void
+  highlightLine?: (line: string, index: number) => TextToken[] | undefined
   lineStyle?: (index: number) => Record<string, unknown> | undefined
   disabled?: MaybeGetter<boolean>
   multiline?: MaybeGetter<boolean>
@@ -393,14 +402,36 @@ export function TextField(props: TextFieldProps): SceneNode {
         ? caretAt - line.start
         : null
     const runs: SceneNode[] = []
+    const tokens = props.highlightLine?.(line.text, index) ?? []
 
     const text = (from: number, to: number, selected: boolean): void => {
-      if (to <= from) return
-      const base: Record<string, unknown> = selected
-        ? { backgroundColor: SELECTION_COLOR }
-        : {}
-      if (!wrap()) base.whiteSpace = 'nowrap'
-      runs.push(jsx('span', { style: base }, line.text.slice(from, to)))
+      let cursor = from
+      while (cursor < to) {
+        const token = tokens.find(
+          (candidate) => cursor >= candidate.start && cursor < candidate.end
+        )
+        let end = to
+        if (token) {
+          end = Math.min(to, token.end)
+        } else {
+          const next = tokens
+            .map((candidate) => candidate.start)
+            .filter((start) => start > cursor)
+            .sort((a, b) => a - b)[0]
+          if (next !== undefined) end = Math.min(to, next)
+        }
+        if (end <= cursor) end = to
+        const base: Record<string, unknown> = selected
+          ? { backgroundColor: SELECTION_COLOR }
+          : token?.backgroundColor
+            ? { backgroundColor: token.backgroundColor }
+            : {}
+        if (!wrap()) base.whiteSpace = 'nowrap'
+        if (token?.color) base.color = token.color
+        if (token?.fontWeight) base.fontWeight = token.fontWeight
+        runs.push(jsx('span', { style: base }, line.text.slice(cursor, end)))
+        cursor = end
+      }
     }
 
     text(0, localStart, false)

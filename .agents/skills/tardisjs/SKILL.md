@@ -64,7 +64,9 @@ render(() => <App />)
   `Router({ router, routes, fallback?, guards?, lazy?, loading?, error? })`,
   `Link({ router, to, children })`, `matchPath(pattern, path)`
 - `focusNode(id)`; keyboard handlers `onKeyDown`/`onKeyUp`; wheel `onWheel`
-- `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?, multiline?, rows?, onSubmit?, onBlur?, onFocus? })`
+- `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?,
+  multiline?, rows?, fontFamily?, tabInserts?, autoIndent?, wrap?, onCaretChange?,
+  highlightLine?, lineStyle?, onKeyDown?, onSubmit?, onBlur?, onFocus? })`
 - `Checkbox({ checked, onChange?, label?, ariaLabel? })`
 - `Select({ value, options, onChange, placeholder?, ariaLabel?, width?, disabled? })`
 - `RadioGroup({ value, options, onChange, ariaLabel?, direction? })`

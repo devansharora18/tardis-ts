@@ -265,8 +265,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Mobile is not started.
 - Browser full-list updates are slower than Dioxus (see benchmarks);
   virtualized lists are the supported large-list shape.
-- The editor has no syntax highlighting, LSP, find/replace, multi-cursor, undo,
-  Git, or terminal yet.
+- The editor has a basic per-line syntax highlighter, but no LSP, find/replace,
+  multi-cursor, undo, Git, or terminal yet.
 - The spreadsheet edits through the formula bar; there is no horizontal scroll,
   clipboard range, CSV import/export, or direct cell typing.
 - Tailwind classes apply on web only; native uses the inline style objects.
