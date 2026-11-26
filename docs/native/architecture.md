@@ -46,7 +46,7 @@ set is stable so a binary encoding is a transport change, not a redesign.
 - Patches apply atomically to a clone; invalid ops leave the scene untouched.
 - Hit testing walks the laid-out tree in reverse paint order.
 
-**Budget: ≤10k lines, no application semantics.** Current: ~1.2k lines.
+**Budget: ≤10k lines, no application semantics.** Current: ~2.2k lines.
 
 ### 6. Host and shell
 
