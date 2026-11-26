@@ -1,217 +1,121 @@
-# tardisjs
+# TardisJS
 
-A compiler-driven frontend framework built around a blueprint DSL.
+**TSX-native desktop UI framework. TypeScript surface, Rust renderer.**
 
-TardisJS compiles `.tardis` files to plain JavaScript modules plus a small runtime (~5KB). It uses Proxy-based reactivity with direct DOM bindings (no virtual DOM reconciliation).
+Pre-alpha. The `.tardis` blueprint DSL is gone; v2 is TSX only.
 
-This project is experimental and blueprint-first by design. It is meant for teams who want explicit generated output and a small runtime surface.
+## What it is
 
-## Quick Start
+- Write TSX with signals. No virtual DOM, no hooks rules, no re-render pass.
+- The compiler turns JSX into a retained scene tree; a small Rust core owns
+  flexbox layout, text shaping, and rasterization.
+- The app runs in an embedded QuickJS engine inside one native binary.
+- `tardis screenshot` renders headlessly to PNG for CI and visual checks.
+- The current renderer is CPU-based (tiny-skia). A wgpu backend is next.
 
-```bash
-npx create-tardis-app my-app
-cd my-app
+## Status
+
+Alpha, desktop-first. Linux/X11 verified end to end, including the window and
+headless click tests. macOS/Windows have not been packaged. There is no web
+target.
+
+The npm tarball does not ship the native binary yet. Build it from this repo
+(`cargo build --manifest-path native/Cargo.toml`) or point `TARDIS_NATIVE_BIN`
+at a binary. See [docs/TODO.md](docs/TODO.md).
+
+## Requirements
+
+- Node 20+
+- Rust 1.87+ (edition 2021, QuickJS bundled)
+- Linux window builds need X11 or Wayland development libraries
+
+## Quick start
+
+From this repository:
+
+```sh
 npm install
-npm run dev
+npm run build
+cargo build --manifest-path native/Cargo.toml
+node dist/bin/tardis.js dev examples/native-counter/app.tsx
 ```
 
-Or initialize in an existing directory:
+From an empty app directory:
 
-```bash
-npx tardis init
+```sh
+npx @devansharora18/tardisjs init
+npm install
 npx tardis dev
 ```
 
-## What It Looks Like
+## A complete app
 
-```
-blueprint Counter {
-  state {
-    count: number = 0
-  }
-  methods {
-    increment: () => $update(state.count, state.count + 1)
-    decrement: () => $update(state.count, state.count - 1)
-    reset: () => $update(state.count, 0)
-  }
-  style(tailwind) {
-    value: "text-6xl font-bold text-center"
-    actions: "flex gap-4 justify-center mt-8"
-    btn: "rounded-lg bg-cyan-400 px-5 py-2 text-black font-medium"
-  }
-  ui {
-    <main>
-      <p class={"value"}>{state.count}</p>
-      <div class={"actions"}>
-        <button class={"btn"} @click={methods.decrement}>-1</button>
-        <button class={"btn"} @click={methods.increment}>+1</button>
-        <button class={"btn"} @click={methods.reset}>Reset</button>
-      </div>
-    </main>
-  }
+```tsx
+import { createSignal, render } from '@devansharora18/tardisjs/scene'
+
+const [count, setCount] = createSignal(0)
+
+function App() {
+  return (
+    <div style={{ padding: 32, gap: 12 }}>
+      <h1>Tardis Native</h1>
+      <p>Count: {count()}</p>
+      <button style={{ width: 200 }} onClick={() => setCount((n) => n + 1)}>
+        Increment
+      </button>
+    </div>
+  )
 }
+
+render(() => <App />)
 ```
 
-## Features
-
-- **Compiler pipeline** — `lex()` → `parse()` → `compile()` generates imperative JS
-- **~5KB runtime** — small client runtime focused on binding and routing
-- **Proxy-based reactivity** — field-level subscriptions trigger dependent effects
-- **Direct DOM updates** — generated code writes to concrete nodes/attributes
-- **Blueprint sections** — explicit `props/state/computed/methods/events/style/ui/script`
-- **File-based routing** — `pages/index.tardis` → `/`, `pages/[slug].tardis` → `/:slug`
-- **Built-in CLI** — `init`, `dev`, `build`, `preview`
-
-## Where It Fits
-
-- **React / Vue / Svelte** are mature and better choices for many production teams today.
-- **TardisJS** is useful if you want to inspect compile output, keep the runtime surface small, and work in a sectioned DSL.
-- Trade-off: smaller ecosystem and fewer integrations compared to established frameworks.
-
-## Project Structure
+## How it works
 
 ```
-my-app/
-  pages/
-    index.tardis        # Routes derived from file structure
-    about.tardis
-    blog/[id].tardis    # Dynamic route: /blog/:id
-  components/
-    Button.tardis       # Reusable components
-  public/               # Static assets (copied to dist)
-  tardis.config.js      # Project configuration
-  package.json
+app.tsx ── compiler ──▶ dist/app.js ── QuickJS ──▶ scene patches
+                                                       │
+                                              taffy layout
+                                                       │
+                                         cosmic-text + tiny-skia
+                                                       │
+                                                  one frame
 ```
 
-## CLI Commands
+The JS runtime owns state, components, and events. Rust owns pixels. The
+boundary is one JSON patch per frame (protocol v0), not a call per property.
+See [docs/native/architecture.md](docs/native/architecture.md) and
+[docs/native/protocol.md](docs/native/protocol.md).
 
-| Command | Description |
-|---------|-------------|
-| `tardis init` | Scaffold a project in the current directory |
-| `tardis dev` | Dev server with hot reload |
-| `tardis build` | Production build to `dist/` |
-| `tardis preview` | Serve built output on port 4000 |
-| `create-tardis-app <name>` | Create a new project in a subdirectory |
+## Commands
 
-## Configuration
+| Command | What it does |
+|---|---|
+| `tardis init` | Create `app.tsx`, `package.json`, `tsconfig.json` |
+| `tardis build [entry]` | Bundle TSX to `dist/app.js` |
+| `tardis run [entry]` | Build and open the native window |
+| `tardis dev [entry]` | Build, run, and restart on `.ts`/`.tsx` changes |
+| `tardis screenshot [entry]` | Render one frame to PNG; `--dump` writes the scene JSON |
 
-```js
-// tardis.config.js
-export default {
-  pages: './pages',
-  components: './components',
-  outDir: './dist',
-  port: 3000,
-  title: 'my app',
-  head: [
-    '<script src="https://cdn.tailwindcss.com"></script>',
-  ],
-  staticDir: './public',
-}
-```
+Options: `--out`, `--minify`, `--width`, `--height`, `--dump`.
 
-## Blueprint Anatomy
+Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 
-```
-blueprint ComponentName {
-  props { }       // Typed component inputs
-  state { }       // Reactive local state (Proxy-based)
-  computed { }    // Derived values from state
-  methods { }     // Event handlers and logic
-  events { }      // Lifecycle: onMount, onDestroy, onUpdate
-  style(tailwind) { }  // Named class tokens
-  ui { }          // HTML-like template with reactive bindings
-}
-```
+## Limits (v0)
 
-Every section is optional. Pages typically omit `props`; leaf components may omit `state`.
+- Props are reactive getters. Use `props.title()` in JSX and memos.
+- Styles are objects, not CSS. Supported keys are listed in
+  [docs/TSX.md](docs/TSX.md#styles).
+- Dynamic arrays rebuild when they change; keyed reuse is not implemented.
+- No keyboard, focus, IME, clipboard, images, scrolling, or text clipping yet.
+- The window is 1x scale; HiDPI is not handled.
+- Only the bundled Liberation Sans family is guaranteed.
 
-## Runtime API
+## Docs
 
-| Function | Purpose |
-|----------|---------|
-| `$update(ref, value)` | Update state and trigger bindings |
-| `$toggle(ref)` | Toggle boolean state |
-| `$reset(state, initial)` | Reset state to defaults |
-| `$batch(fn)` | Batch updates into single render cycle |
-| `$navigate(path)` | Client-side navigation |
-| `$params` | Read dynamic route parameters |
-| `$back()` / `$forward()` | History traversal |
-| `$fetch(url, opts?)` | Network request helper |
-| `$if` / `$each` / `$show` | Conditional and list rendering |
-| `$portal(el, target)` | Render into external DOM target |
-| `$(selector)` | jQuery-inspired DOM query |
-
-## VS Code Extension
-
-Syntax highlighting for `.tardis` files is available in `vscode-extension/`. Install the `.vsix` file:
-
-1. Open VS Code
-2. Go to Extensions → `...` menu → Install from VSIX
-3. Select `vscode-extension/tardisjs-syntax-0.1.0.vsix`
-
-## Development
-
-```bash
-git clone https://github.com/devansharora18/tardisjs.git
-cd tardisjs
-npm install
-npm run build       # Build compiler + runtime + CLI
-npm test            # Run test suite
-npm run typecheck   # Type checking
-npm run dev         # Watch mode
-```
-
-### Build Scripts
-
-| Script | Description |
-|--------|-------------|
-| `npm run build` | Full build (clean + lib + binaries) |
-| `npm run build:lib` | Compiler and runtime only |
-| `npm run build:bin` | CLI binaries only |
-| `npm run dev` | Rollup watch mode |
-| `npm test` | Vitest single run |
-| `npm run test:watch` | Vitest watch mode |
-| `npm run typecheck` | TypeScript check |
-| `npm run publish:check` | Full quality gate |
-
-## Examples
-
-Working examples are in `examples/`:
-
-- **`examples/counter/`** — Counter with increment, decrement, and reset
-- **`examples/todo/`** — Todo list application
-
-## How It Works
-
-```
-.tardis source
-  → lex()      Tokenize input
-  → parse()    Build AST
-  → compile()  Generate JavaScript
-  → TypeScript transpile
-  → Runtime import rewriting
-  → Browser-ready JS module
-```
-
-The compiler transforms blueprint sections into imperative DOM code that references the `$runtime` object. State uses JavaScript Proxies for fine-grained reactivity — only bindings that read a changed key are re-evaluated.
-
-In practice:
-
-- `lex()` tokenizes blueprint sections and expressions.
-- `parse()` builds typed AST nodes (`state`, `methods`, `events`, `ui`, etc).
-- `compile()` emits DOM creation code + binding/effect wiring.
-- Runtime updates are driven by Proxy traps and dependency tracking.
-
-The model keeps runtime logic simple, but shifts more responsibility to compile-time transforms and DSL ergonomics.
-
-## Contributing
-
-1. Create a branch scoped to one concern
-2. Add or update tests next to affected subsystem
-3. Run `npm run typecheck && npm test` before review
-4. Provide minimal reproduction for parser/compiler defects
-
-## License
-
-MIT
+- [TSX guide](docs/TSX.md)
+- [Architecture](docs/native/architecture.md)
+- [Frame protocol](docs/native/protocol.md)
+- [Decisions](docs/DECISIONS.md)
+- [TODO](docs/TODO.md)
+- [ADR 0003 — TSX-only v2](docs/adr/0003-tsx-only-v2.md)

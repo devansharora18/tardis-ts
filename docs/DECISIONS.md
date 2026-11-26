@@ -1,22 +1,30 @@
 # Decisions — v2 rewrite
 
-Assumptions made during the TSX-native rewrite, newest first.
+Assumptions and choices made during the TSX-native rewrite, newest first.
 
 | # | Decision | Reason |
 |---|---|---|
-| 1 | Package name stays `@devansharora18/tardisjs`; version `2.0.0-alpha.0` | The npm identity is the asset; the surface changes, not the name |
+| 1 | Package name stays `@devansharora18/tardisjs`; version `2.0.0-alpha.0` | The npm identity is the asset |
 | 2 | `.tardis` and every v1 artifact are removed, not deprecated | Explicit directive; a dual surface doubles the compiler and docs |
-| 3 | Native desktop is the only target in v2 | Web needs a DOM adapter; native proves the architecture first |
-| 4 | TSX compiles to a retained scene tree, not a VDOM | One DOM-equivalent operation per change, no diff of a virtual tree |
-| 5 | Props in JSX are compiled to getters | Fine-grained updates without re-running components |
-| 6 | Event props (`on[A-Z]`), `key`, `ref`, and function-valued props stay unwrapped | Wrapping callbacks would turn them into getters of functions |
-| 7 | The compiler is a TypeScript transformer invoked by an esbuild plugin | Reuses the TypeScript parser; no second grammar |
-| 8 | Intrinsic tags map to a closed set (`div`, `span`, `p`, `h1`–`h6`, `button`, `img`) | Keeps JSX readable without a CSS engine |
-| 9 | Layout is flexbox via taffy; there is no CSS parser | Styles are typed objects, matching native constraints |
-| 10 | v0 renders with tiny-skia on the CPU, behind a renderer boundary | Works headless and on any machine; wgpu swaps in later |
-| 11 | Patch protocol v0 is JSON; the op set is final | Debuggable during bring-up; binary encoding is a transport change |
-| 12 | Text uses bundled Liberation Sans | Deterministic rendering across machines; OFL licensed |
-| 13 | Keyed list reuse is deferred; dynamic arrays re-create nodes | Correctness first; the reconciliation pass is the next milestone |
-| 14 | The docs site, 19 demos, and VSCode grammar are removed | They only compile with the v1 blueprint pipeline |
-| 15 | Headless viewport defaults to 800×600, background `#0a0a0a` | Matches the golden-image tests |
+| 3 | App imports use `@devansharora18/tardisjs/scene`; the bundler also aliases `tardisjs/scene` | Imports match the published package; short alias stays for generated/legacy code |
+| 4 | Native desktop is the only target in v2 | Web needs a DOM adapter; native proves the architecture first |
+| 5 | TSX compiles to a retained scene tree, not a VDOM | One operation per change, no virtual tree diff |
+| 6 | Non-event JSX props compile to getters | Fine-grained updates without re-running components |
+| 7 | Event props (`on[A-Z]`), `key`, `ref`, function props stay unwrapped | Wrapping callbacks would turn them into getters of functions |
+| 8 | The compiler is a TypeScript transformer inside `ts.transpileModule` | Reuses the TypeScript parser; no second grammar |
+| 9 | Intrinsic tags are a closed set (`div`, headings, `p`, `button`, …) | Readable JSX without a CSS engine |
+| 10 | Layout is flexbox via taffy; no CSS parser | Styles are typed objects |
+| 11 | v0 renders with tiny-skia on the CPU | Works headless and without a GPU; wgpu swaps in later |
+| 12 | Patch protocol v0 is JSON; the op set is stable | Debuggable bring-up; binary is a transport change |
+| 13 | Text uses bundled Liberation Sans regular/bold | Deterministic output without system fonts |
+| 14 | Dynamic arrays rebuild; keyed reuse is deferred | Correctness first; reconciliation is M5 |
+| 15 | The docs site, 19 demos, and VSCode grammar are removed | They only compile with v1; new docs are Markdown |
 | 16 | Rust crates live under `native/` in this repo | Compiler and renderer must version together |
+| 17 | Headless defaults: 800×600, background `#0a0a0a` | Matches golden-image tests |
+| 18 | Native binary is built from the repo, not shipped in the npm tarball yet | Platform packaging is M6; `TARDIS_NATIVE_BIN` is the escape hatch |
+| 19 | `tardis dev` restarts the process; no in-process hot re-eval | Simpler than QuickJS state migration; fast enough for v0 |
+| 20 | The window is 1x scale; HiDPI deferred | Requires a coordinate/scale pass through layout and input |
+| 21 | Text is not clipped; images render as placeholders; scroll offsets are stored but not painted | Kept the v0 surface honest and small |
+| 22 | End-to-end proof uses `--click x,y` plus `--dump` | Hit testing and signal updates verified without a GUI driver |
+| 23 | Window mode is compiled in by default; headless builds use `--no-default-features` | CI needs no X11/Wayland |
+| 24 | The old v1 signals implementation is gone; scene/signals is the only graph | No dual runtime |
