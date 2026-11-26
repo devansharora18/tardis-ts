@@ -110,10 +110,12 @@ app.tsx ─ compiler ─ bundle
   selection, multiline, word/vertical navigation, IME composition, focus/blur,
   Tab/Shift+Tab traversal, `role`/`aria-*`, copy/cut/paste, and native
   `arboard`/web `navigator.clipboard` bridges.
-- **Form state** — `createForm` (values, touched, errors, submitting, submit,
-  reset) and `FormField` for labels/errors.
-- **Async resources** — `createResource` with loading, error, refetch, and
-  last-request-wins semantics.
+- **Form state** — `createForm` (values, touched, errors, async validation,
+  submitting, submit errors, reset) and `FormField` for labels/errors.
+- **Inputs** — `Select` (combobox/listbox) and `RadioGroup` (roving focus) in
+  addition to `TextField` and `Checkbox`.
+- **Async resources** — `createResource` with loading, error, refetch,
+  `AbortSignal` cancellation, and last-request-wins semantics.
 - **Native accessibility** — the scene maps to an AccessKit tree with roles,
   names, values, bounds, focus, and focus/click/set-value actions. Web renders
   semantic DOM elements with ARIA attributes.

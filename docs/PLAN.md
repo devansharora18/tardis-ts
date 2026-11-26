@@ -218,3 +218,13 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   widths; web maps `text-overflow`.
 - 117 JS / 15 Rust core tests. Still open: measured content height, multiline
   clamping, touch.
+
+## Forms/data/input slice result (2026-11-27)
+
+- `Select` combobox/listbox with keyboard navigation and disabled options.
+- `RadioGroup` with roving tab stop, arrow/Home/End selection.
+- `createForm.validateAsync`, `submitError`, `onSubmitError`, reset clearing.
+- `createResource` accepts an AbortSignal and aborts on refetch/dispose.
+- Windows fixes: CRLF JSX whitespace, file-URL bundle loading, targeted key
+  activation; clippy `question_mark` cleanup.
+- 126 JS / 18 Rust tests.

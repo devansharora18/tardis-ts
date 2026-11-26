@@ -80,3 +80,7 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 74 | Effect context is re-established while effects run | Nested effects created later still report to the same boundary |
 | 75 | Scrollbar dragging uses scene pointer move events with the pressed node as target | The thumb id stays stable; pointer capture works when the cursor leaves the thumb |
 | 76 | Ellipsis truncates at paint time with a binary search over character prefixes | No layout API change; correct glyph widths from cosmic-text |
+| 77 | Select renders its list in layout instead of a floating overlay | Hit-testing and focus work identically on both hosts; no portal layer yet |
+| 78 | Form async validation runs at submit time | Avoids racing per-keystroke validation; sync rules still update immediately |
+| 79 | Submit rejections become `submitError` | Forms should not produce unhandled rejections; callers can render the error |
+| 80 | Resources abort the previous request | `fetch` stops work and stale responses are already token-guarded |

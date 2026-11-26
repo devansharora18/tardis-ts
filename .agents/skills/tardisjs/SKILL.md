@@ -61,11 +61,15 @@ render(() => <App />)
 - `focusNode(id)`; keyboard handlers `onKeyDown`/`onKeyUp`; wheel `onWheel`
 - `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?, multiline?, rows?, onSubmit?, onBlur?, onFocus? })`
 - `Checkbox({ checked, onChange?, label?, ariaLabel? })`
+- `Select({ value, options, onChange, placeholder?, ariaLabel?, width?, disabled? })`
+- `RadioGroup({ value, options, onChange, ariaLabel?, direction? })`
 - accessibility props: `role`, `tabIndex`, `aria-*` (web attributes, native stored)
-- `createForm({ initial, validate?, onSubmit? })` → values/touched/errors,
-  submitting/submitted, submit/reset, `field(key)`
+- `createForm({ initial, validate?, validateAsync?, onSubmit?, onSubmitError? })`
+  → values/touched/errors, submitting/submitted, submitError, submit/reset,
+  `field(key)`
 - `FormField({ label, error?, hint?, children })`
-- `createResource(fetcher, { initial? })` → data/error/loading/refetch/dispose
+- `createResource((signal) => Promise, { initial? })` → data/error/loading/
+  refetch/dispose, aborts on refetch/dispose
 - `renderToString(App)`, `renderDocument(body, { title?, head?, script? })`,
   `hydrate(App, container, { onMismatch? })` from `tardisjs/ssr`
 - `ScrollView({ height, contentHeight, scrollTop?, onScroll?, children })`

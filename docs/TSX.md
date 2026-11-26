@@ -346,8 +346,25 @@ inserted. `Checkbox` toggles on click, Enter, or Space and exposes
 Tab moves focus through scene nodes with `tabIndex >= 0` in document order;
 Shift+Tab reverses. Disabled nodes (`aria-disabled="true"`) are skipped.
 
+`Select` and `RadioGroup` share the same option shape:
+
+```tsx
+const options = [
+  { value: 'a', label: 'Apple' },
+  { value: 'b', label: 'Banana' },
+  { value: 'c', label: 'Cherry', disabled: true },
+]
+
+<Select value={() => fruit()} options={options} onChange={setFruit} />
+<RadioGroup value={() => fruit()} options={options} onChange={setFruit} />
+```
+
+`Select` opens with click/Enter/Space, moves with arrows/Home/End, and closes on
+Escape or selection. `RadioGroup` keeps one tab stop and moves selection with
+arrows, skipping disabled options.
+
 For validation, `createForm` owns values, touched fields, errors, submitting,
-submit, and reset:
+submit errors, and reset:
 
 ```tsx
 import { createForm, FormField } from '@devansharora18/tardisjs/scene'
