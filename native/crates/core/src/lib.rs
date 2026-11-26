@@ -76,11 +76,92 @@ impl Engine {
         )
     }
 
+    pub fn resize(&mut self, width: f32, height: f32) -> Result<(), String> {
+        self.width = width;
+        self.height = height;
+        self.relayout()
+    }
+
+    pub fn render_argb(&mut self) -> Result<(Vec<u32>, u32, u32), String> {
+        let Self {
+            scene,
+            text,
+            layout,
+            width,
+            height,
+        } = self;
+        let layout = layout
+            .as_ref()
+            .ok_or_else(|| "engine: layout not computed".to_string())?;
+        let pixmap = render(
+            scene,
+            layout,
+            text,
+            &RenderOptions {
+                width: *width as u32,
+                height: *height as u32,
+                background: Color::rgb(0x0a, 0x0a, 0x0a),
+            },
+        )?;
+        let mut pixels = Vec::with_capacity((pixmap.width() * pixmap.height()) as usize);
+        for pixel in pixmap.pixels() {
+            let alpha = pixel.alpha() as u32;
+            let (r, g, b) = if alpha == 0 {
+                (0, 0, 0)
+            } else {
+                (
+                    (pixel.red() as u32 * 255) / alpha,
+                    (pixel.green() as u32 * 255) / alpha,
+                    (pixel.blue() as u32 * 255) / alpha,
+                )
+            };
+            pixels.push((r.min(255) << 16) | (g.min(255) << 8) | b.min(255));
+        }
+        Ok((pixels, pixmap.width(), pixmap.height()))
+    }
+
+    pub fn hit_test(&self, x: f32, y: f32) -> Option<u32> {
+        let layout = self.layout.as_ref()?;
+        hit_node(&self.scene, layout, self.scene.root, x, y)
+    }
+
     pub fn dump(&self) -> Result<SceneDump, String> {
         let layout = self
             .layout
             .as_ref()
             .ok_or_else(|| "engine: layout not computed".to_string())?;
         Ok(dump_scene(&self.scene, layout))
+    }
+}
+
+fn hit_node(
+    scene: &Scene,
+    layout: &ComputedLayout,
+    id: u32,
+    x: f32,
+    y: f32,
+) -> Option<u32> {
+    let node = scene.nodes.get(&id)?;
+    if !node.style.display {
+        return None;
+    }
+    if let Some(rect) = layout.rects.get(&id) {
+        if id != scene.root
+            && !(x >= rect.x && y >= rect.y && x < rect.x + rect.width && y < rect.y + rect.height)
+        {
+            return None;
+        }
+    } else {
+        return None;
+    }
+    for child in node.children.iter().rev() {
+        if let Some(hit) = hit_node(scene, layout, *child, x, y) {
+            return Some(hit);
+        }
+    }
+    if node.kind == NodeKind::Fragment {
+        None
+    } else {
+        Some(id)
     }
 }
