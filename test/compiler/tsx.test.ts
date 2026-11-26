@@ -10,7 +10,7 @@ function compile(source: string): string {
 describe('tsx compiler', () => {
   it('emits a runtime import only when JSX is used', () => {
     const out = compile(`const x = 1\nexport const y = x + 1\n`)
-    expect(out).not.toContain('tardisjs/scene')
+    expect(out).not.toContain('@devansharora18/tardisjs/scene')
   })
 
   it('compiles intrinsics with string tags and components with identifiers', () => {

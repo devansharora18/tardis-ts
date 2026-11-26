@@ -37,7 +37,7 @@ describe('bundleApp', () => {
     const entry = path.join(dir, 'app.tsx')
     fs.writeFileSync(
       entry,
-      `import { createSignal, render } from 'tardisjs/scene'
+      `import { createSignal, render } from '@devansharora18/tardisjs/scene'
        const [count, setCount] = createSignal(2)
        function App() {
          return <div><h1>Count: {count()}</h1><button onClick={() => setCount(count() + 1)}>+1</button></div>
@@ -50,7 +50,7 @@ describe('bundleApp', () => {
     const result = await bundleApp({ entry, outfile })
     expect(result.bytes).toBeGreaterThan(500)
     const code = fs.readFileSync(outfile, 'utf8')
-    expect(code).not.toContain("from 'tardisjs/scene'")
+    expect(code).not.toContain("from '@devansharora18/tardisjs/scene'")
     expect(code).not.toContain('<h1>')
     expect(code).toContain('__tardis_flush')
 

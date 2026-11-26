@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ES2020", "DOM"],
+    "types": ["node"],
     "strict": true,
     "declaration": true,
     "declarationDir": "dist",
@@ -12,10 +13,14 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "paths": {
-      "tardisjs/runtime": ["./src/runtime/index.ts"]
+      "tardisjs/scene": ["./src/scene/index.ts"],
+      "@devansharora18/tardisjs/scene": ["./src/scene/index.ts"],
+      "tardisjs/compiler": ["./src/compiler/index.ts"],
+      "@devansharora18/tardisjs/compiler": ["./src/compiler/index.ts"]
     }
   },
   "include": ["src/**/*", "bin/**/*"],
-  "exclude": ["node_modules", "dist", "test", "vscode-extension"]
+  "exclude": ["node_modules", "dist", "test", "vscode-extension", "native", "examples", "tardisjs-site"]
 }

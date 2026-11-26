@@ -1,4 +1,4 @@
-import { createSignal, render } from 'tardisjs/scene'
+import { createSignal, render } from '@devansharora18/tardisjs/scene'
 
 const [count, setCount] = createSignal(0)
 

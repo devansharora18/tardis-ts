@@ -2,7 +2,7 @@
 //
 // esbuild handles module resolution and bundling; a load plugin routes `.tsx`
 // through the scene compiler. The runtime is aliased to the in-repo source (or
-// the built bundle in a published package) so apps import `tardisjs/scene`
+// the built bundle in a published package) so apps import the scoped scene path
 // without a second package.
 
 import fs from 'node:fs'
@@ -87,6 +87,7 @@ export async function bundleApp(options: BundleOptions): Promise<BundleResult> {
     sourcemap: options.sourcemap ?? false,
     alias: {
       'tardisjs/scene': options.runtime ?? resolveRuntimeEntry(),
+      '@devansharora18/tardisjs/scene': options.runtime ?? resolveRuntimeEntry(),
     },
     plugins: [tsxPlugin()],
     logLevel: 'silent',

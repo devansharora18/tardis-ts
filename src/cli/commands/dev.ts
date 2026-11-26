@@ -1,158 +1,90 @@
-import fsp from 'node:fs/promises'
-import http from 'node:http'
-import net from 'node:net'
+import { spawn, type ChildProcess } from 'node:child_process'
 import path from 'node:path'
 import chokidar from 'chokidar'
-import { WebSocketServer } from 'ws'
-import { CLIError } from '../lib/errors'
-import { ensureDir, toPosix } from '../lib/fs'
-import { buildClientIndexHtml, collectArtifacts, contentType, loadConfig, writeRuntimeModules, type TardisConfig } from '../lib/project'
+import { buildApp, type BuildOptions } from './build'
+import { findNativeBinary } from '../lib/native'
 
-async function findAvailablePort(preferredPort: number): Promise<number> {
-	function check(port: number): Promise<boolean> {
-		return new Promise((resolve) => {
-			const tester = net.createServer()
-			tester.once('error', () => resolve(false))
-			tester.once('listening', () => {
-				tester.close(() => resolve(true))
-			})
-			tester.listen(port)
-		})
-	}
-
-	const startPort = Math.max(1, preferredPort)
-	for (let port = startPort; port <= 65535; port++) {
-		if (await check(port)) return port
-	}
-
-	throw new CLIError(`TardisError: no open port found\n  Tried ports ${startPort}-65535`)
+export interface DevOptions extends BuildOptions {
+  width?: number
+  height?: number
 }
 
-async function createDevAssets(cwd: string, config: TardisConfig): Promise<Map<string, string>> {
-	const assets = new Map<string, string>()
-	const { pageArtifacts, componentArtifacts, routes } = await collectArtifacts(cwd, config)
+export async function devApp(
+  cwd = process.cwd(),
+  options: DevOptions = {}
+): Promise<void> {
+  const binary = findNativeBinary(cwd)
+  let child: ChildProcess | null = null
+  let stopping = false
+  let building = false
+  let again = false
 
-	for (const artifact of [...pageArtifacts, ...componentArtifacts]) {
-		assets.set(`/${toPosix(artifact.outputPath)}`, artifact.outputCode)
-	}
+  const start = async (): Promise<void> => {
+    if (building || stopping) {
+      again = true
+      return
+    }
+    building = true
+    try {
+      const built = await buildApp(cwd, options)
+      if (stopping) return
+      child?.kill('SIGTERM')
+      child = spawn(
+        binary,
+        [
+          '--bundle',
+          built.outfile,
+          '--width',
+          String(options.width ?? 800),
+          '--height',
+          String(options.height ?? 600),
+        ],
+        { stdio: 'inherit' }
+      )
+      child.once('exit', (code) => {
+        if (!stopping) {
+          console.log(`tardis: app exited (${code ?? 0}); watching for changes`)
+        }
+      })
+      console.log(
+        `tardis: built ${path.relative(cwd, built.outfile)} (${built.bytes} bytes)`
+      )
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(`tardis: build failed\n${message}`)
+    } finally {
+      building = false
+      if (again && !stopping) {
+        again = false
+        void start()
+      }
+    }
+  }
 
-	const tempOut = path.join(cwd, '.tardis-dev-runtime')
-	await fsp.rm(tempOut, { recursive: true, force: true })
-	await ensureDir(tempOut)
-	await writeRuntimeModules(tempOut)
+  await start()
 
-	const runtimeFiles = await fsp.readdir(tempOut)
-	for (const file of runtimeFiles) {
-		const full = path.join(tempOut, file)
-		const stat = await fsp.stat(full)
-		if (stat.isDirectory()) {
-			const nested = await fsp.readdir(full)
-			for (const child of nested) {
-				const childPath = path.join(full, child)
-				const childRaw = await fsp.readFile(childPath, 'utf8')
-				assets.set(`/${toPosix(path.join(file, child))}`, childRaw)
-			}
-		} else {
-			const raw = await fsp.readFile(full, 'utf8')
-			assets.set(`/${toPosix(file)}`, raw)
-		}
-	}
+  const watcher = chokidar.watch(['**/*.tsx', '**/*.ts'], {
+    cwd,
+    ignoreInitial: true,
+    ignored: ['**/node_modules/**', '**/dist/**', '**/native/**'],
+  })
+  let timer: ReturnType<typeof setTimeout> | null = null
+  watcher.on('all', () => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => void start(), 120)
+  })
+  console.log('tardis: watching for changes (ctrl-c to stop)')
 
-	await fsp.rm(tempOut, { recursive: true, force: true })
-
-	assets.set('/index.html', buildClientIndexHtml(routes, true, config, componentArtifacts))
-	return assets
-}
-
-export async function devServer(cwd = process.cwd()): Promise<void> {
-	const config = await loadConfig(cwd)
-	const preferredPort = config.port ?? 3000
-	const port = await findAvailablePort(preferredPort)
-	let assets = await createDevAssets(cwd, config)
-
-	const server = http.createServer(async (req, res) => {
-		const requestPath = req.url ? req.url.split('?')[0] : '/'
-		const normalizedPath = requestPath && requestPath !== '/' ? requestPath : '/index.html'
-
-		if (assets.has(normalizedPath)) {
-			const body = assets.get(normalizedPath) as string
-			res.writeHead(200, { 'Content-Type': contentType(normalizedPath) })
-			res.end(body)
-			return
-		}
-
-		if (normalizedPath.startsWith('/pages/') || normalizedPath.startsWith('/components/') || normalizedPath.startsWith('/runtime/')) {
-			res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' })
-			res.end('Not found')
-			return
-		}
-
-		// Try static files from staticDir
-		const staticDir = path.resolve(cwd, config.staticDir ?? 'public')
-		const staticFilePath = path.join(staticDir, normalizedPath)
-		try {
-			const fileStat = await fsp.stat(staticFilePath)
-			if (fileStat.isFile()) {
-				const body = await fsp.readFile(staticFilePath)
-				res.writeHead(200, { 'Content-Type': contentType(normalizedPath) })
-				res.end(body)
-				return
-			}
-		} catch {}
-
-		const fallback = assets.get('/index.html') ?? ''
-		res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
-		res.end(fallback)
-	})
-
-	const wss = new WebSocketServer({ noServer: true })
-
-	server.on('upgrade', (req, socket, head) => {
-		if ((req.url ?? '').split('?')[0] !== '/ws') {
-			socket.destroy()
-			return
-		}
-
-		wss.handleUpgrade(req, socket, head, (ws) => {
-			wss.emit('connection', ws, req)
-		})
-	})
-
-	const pagesAbs = path.resolve(cwd, config.pages)
-	const componentsAbs = path.resolve(cwd, config.components)
-	const watcher = chokidar.watch([pagesAbs, componentsAbs], {
-		ignoreInitial: true,
-	})
-
-	watcher.on('all', async () => {
-		try {
-			assets = await createDevAssets(cwd, config)
-			const payload = JSON.stringify({ type: 'reload' })
-			for (const client of wss.clients) {
-				if (client.readyState === client.OPEN) {
-					client.send(payload)
-				}
-			}
-			console.log('♻️  Recompiled')
-		} catch (error) {
-			console.error(error instanceof Error ? error.message : String(error))
-		}
-	})
-
-	server.listen(port, () => {
-		if (port !== preferredPort) {
-			console.log(`⚠️  Port ${preferredPort} in use, using ${port} instead`)
-		}
-		console.log(`🚀 Dev server running at http://localhost:${port}`)
-	})
-
-	const shutdown = async () => {
-		await watcher.close()
-		wss.close()
-		server.close()
-		process.exit(0)
-	}
-
-	process.on('SIGINT', shutdown)
-	process.on('SIGTERM', shutdown)
+  await new Promise<void>((resolve) => {
+    const stop = (): void => {
+      if (stopping) return
+      stopping = true
+      if (timer) clearTimeout(timer)
+      void watcher.close()
+      child?.kill('SIGTERM')
+      resolve()
+    }
+    process.once('SIGINT', stop)
+    process.once('SIGTERM', stop)
+  })
 }

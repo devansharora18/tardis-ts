@@ -1,139 +1,68 @@
 {
   "name": "@devansharora18/tardisjs",
-  "version": "0.0.15",
-  "description": "Smaller on the outside. A ~5KB jQuery-inspired frontend framework.",
+  "version": "2.0.0-alpha.0",
+  "description": "TSX-native UI framework with a Rust renderer.",
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/src/index.d.ts",
   "bin": {
-    "tardis": "./dist/bin/tardis.js",
-    "create-tardis-app": "./dist/bin/create-tardis-app.js"
+    "tardis": "./dist/bin/tardis.js"
   },
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/index.mjs"
     },
-    "./runtime": {
-      "types": "./dist/runtime/src/runtime/index.d.ts",
-      "import": "./dist/runtime/index.mjs",
-      "require": "./dist/runtime/index.cjs"
+    "./scene": {
+      "types": "./dist/src/scene/index.d.ts",
+      "import": "./dist/scene/index.mjs"
     },
-    "./runtime/signals": {
-      "types": "./dist/runtime/src/runtime/signals.d.ts",
-      "import": "./dist/runtime/signals.mjs",
-      "require": "./dist/runtime/signals.cjs"
-    },
-    "./runtime/reconcile": {
-      "types": "./dist/runtime/src/runtime/reconcile.d.ts",
-      "import": "./dist/runtime/reconcile.mjs",
-      "require": "./dist/runtime/reconcile.cjs"
-    },
-    "./runtime/components": {
-      "types": "./dist/runtime/src/runtime/components.d.ts",
-      "import": "./dist/runtime/components.mjs",
-      "require": "./dist/runtime/components.cjs"
-    },
-    "./runtime/store": {
-      "types": "./dist/runtime/src/runtime/store.d.ts",
-      "import": "./dist/runtime/store.mjs",
-      "require": "./dist/runtime/store.cjs"
-    },
-    "./runtime/routing": {
-      "types": "./dist/runtime/src/runtime/routing.d.ts",
-      "import": "./dist/runtime/routing.mjs",
-      "require": "./dist/runtime/routing.cjs"
-    },
-    "./runtime/forms": {
-      "types": "./dist/runtime/src/runtime/forms.d.ts",
-      "import": "./dist/runtime/forms.mjs",
-      "require": "./dist/runtime/forms.cjs"
-    },
-    "./runtime/i18n": {
-      "types": "./dist/runtime/src/runtime/i18n.d.ts",
-      "import": "./dist/runtime/i18n.mjs",
-      "require": "./dist/runtime/i18n.cjs"
-    },
-    "./runtime/transition": {
-      "types": "./dist/runtime/src/runtime/transition.d.ts",
-      "import": "./dist/runtime/transition.mjs",
-      "require": "./dist/runtime/transition.cjs"
-    },
-    "./runtime/http": {
-      "types": "./dist/runtime/src/runtime/http.d.ts",
-      "import": "./dist/runtime/http.mjs",
-      "require": "./dist/runtime/http.cjs"
-    },
-    "./runtime/tasks": {
-      "types": "./dist/runtime/src/runtime/tasks.d.ts",
-      "import": "./dist/runtime/tasks.mjs",
-      "require": "./dist/runtime/tasks.cjs"
-    },
-    "./runtime/devtools": {
-      "types": "./dist/runtime/src/runtime/devtools.d.ts",
-      "import": "./dist/runtime/devtools.mjs",
-      "require": "./dist/runtime/devtools.cjs"
-    },
-    "./runtime/a11y": {
-      "types": "./dist/runtime/src/runtime/a11y.d.ts",
-      "import": "./dist/runtime/a11y.mjs",
-      "require": "./dist/runtime/a11y.cjs"
-    },
-    "./testing": {
-      "types": "./dist/testing/src/testing/index.d.ts",
-      "import": "./dist/testing/index.mjs",
-      "require": "./dist/testing/index.cjs"
-    },
-    "./ssr": {
-      "types": "./dist/ssr/src/ssr/index.d.ts",
-      "import": "./dist/ssr/index.mjs",
-      "require": "./dist/ssr/index.cjs"
+    "./compiler": {
+      "types": "./dist/src/compiler/index.d.ts",
+      "import": "./dist/compiler/index.mjs"
     }
-  },
-  "scripts": {
-    "clean": "rm -rf dist",
-    "build:lib": "rollup -c",
-    "build:bin": "rollup -c rollup.cli.config.js && chmod +x dist/bin/tardis.js dist/bin/create-tardis-app.js",
-    "build": "npm run clean && npm run build:lib && npm run build:bin",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "dev": "rollup -c --watch",
-    "typecheck": "tsc --noEmit",
-    "publish:check": "npm run build && npm run typecheck && npm test && npm pack --dry-run",
-    "prepublishOnly": "npm run publish:check"
   },
   "files": [
     "dist",
     "README.md",
     "LICENSE"
   ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build:lib": "rollup -c",
+    "build:bin": "rollup -c rollup.cli.config.js && chmod +x dist/bin/tardis.js",
+    "build:native": "cargo build --manifest-path native/Cargo.toml --release",
+    "build": "npm run clean && npm run build:lib && npm run build:bin",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "publish:check": "npm run build && npm run typecheck && npm test && npm pack --dry-run",
+    "prepublishOnly": "npm run publish:check"
+  },
   "keywords": [
-    "frontend",
+    "tsx",
+    "native",
     "framework",
-    "jquery",
-    "blueprints",
-    "reactive",
+    "signals",
     "no-vdom",
-    "components",
-    "tardis",
-    "doctor-who"
+    "rust",
+    "gui",
+    "desktop"
   ],
   "author": "devansharora18",
   "license": "MIT",
-  "devDependencies": {
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@types/ws": "^8.18.1",
-    "jsdom": "^29.0.1",
-    "rollup": "^4.0.0",
-    "tslib": "^2.0.0",
-    "vitest": "^1.0.0"
-  },
   "dependencies": {
     "chokidar": "^3.0.0",
     "commander": "^12.0.0",
     "esbuild": "^0.21.5",
-    "typescript": "^5.0.0",
-    "ws": "^8.20.0"
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/node": "^22.0.0",
+    "rollup": "^4.0.0",
+    "tslib": "^2.0.0",
+    "vitest": "^1.0.0"
   }
 }
