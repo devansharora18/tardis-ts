@@ -332,6 +332,23 @@ fn draw_text(
     }
     let style = resolve_text_style(scene, node_id);
     let color = style.color.with_opacity(opacity);
+    if let Some(background) = scene
+        .nodes
+        .get(&node_id)
+        .and_then(|node| node.style.background)
+    {
+        draw_rect(
+            pixmap,
+            rect,
+            background.with_opacity(opacity),
+            scene
+                .nodes
+                .get(&node_id)
+                .map(|node| node.style.border_radius * scale)
+                .unwrap_or(0.0),
+            clip,
+        );
+    }
     let buffer = text_engine.buffer(
         content,
         style.size * scale,
