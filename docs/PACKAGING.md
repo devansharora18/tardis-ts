@@ -7,6 +7,7 @@ Tardis ships the Rust sources and prebuilt runtime packages.
 - `@devansharora18/tardisjs` — CLI, compiler, JS runtime, Rust sources.
 - `@devansharora18/tardisjs-<platform>-<arch>` — one native binary per target:
   `linux-x64`, `linux-arm64`, `darwin-x64`, `darwin-arm64`, `win32-x64`.
+Windows arm64 is not published yet.
 
 The CLI looks for, in order:
 

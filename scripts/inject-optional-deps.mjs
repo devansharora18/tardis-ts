@@ -13,7 +13,6 @@ const platforms = [
   ['darwin', 'x64'],
   ['darwin', 'arm64'],
   ['win32', 'x64'],
-  ['win32', 'arm64'],
 ]
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
 pkg.version = version
