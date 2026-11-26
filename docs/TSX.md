@@ -287,9 +287,21 @@ indicator only (not draggable). Controlled use:
 />
 ```
 
-The content factory runs inside the boundary and render-time throws are caught.
-Errors thrown later inside child effects are caught and logged by the signal
-graph, not routed to the boundary yet.
+The content factory runs inside the boundary; render throws and later errors
+from effects created inside it switch to the fallback. `onError` receives the
+error and `reset` clears it.
+
+## Devtools
+
+```ts
+import { installDevtools } from '@devansharora18/tardisjs/devtools'
+
+const devtools = installDevtools({ startOpen: true })
+devtools.dispose()
+```
+
+The overlay shows the live scene tree (ids, tags, roles, text) and the last 12
+patch frames. It is DOM-only and intended for development.
 
 ## HiDPI
 

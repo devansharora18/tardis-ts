@@ -117,7 +117,10 @@ app.tsx ─ compiler ─ bundle
 - **SSR + hydration** — `renderToString`/`renderDocument` serialize the same
   scene tree without a DOM; `hydrate` takes over server markup on the client.
 - **ScrollView** — wheel scrolling with a scrollbar for arbitrary content.
-- **Boundary** — render-time errors show a fallback with reset instead of a blank screen.
+- **Boundary** — render errors and effect errors from the subtree show a
+  fallback with reset instead of a blank screen.
+- **Devtools** — `installDevtools()` from `tardisjs/devtools` overlays the live
+  scene tree and the patch stream.
 - **HiDPI** — native layout stays logical; raster, text, surfaces, and input use
   the window scale factor. `tardis-native --scale` covers headless images.
 - **Semantic web output** — `button`, `h1`, `p`, `ul`, `li`, `label`, `strong`,
@@ -210,7 +213,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Native HiDPI is handled with the window scale factor; verify on Retina hosts.
 - Hydration is a verified remount (content compared), not server-node adoption.
 - No streaming SSR or data prefetch; no server bundle CLI yet.
-- Boundary catches render-time errors; child effect errors are logged, not routed.
+- Boundary catches render and subtree effect errors; native core panics still
+  keep the last frame.
 - ScrollView needs an explicit content height; no draggable scrollbar or ellipsis.
 - Mobile is not started.
 - Dioxus frame timing has not been measured on the same workloads.

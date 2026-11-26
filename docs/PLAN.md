@@ -201,3 +201,11 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - Scene focus travels as a `focus` patch op; source tags now reach the core.
 - 15 JS input tests, 14 core tests, 3 accesskit tests. Screen-reader verification
   on real hosts remains.
+
+## Devtools/error slice result (2026-11-27)
+
+- `tardisjs/devtools`: toggleable overlay with scene tree, focus marker, patch
+  frame log, node/op counters; subscribes through a patch listener.
+- Boundary now routes effect errors from its subtree via an error context
+  captured at effect creation and restored while effects run.
+- 2 devtools tests, 5 boundary tests. Still open: time travel, ownership view.

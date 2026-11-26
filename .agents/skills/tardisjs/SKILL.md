@@ -69,7 +69,9 @@ render(() => <App />)
 - `renderToString(App)`, `renderDocument(body, { title?, head?, script? })`,
   `hydrate(App, container, { onMismatch? })` from `tardisjs/ssr`
 - `ScrollView({ height, contentHeight, scrollTop?, onScroll?, children })`
-- `Boundary({ content, fallback?, onError?, onReset? })`
+- `Boundary({ content, fallback?, onError?, onReset? })` — catches render and
+  subtree effect errors
+- `installDevtools({ container?, startOpen? })` from `tardisjs/devtools`
 - native `--scale` (headless) and window scale-factor support
 
 ## JSX rules
@@ -140,8 +142,8 @@ streaming, or data prefetch. Base CSS comes from `renderDocument`.
 ## Scroll, boundaries, HiDPI
 
 `ScrollView` clips content, scrolls on wheel, and draws an indicator; pass
-`contentHeight` explicitly. `Boundary` catches render-time errors only; effect
-errors are logged. Native HiDPI keeps layout logical and scales raster/text/
+`contentHeight` explicitly. `Boundary` catches render errors and effect errors
+from effects created inside its content. Native HiDPI keeps layout logical and scales raster/text/
 bounds; `tardis-native --scale 2` renders physical screenshots.
 
 ## Large lists, routing, images
@@ -199,6 +201,7 @@ Do not claim one.
 - `overflow: hidden` is rectangular clipping; no ellipsis.
 - Native images are PNG only; ScrollView clips and offsets, no native scroll node.
 - TextField has selection/multiline/IME; pointer caret placement is missing.
+- Devtools shows the scene and patch stream; no time travel or owner view.
 - Native AccessKit tree exists; verify screen readers on each host.
 - Clipboard is system-backed when available; otherwise memory.
 - Hydration is a remount, not node adoption; no streaming SSR.

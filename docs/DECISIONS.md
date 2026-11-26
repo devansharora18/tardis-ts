@@ -75,3 +75,6 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 69 | Scene focus is a `focus` patch op | Native accessibility must follow the real focused node; web ignores it and uses DOM focus |
 | 70 | Source tags travel to the native core | Accessibility roles need `button`/`h1`/`ul` semantics, not just view/text kinds |
 | 71 | Text inside controls is excluded from the AccessKit tree | The control's name carries the text; duplicate static-text children confuse screen readers |
+| 72 | Devtools subscribes to flushed patches instead of polling | Zero work when not installed; shows exactly what the host received |
+| 73 | Error boundaries capture the error context of effects created during content | Scopes failures to the subtree without a global error sink |
+| 74 | Effect context is re-established while effects run | Nested effects created later still report to the same boundary |
