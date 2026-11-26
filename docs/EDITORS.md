@@ -14,7 +14,7 @@ Zed 1.30.2 is the official Linux build. Tardis Code is `examples/editor`.
 | Startup to first changed pixels (median of 3) | **410 ms** | 624 ms |
 | Resident memory after 8 s (median of 3) | **45.5 MiB** | 363 MiB |
 | Runtime executable | **10.5 MB** | 220 MB |
-| Installed app/bundle | **10.6 MB** (binary + 87 KB app bundle) | 229 MB |
+| Installed app/bundle | **10.6 MB** (binary + 93 KB app bundle) | 229 MB |
 | Runs on web | **yes, same TSX file** | no (desktop only) |
 
 Raw startup samples: Tardis 410 / 432 / 400 ms; Zed 624 / 626 / 589 ms.
