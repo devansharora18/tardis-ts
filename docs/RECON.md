@@ -97,3 +97,23 @@ side effect; in QuickJS `typeof document === 'undefined'`, so it is a no-op.
    Mitigation: compile and test in a CI matrix; log GUI smoke commands in TODO.
 4. **Bundle divergence.** Two targets could drift. Mitigation: one compiler,
    one runtime, one patch protocol; only the host differs.
+
+## Performance/production run (2026-11-27)
+
+Machine: AMD Ryzen AI 7 350, 16 threads, 30 GB RAM, Mesa (lavapipe), Chrome,
+webkit2gtk-4.1. No wasm32 target, no `dx`, no `wasm-bindgen`, no Playwright.
+
+Baseline: 60 JS tests / 8 Rust tests pass; no performance harness exists.
+
+Confirmed v0 costs from code:
+
+1. `apply_patch` clones the whole scene on every patch (O(n) per update).
+2. `layout_scene` rebuilds a fresh taffy tree and remeasures text on every
+   layout.
+3. `paint.rs` allocates a `Pixmap` per glyph and blits it.
+4. Paint walks the full tree with no viewport culling.
+5. JSON patch per frame; QuickJS + layout + raster on the UI thread.
+
+Dioxus status here: 0.6.3 stable / 0.8.0-alpha.3 latest. Desktop is buildable
+with the installed webkit2gtk-4.1. Web needs wasm32 + wasm-bindgen/dx, which are
+not installed. No fair head-to-head has been run; do not claim one.
