@@ -118,4 +118,60 @@ describe('native end to end', () => {
     expect(fs.existsSync(clickedPng)).toBe(true)
     expect(fs.statSync(clickedPng).size).toBeGreaterThan(1000)
   }, 300_000)
+
+  it('mounts only a window of a 10k virtual list and scrolls', async () => {
+    const bundle = path.join(temp, 'virtual.js')
+    await bundleApp({
+      entry: path.join(root, 'examples/virtual-10k/app.tsx'),
+      outfile: bundle,
+    })
+
+    const initialDump = path.join(temp, 'virtual-initial.json')
+    const first = run([
+      '--headless',
+      '--bundle',
+      bundle,
+      '--width',
+      '800',
+      '--height',
+      '600',
+      '--out',
+      path.join(temp, 'virtual-initial.png'),
+      '--dump',
+      initialDump,
+    ])
+    expect(first.status, first.stderr).toBe(0)
+    const initial = readDump(initialDump)
+    expect(initial.nodes.length).toBeLessThan(100)
+    const initialTexts = initial.nodes
+      .map((node) => node.text)
+      .filter((text): text is string => Boolean(text))
+    expect(initialTexts).toContain('Row 0')
+    expect(initialTexts).not.toContain('Row 5000')
+
+    const scrolledDump = path.join(temp, 'virtual-scrolled.json')
+    const second = run([
+      '--headless',
+      '--bundle',
+      bundle,
+      '--width',
+      '800',
+      '--height',
+      '600',
+      '--out',
+      path.join(temp, 'virtual-scrolled.png'),
+      '--dump',
+      scrolledDump,
+      '--wheel',
+      '400,300,400',
+    ])
+    expect(second.status, second.stderr).toBe(0)
+    const scrolled = readDump(scrolledDump)
+    expect(scrolled.nodes.length).toBeLessThan(100)
+    const scrolledTexts = scrolled.nodes
+      .map((node) => node.text)
+      .filter((text): text is string => Boolean(text))
+    expect(scrolledTexts).toContain('Row 8')
+    expect(scrolledTexts).not.toContain('Row 0')
+  }, 300_000)
 })
