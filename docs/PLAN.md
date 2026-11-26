@@ -108,5 +108,7 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   mount.
 - Gate status: virtualized 10k passes the 16.6 ms frame budget; a fully mounted
   10k-node scene still takes 23 ms for one update and remains a stress case.
-- Dioxus: desktop startup/binary baseline scaffolded; no frame-time head-to-head
-  yet. Web arm blocked without wasm-bindgen/dx. No "better than Dioxus" claim.
+- Dioxus 0.6.3 desktop startup/binary baseline: Tardis 451 ms / 7.3 MB vs Dioxus
+  625 ms / 8.7 MB (first paint, Xvfb, release). This is a startup/size win only;
+  no frame-time head-to-head, and the web arm is blocked without
+  wasm-bindgen/dx. No blanket "better than Dioxus" claim.

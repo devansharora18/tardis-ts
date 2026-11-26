@@ -1,0 +1,24 @@
+Window first-paint startup, same machine (AMD Ryzen AI 7 350, 16 threads,
+30 GB, Linux/X11, Xvfb 1024x768, release builds).
+
+Method: spawn under Xvfb, capture the root window every 50 ms, and record the
+first time the root differs from the pre-launch baseline by more than 200
+pixels. This measures process start + window creation + first paint. It is not
+a frame-time benchmark.
+
+Tardis native, counter app, 800x600:
+  459 ms, 451 ms, 439 ms -> median 451 ms
+  binary: 7.3 MB (native/target/release/tardis-native)
+  app bundle: 33 KB (/tmp/counter/app.js)
+
+Dioxus 0.6.3 desktop, counter app, default window:
+  925 ms, 612 ms, 625 ms -> median 625 ms
+  binary: 8.7 MB (bench/dioxus-desktop/target/release/dioxus-baseline)
+
+Caveats:
+- Different UI implementations and rendering stacks: Tardis uses its own Rust
+  renderer; Dioxus desktop uses the system webview.
+- Startup only. No frame-time, update-latency, memory, or web comparison.
+- Dioxus web is not built here (no wasm32/wasm-bindgen/dx); do not extrapolate.
+- The Dioxus window may include webview initialization; the first changed pixel
+  can be a blank webview background. That is still first paint, but noted.

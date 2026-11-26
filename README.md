@@ -117,9 +117,13 @@ Release build, AMD Ryzen AI 7 350, core harness (patch + layout + paint):
 
 A fully mounted 10k-node scene is a stress case and still misses 60 fps on a
 single update. The virtualized path is the production shape and passes with
-headroom. There is no Dioxus frame-time head-to-head yet; `bench/dioxus-desktop`
-exists for a startup/size baseline, and the web arm is blocked without a wasm
-toolchain. See [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+headroom.
+
+Same-machine startup/size baseline against Dioxus 0.6.3 desktop (first paint,
+Xvfb, release): **Tardis 451 ms / 7.3 MB vs Dioxus 625 ms / 8.7 MB**. That is a
+measured startup/size win only. There is no frame-time head-to-head, and Dioxus
+web is blocked without a wasm toolchain. See
+[docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
 ## Commands
 

@@ -43,3 +43,8 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 37 | No performance claim without pre-registered benchmarks; publish losses | Anti-reward-hacking; the harness must be able to show Tardis losing |
 | 38 | "Better than Dioxus" means 1.25x on 4 of 6 primary metrics, no >10% regressions, feature parity, and TSX DX | One microbenchmark is not a framework win |
 | 39 | Frame-critical work moves to Rust: virtualization, incremental layout, glyph atlas/batching, wgpu | The JS engine cannot fix rendering cost |
+| 40 | Style/text updates apply in place after validation; structural patches keep the atomic clone | The clone was O(n) per update; patch apply is now ~0.003 ms |
+| 41 | The taffy tree persists across style/text updates | Rebuilding 10k nodes dominated updates (445 ms -> ~21 ms layout, 23 ms total) |
+| 42 | Paint culls offscreen subtrees and clips `overflow: hidden` | 10k paint 150 ms -> 1.9 ms; virtual lists do not bleed |
+| 43 | 10k rows require virtualization; the virtual window is the production shape | Fully mounted 10k still updates in 23 ms; the 40-node window updates in 0.55 ms |
+| 44 | Dioxus desktop is a startup/size baseline only | No frame-time instrumentation; web blocked without wasm toolchain; no blanket claim |

@@ -127,7 +127,9 @@ Release core harness (`cargo run -p tardis-bench --release -- --rows 1000`):
 - Patch apply is ~0.003 ms for style/text updates (no scene clone); the taffy
   tree is reused. Fully mounted 10k is a stress case, not the production shape.
 
-There is no Dioxus frame-time head-to-head. Do not claim one.
+Same-machine startup/size: Tardis 451 ms / 7.3 MB vs Dioxus 0.6.3 desktop
+625 ms / 8.7 MB (first paint). Startup/size only; no frame-time head-to-head.
+Do not claim one.
 
 ## Testing
 

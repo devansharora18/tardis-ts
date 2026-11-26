@@ -144,6 +144,24 @@ startup and binary size can be measured on this machine (webkit2gtk-4.1 is
 present). Web needs wasm32 + wasm-bindgen/dx, which are not installed; that arm
 is blocked and must not be claimed.
 
-No frame-time head-to-head exists yet. The only honest statement today:
-Tardis's virtualized native path is fast in its own harness; Dioxus has not been
-measured on the same workloads.
+Measured on this machine: window first-paint startup (process start to first
+changed root pixel, five/three runs, Xvfb):
+
+| App | Runs | Median | Binary |
+|---|---:|---:|---:|
+| Tardis native counter | 459 / 451 / 439 ms | **451 ms** | **7.3 MB** |
+| Dioxus 0.6.3 desktop counter | 925 / 612 / 625 ms | 625 ms | 8.7 MB |
+
+Method and raw values: `bench/results/2026-11-27-startup.txt`,
+`bench/measure-startup.sh`. Different UIs and renderers; startup and binary size
+only. This is a measured Tardis win on those two axes, not a frame-time or
+feature-parity win.
+
+What is still missing:
+
+- A frame-time/update head-to-head on the same virtualized workload.
+- Dioxus web (blocked: wasm32 + wasm-bindgen/dx not installed).
+- Feature parity: Dioxus has SSR/fullstack, mobile, and a larger ecosystem;
+  Tardis has basic keyboard/focus but no text input/IME or SSR.
+
+No blanket "better than Dioxus" claim is justified.
