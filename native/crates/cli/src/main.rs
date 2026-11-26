@@ -7,6 +7,9 @@ use std::process::ExitCode;
 
 use tardis_js::JsHost;
 
+#[cfg(feature = "window")]
+mod a11y;
+
 struct Args {
     bundle: PathBuf,
     width: u32,
@@ -222,9 +225,85 @@ mod window {
     };
     use tardis_js::JsHost;
     use winit::event::{ElementState, Event, Ime, MouseButton, MouseScrollDelta, WindowEvent};
-    use winit::event_loop::{ControlFlow, EventLoop};
+    use winit::event_loop::{ControlFlow, EventLoopBuilder};
     use winit::keyboard::{Key, NamedKey};
     use winit::window::WindowBuilder;
+
+    #[derive(Debug)]
+    enum UserEvent {
+        AccessKit(accesskit_winit::Event),
+    }
+
+    impl From<accesskit_winit::Event> for UserEvent {
+        fn from(event: accesskit_winit::Event) -> Self {
+            Self::AccessKit(event)
+        }
+    }
+
+    fn update_accessibility(
+        adapter: &mut accesskit_winit::Adapter,
+        host: &JsHost,
+        classes: &mut accesskit::NodeClassSet,
+    ) {
+        adapter.update_if_active(|| {
+            let engine = host.engine();
+            let engine = engine.borrow();
+            crate::a11y::tree_update(
+                &engine.scene,
+                engine.layout.as_ref(),
+                engine.scale,
+                engine.width,
+                engine.height,
+                classes,
+            )
+        });
+    }
+
+    fn dispatch_action(host: &JsHost, request: &accesskit::ActionRequest) {
+        use accesskit::{Action, ActionData};
+        let Some(node) = crate::a11y::target_scene_id(request.target) else {
+            return;
+        };
+        let event = match request.action {
+            Action::Focus => serde_json::json!({
+                "type": "a11y",
+                "action": "focus",
+                "node": node,
+            }),
+            Action::Default => serde_json::json!({
+                "type": "a11y",
+                "action": "default",
+                "node": node,
+            }),
+            Action::SetValue => {
+                let Some(ActionData::Value(text)) = &request.data else {
+                    return;
+                };
+                serde_json::json!({
+                    "type": "a11y",
+                    "action": "set-value",
+                    "node": node,
+                    "text": text,
+                })
+            }
+            Action::ReplaceSelectedText => {
+                let Some(ActionData::Value(text)) = &request.data else {
+                    return;
+                };
+                serde_json::json!({
+                    "type": "a11y",
+                    "action": "replace-text",
+                    "node": node,
+                    "text": text,
+                })
+            }
+            _ => return,
+        }
+        .to_string();
+        if let Err(err) = host.dispatch(&event) {
+            eprintln!("tardis: a11y action: {err}");
+        }
+    }
 
     struct SharedWindow(Rc<winit::window::Window>);
 
@@ -241,14 +320,21 @@ mod window {
     }
 
     pub fn run(host: JsHost, width: u32, height: u32) -> Result<(), String> {
-        let event_loop = EventLoop::new().map_err(|err| format!("event loop: {err}"))?;
+        let event_loop = EventLoopBuilder::<UserEvent>::with_user_event()
+            .build()
+            .map_err(|err| format!("event loop: {err}"))?;
         let window = Rc::new(
             WindowBuilder::new()
                 .with_title("Tardis")
                 .with_inner_size(winit::dpi::LogicalSize::new(width, height))
+                .with_visible(false)
                 .build(&event_loop)
                 .map_err(|err| format!("window: {err}"))?,
         );
+        let proxy = event_loop.create_proxy();
+        let mut adapter = accesskit_winit::Adapter::with_event_loop_proxy(&window, proxy);
+        let mut classes = accesskit::NodeClassSet::new();
+        window.set_visible(true);
         window.set_ime_allowed(true);
         let context = softbuffer::Context::new(SharedWindow(window.clone()))
             .map_err(|err| format!("softbuffer context: {err}"))?;
@@ -272,7 +358,9 @@ mod window {
             .run(move |event, elwt| {
                 elwt.set_control_flow(ControlFlow::Wait);
                 match event {
-                    Event::WindowEvent { event, .. } => match event {
+                    Event::WindowEvent { event, .. } => {
+                        adapter.process_event(&window, &event);
+                        match event {
                         WindowEvent::CloseRequested => elwt.exit(),
                         WindowEvent::Resized(size) => {
                             scale = window.scale_factor();
@@ -364,6 +452,7 @@ mod window {
                             if let Err(err) = host.dispatch(&event) {
                                 eprintln!("tardis: {err}");
                             }
+                            update_accessibility(&mut adapter, &host, &mut classes);
                             dirty = true;
                         }
                         WindowEvent::MouseWheel { delta, .. } => {
@@ -406,6 +495,7 @@ mod window {
                             if let Err(err) = host.dispatch(&event_json) {
                                 eprintln!("tardis: {err}");
                             }
+                            update_accessibility(&mut adapter, &host, &mut classes);
                             dirty = true;
                         }
                         WindowEvent::RedrawRequested => {
@@ -444,7 +534,20 @@ mod window {
                             }
                         }
                         _ => {}
-                    },
+                        }
+                    }
+                    Event::UserEvent(UserEvent::AccessKit(event)) => {
+                        match &event.window_event {
+                            accesskit_winit::WindowEvent::InitialTreeRequested => {
+                                update_accessibility(&mut adapter, &host, &mut classes);
+                            }
+                            accesskit_winit::WindowEvent::ActionRequested(request) => {
+                                dispatch_action(&host, request);
+                                update_accessibility(&mut adapter, &host, &mut classes);
+                            }
+                            _ => {}
+                        }
+                    }
                     Event::AboutToWait if dirty => window.request_redraw(),
                     _ => {}
                 }
