@@ -189,13 +189,10 @@ fn hit_node(scene: &Scene, layout: &ComputedLayout, id: u32, x: f32, y: f32) -> 
     if !node.style.display {
         return None;
     }
-    if let Some(rect) = layout.rects.get(&id) {
-        if id != scene.root
-            && !(x >= rect.x && y >= rect.y && x < rect.x + rect.width && y < rect.y + rect.height)
-        {
-            return None;
-        }
-    } else {
+    let rect = layout.rects.get(&id)?;
+    if id != scene.root
+        && !(x >= rect.x && y >= rect.y && x < rect.x + rect.width && y < rect.y + rect.height)
+    {
         return None;
     }
     for child in node.children.iter().rev() {
