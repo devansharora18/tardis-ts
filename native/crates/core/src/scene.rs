@@ -233,7 +233,12 @@ impl Style {
                 } else {
                     let v = number().ok_or_else(|| "padding must be a number".to_string())?;
                     let v = v.max(0.0);
-                    self.padding = Edges { top: v, right: v, bottom: v, left: v };
+                    self.padding = Edges {
+                        top: v,
+                        right: v,
+                        bottom: v,
+                        left: v,
+                    };
                 }
             }
             "paddingTop" => set_edge(&mut self.padding.top, value, clear, false)?,
@@ -245,7 +250,12 @@ impl Style {
                     self.margin = Edges::default();
                 } else {
                     let v = number().ok_or_else(|| "margin must be a number".to_string())?;
-                    self.margin = Edges { top: v, right: v, bottom: v, left: v };
+                    self.margin = Edges {
+                        top: v,
+                        right: v,
+                        bottom: v,
+                        left: v,
+                    };
                 }
             }
             "marginTop" => set_signed_edge(&mut self.margin.top, value, clear)?,
@@ -297,19 +307,28 @@ impl Style {
                 self.background = if clear {
                     None
                 } else {
-                    Some(Color::parse(string().ok_or("backgroundColor must be a string")?).ok_or_else(|| "invalid backgroundColor".to_string())?)
+                    Some(
+                        Color::parse(string().ok_or("backgroundColor must be a string")?)
+                            .ok_or_else(|| "invalid backgroundColor".to_string())?,
+                    )
                 }
             }
             "color" => {
                 self.color = if clear {
                     None
                 } else {
-                    Some(Color::parse(string().ok_or("color must be a string")?).ok_or_else(|| "invalid color".to_string())?)
+                    Some(
+                        Color::parse(string().ok_or("color must be a string")?)
+                            .ok_or_else(|| "invalid color".to_string())?,
+                    )
                 }
             }
             "borderRadius" => self.border_radius = number().unwrap_or(0.0).max(0.0),
             "opacity" => self.opacity = number().unwrap_or(1.0).clamp(0.0, 1.0),
-            "overflow" => self.overflow_hidden = matches!(string(), Some("hidden") | Some("scroll") | Some("auto")),
+            "overflow" => {
+                self.overflow_hidden =
+                    matches!(string(), Some("hidden") | Some("scroll") | Some("auto"))
+            }
             "fontSize" => self.font_size = number().filter(|v| *v > 0.0),
             "fontWeight" => self.font_weight = number().map(|v| v as u16),
             "lineHeight" => self.line_height = number().filter(|v| *v > 0.0),

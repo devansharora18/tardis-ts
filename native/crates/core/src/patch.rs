@@ -67,7 +67,12 @@ pub fn apply_patch(scene: &mut Scene, patch: Patch) -> Result<(), String> {
 
 fn apply_op(scene: &mut Scene, op: Op) -> Result<(), String> {
     match op {
-        Op::Create { id, kind, parent, index } => {
+        Op::Create {
+            id,
+            kind,
+            parent,
+            index,
+        } => {
             if scene.nodes.contains_key(&id) {
                 return Err(format!("create: id {id} already exists"));
             }

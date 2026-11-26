@@ -41,12 +41,9 @@ fn run() -> Result<(), String> {
                 .hit_test(x, y)
                 .map(|id| id.to_string())
                 .unwrap_or_else(|| "null".to_string());
-            let down = format!(
-                r#"{{"type":"pointer","phase":"down","x":{x},"y":{y},"node":{node}}}"#
-            );
-            let up = format!(
-                r#"{{"type":"pointer","phase":"up","x":{x},"y":{y},"node":{node}}}"#
-            );
+            let down =
+                format!(r#"{{"type":"pointer","phase":"down","x":{x},"y":{y},"node":{node}}}"#);
+            let up = format!(r#"{{"type":"pointer","phase":"up","x":{x},"y":{y},"node":{node}}}"#);
             host.dispatch(&down)?;
             host.dispatch(&up)?;
         }
@@ -54,8 +51,8 @@ fn run() -> Result<(), String> {
         let mut engine = engine.borrow_mut();
         if let Some(dump_path) = &args.dump {
             let dump = engine.dump()?;
-            let json = serde_json::to_string_pretty(&dump)
-                .map_err(|err| format!("dump encode: {err}"))?;
+            let json =
+                serde_json::to_string_pretty(&dump).map_err(|err| format!("dump encode: {err}"))?;
             fs::write(dump_path, json)
                 .map_err(|err| format!("write {}: {err}", dump_path.display()))?;
         }
@@ -98,7 +95,8 @@ fn parse_args() -> Result<Args, String> {
         match arg.as_str() {
             "--bundle" => {
                 args.bundle = PathBuf::from(
-                    iter.next().ok_or_else(|| "--bundle needs a value".to_string())?,
+                    iter.next()
+                        .ok_or_else(|| "--bundle needs a value".to_string())?,
                 );
             }
             "--width" => {
@@ -118,24 +116,26 @@ fn parse_args() -> Result<Args, String> {
             "--headless" => args.headless = true,
             "--out" => {
                 args.out = Some(PathBuf::from(
-                    iter.next().ok_or_else(|| "--out needs a value".to_string())?,
+                    iter.next()
+                        .ok_or_else(|| "--out needs a value".to_string())?,
                 ));
             }
             "--dump" => {
                 args.dump = Some(PathBuf::from(
-                    iter.next().ok_or_else(|| "--dump needs a value".to_string())?,
+                    iter.next()
+                        .ok_or_else(|| "--dump needs a value".to_string())?,
                 ));
             }
             "--click" => {
-                let value = iter
-                    .next()
-                    .ok_or_else(|| "--click needs x,y".to_string())?;
+                let value = iter.next().ok_or_else(|| "--click needs x,y".to_string())?;
                 let (x, y) = value
                     .split_once(',')
                     .ok_or_else(|| "--click needs x,y".to_string())?;
                 args.click = Some((
-                    x.parse().map_err(|_| "--click x must be a number".to_string())?,
-                    y.parse().map_err(|_| "--click y must be a number".to_string())?,
+                    x.parse()
+                        .map_err(|_| "--click x must be a number".to_string())?,
+                    y.parse()
+                        .map_err(|_| "--click y must be a number".to_string())?,
                 ));
             }
             "--help" | "-h" => {
@@ -201,11 +201,8 @@ mod window {
         );
         let context = softbuffer::Context::new(SharedWindow(window.clone()))
             .map_err(|err| format!("softbuffer context: {err}"))?;
-        let mut surface = softbuffer::Surface::new(
-            &context,
-            SharedWindow(window.clone()),
-        )
-        .map_err(|err| format!("softbuffer surface: {err}"))?;
+        let mut surface = softbuffer::Surface::new(&context, SharedWindow(window.clone()))
+            .map_err(|err| format!("softbuffer surface: {err}"))?;
 
         let mut cursor = (0.0_f32, 0.0_f32);
         let mut dirty = true;
@@ -288,11 +285,7 @@ mod window {
                         }
                         _ => {}
                     },
-                    Event::AboutToWait => {
-                        if dirty {
-                            window.request_redraw();
-                        }
-                    }
+                    Event::AboutToWait if dirty => window.request_redraw(),
                     _ => {}
                 }
             })

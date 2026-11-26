@@ -110,9 +110,9 @@ impl Engine {
                 (0, 0, 0)
             } else {
                 (
-                    (pixel.red() as u32 * 255) / alpha,
-                    (pixel.green() as u32 * 255) / alpha,
-                    (pixel.blue() as u32 * 255) / alpha,
+                    (pixel.red() as u32 * 255).checked_div(alpha).unwrap_or(0),
+                    (pixel.green() as u32 * 255).checked_div(alpha).unwrap_or(0),
+                    (pixel.blue() as u32 * 255).checked_div(alpha).unwrap_or(0),
                 )
             };
             pixels.push((r.min(255) << 16) | (g.min(255) << 8) | b.min(255));
@@ -134,13 +134,7 @@ impl Engine {
     }
 }
 
-fn hit_node(
-    scene: &Scene,
-    layout: &ComputedLayout,
-    id: u32,
-    x: f32,
-    y: f32,
-) -> Option<u32> {
+fn hit_node(scene: &Scene, layout: &ComputedLayout, id: u32, x: f32, y: f32) -> Option<u32> {
     let node = scene.nodes.get(&id)?;
     if !node.style.display {
         return None;

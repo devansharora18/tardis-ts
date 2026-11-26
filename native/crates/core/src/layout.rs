@@ -10,8 +10,8 @@ use serde::Serialize;
 use taffy::geometry::{Point, Rect as TaffyRect, Size};
 use taffy::style::{
     AlignItems as TaffyAlign, Dimension, Display, FlexDirection as TaffyDirection,
-    FlexWrap as TaffyWrap, JustifyContent as TaffyJustify, LengthPercentage,
-    LengthPercentageAuto, Overflow, Position as TaffyPosition, Style as TaffyStyle,
+    FlexWrap as TaffyWrap, JustifyContent as TaffyJustify, LengthPercentage, LengthPercentageAuto,
+    Overflow, Position as TaffyPosition, Style as TaffyStyle,
 };
 use taffy::{AvailableSpace, NodeId, TaffyTree};
 
@@ -234,91 +234,92 @@ fn dimension(value: Option<f32>) -> Dimension {
 }
 
 fn to_taffy(style: &Style) -> TaffyStyle {
-    let mut out = TaffyStyle::default();
-    out.display = if style.display {
-        Display::Flex
-    } else {
-        Display::None
-    };
-    out.size = Size {
-        width: dimension(style.width),
-        height: dimension(style.height),
-    };
-    out.min_size = Size {
-        width: dimension(style.min_width),
-        height: dimension(style.min_height),
-    };
-    out.max_size = Size {
-        width: dimension(style.max_width),
-        height: dimension(style.max_height),
-    };
-    out.padding = TaffyRect {
-        left: LengthPercentage::Length(style.padding.left),
-        right: LengthPercentage::Length(style.padding.right),
-        top: LengthPercentage::Length(style.padding.top),
-        bottom: LengthPercentage::Length(style.padding.bottom),
-    };
-    out.margin = TaffyRect {
-        left: LengthPercentageAuto::Length(style.margin.left),
-        right: LengthPercentageAuto::Length(style.margin.right),
-        top: LengthPercentageAuto::Length(style.margin.top),
-        bottom: LengthPercentageAuto::Length(style.margin.bottom),
-    };
-    out.inset = TaffyRect {
-        left: LengthPercentageAuto::Length(style.inset.left),
-        right: LengthPercentageAuto::Length(style.inset.right),
-        top: LengthPercentageAuto::Length(style.inset.top),
-        bottom: LengthPercentageAuto::Length(style.inset.bottom),
-    };
-    out.gap = Size {
-        width: LengthPercentage::Length(style.gap),
-        height: LengthPercentage::Length(style.gap),
-    };
-    out.flex_direction = match style.flex_direction {
-        FlexDirection::Column => TaffyDirection::Column,
-        FlexDirection::Row => TaffyDirection::Row,
-        FlexDirection::ColumnReverse => TaffyDirection::ColumnReverse,
-        FlexDirection::RowReverse => TaffyDirection::RowReverse,
-    };
-    out.justify_content = Some(match style.justify_content {
-        JustifyContent::Start => TaffyJustify::Start,
-        JustifyContent::End => TaffyJustify::End,
-        JustifyContent::Center => TaffyJustify::Center,
-        JustifyContent::SpaceBetween => TaffyJustify::SpaceBetween,
-        JustifyContent::SpaceAround => TaffyJustify::SpaceAround,
-        JustifyContent::SpaceEvenly => TaffyJustify::SpaceEvenly,
-    });
-    out.align_items = Some(match style.align_items {
-        AlignItems::Stretch => TaffyAlign::Stretch,
-        AlignItems::Start => TaffyAlign::Start,
-        AlignItems::End => TaffyAlign::End,
-        AlignItems::Center => TaffyAlign::Center,
-        AlignItems::Baseline => TaffyAlign::Baseline,
-    });
-    out.flex_wrap = match style.flex_wrap {
-        FlexWrap::NoWrap => TaffyWrap::NoWrap,
-        FlexWrap::Wrap => TaffyWrap::Wrap,
-        FlexWrap::WrapReverse => TaffyWrap::WrapReverse,
-    };
-    out.flex_grow = style.flex_grow;
-    out.flex_shrink = style.flex_shrink;
-    out.position = match style.position {
-        Position::Relative => TaffyPosition::Relative,
-        Position::Absolute => TaffyPosition::Absolute,
-    };
-    out.overflow = Point {
-        x: if style.overflow_hidden {
-            Overflow::Hidden
+    TaffyStyle {
+        display: if style.display {
+            Display::Flex
         } else {
-            Overflow::Visible
+            Display::None
         },
-        y: if style.overflow_hidden {
-            Overflow::Hidden
-        } else {
-            Overflow::Visible
+        size: Size {
+            width: dimension(style.width),
+            height: dimension(style.height),
         },
-    };
-    out
+        min_size: Size {
+            width: dimension(style.min_width),
+            height: dimension(style.min_height),
+        },
+        max_size: Size {
+            width: dimension(style.max_width),
+            height: dimension(style.max_height),
+        },
+        padding: TaffyRect {
+            left: LengthPercentage::Length(style.padding.left),
+            right: LengthPercentage::Length(style.padding.right),
+            top: LengthPercentage::Length(style.padding.top),
+            bottom: LengthPercentage::Length(style.padding.bottom),
+        },
+        margin: TaffyRect {
+            left: LengthPercentageAuto::Length(style.margin.left),
+            right: LengthPercentageAuto::Length(style.margin.right),
+            top: LengthPercentageAuto::Length(style.margin.top),
+            bottom: LengthPercentageAuto::Length(style.margin.bottom),
+        },
+        inset: TaffyRect {
+            left: LengthPercentageAuto::Length(style.inset.left),
+            right: LengthPercentageAuto::Length(style.inset.right),
+            top: LengthPercentageAuto::Length(style.inset.top),
+            bottom: LengthPercentageAuto::Length(style.inset.bottom),
+        },
+        gap: Size {
+            width: LengthPercentage::Length(style.gap),
+            height: LengthPercentage::Length(style.gap),
+        },
+        flex_direction: match style.flex_direction {
+            FlexDirection::Column => TaffyDirection::Column,
+            FlexDirection::Row => TaffyDirection::Row,
+            FlexDirection::ColumnReverse => TaffyDirection::ColumnReverse,
+            FlexDirection::RowReverse => TaffyDirection::RowReverse,
+        },
+        justify_content: Some(match style.justify_content {
+            JustifyContent::Start => TaffyJustify::Start,
+            JustifyContent::End => TaffyJustify::End,
+            JustifyContent::Center => TaffyJustify::Center,
+            JustifyContent::SpaceBetween => TaffyJustify::SpaceBetween,
+            JustifyContent::SpaceAround => TaffyJustify::SpaceAround,
+            JustifyContent::SpaceEvenly => TaffyJustify::SpaceEvenly,
+        }),
+        align_items: Some(match style.align_items {
+            AlignItems::Stretch => TaffyAlign::Stretch,
+            AlignItems::Start => TaffyAlign::Start,
+            AlignItems::End => TaffyAlign::End,
+            AlignItems::Center => TaffyAlign::Center,
+            AlignItems::Baseline => TaffyAlign::Baseline,
+        }),
+        flex_wrap: match style.flex_wrap {
+            FlexWrap::NoWrap => TaffyWrap::NoWrap,
+            FlexWrap::Wrap => TaffyWrap::Wrap,
+            FlexWrap::WrapReverse => TaffyWrap::WrapReverse,
+        },
+        flex_grow: style.flex_grow,
+        flex_shrink: style.flex_shrink,
+        position: match style.position {
+            Position::Relative => TaffyPosition::Relative,
+            Position::Absolute => TaffyPosition::Absolute,
+        },
+        overflow: Point {
+            x: if style.overflow_hidden {
+                Overflow::Hidden
+            } else {
+                Overflow::Visible
+            },
+            y: if style.overflow_hidden {
+                Overflow::Hidden
+            } else {
+                Overflow::Visible
+            },
+        },
+        ..Default::default()
+    }
 }
 
 #[derive(Debug, Serialize)]

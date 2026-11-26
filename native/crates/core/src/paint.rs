@@ -6,8 +6,8 @@
 
 use cosmic_text::{SwashContent, SwashImage};
 use tiny_skia::{
-    FillRule, Paint, Path, PathBuilder, Pixmap, PixmapPaint, PremultipliedColorU8,
-    Rect as SkRect, Transform,
+    FillRule, Paint, Path, PathBuilder, Pixmap, PixmapPaint, PremultipliedColorU8, Rect as SkRect,
+    Transform,
 };
 
 use crate::layout::{ComputedLayout, Rect};
@@ -36,13 +36,8 @@ pub fn render(
 ) -> Result<Pixmap, String> {
     let mut pixmap = Pixmap::new(options.width, options.height)
         .ok_or_else(|| "paint: invalid pixmap size".to_string())?;
-    let background = SkRect::from_xywh(
-        0.0,
-        0.0,
-        options.width as f32,
-        options.height as f32,
-    )
-    .ok_or_else(|| "paint: invalid background rect".to_string())?;
+    let background = SkRect::from_xywh(0.0, 0.0, options.width as f32, options.height as f32)
+        .ok_or_else(|| "paint: invalid background rect".to_string())?;
     let mut paint = Paint::default();
     paint.set_color_rgba8(
         options.background.r,
@@ -110,7 +105,12 @@ fn draw_node(
             draw_text(scene, pixmap, text, node.id, &node.text, rect, opacity);
         }
         NodeKind::Image => {
-            draw_rect(pixmap, rect, Color::rgb(0x26, 0x26, 0x26), node.style.border_radius);
+            draw_rect(
+                pixmap,
+                rect,
+                Color::rgb(0x26, 0x26, 0x26),
+                node.style.border_radius,
+            );
         }
     }
 }
@@ -125,7 +125,13 @@ fn draw_rect(pixmap: &mut Pixmap, rect: Rect, color: Color, radius: f32) {
 
     if radius > 0.5 {
         if let Some(path) = rounded_path(rect, radius) {
-            pixmap.fill_path(&path, &paint, FillRule::Winding, Transform::identity(), None);
+            pixmap.fill_path(
+                &path,
+                &paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
         }
     } else if let Some(sk_rect) = SkRect::from_xywh(rect.x, rect.y, rect.width, rect.height) {
         pixmap.fill_rect(sk_rect, &paint, Transform::identity(), None);
@@ -254,7 +260,7 @@ fn draw_glyph(pixmap: &mut Pixmap, image: &SwashImage, x: i32, y: i32, color: Co
     {
         let pixels = glyph.pixels_mut();
         let count = (width as usize) * (height as usize);
-        for index in 0..count {
+        for (index, pixel) in pixels.iter_mut().enumerate().take(count) {
             let (r, g, b, alpha) = match image.content {
                 SwashContent::Mask => {
                     let Some(alpha) = image.data.get(index).copied() else {
@@ -293,10 +299,10 @@ fn draw_glyph(pixmap: &mut Pixmap, image: &SwashImage, x: i32, y: i32, color: Co
             let premul_r = ((r as u16 * alpha as u16) / 255) as u8;
             let premul_g = ((g as u16 * alpha as u16) / 255) as u8;
             let premul_b = ((b as u16 * alpha as u16) / 255) as u8;
-            if let Some(pixel) =
+            if let Some(color) =
                 PremultipliedColorU8::from_rgba(premul_r, premul_g, premul_b, alpha)
             {
-                pixels[index] = pixel;
+                *pixel = color;
             }
         }
     }

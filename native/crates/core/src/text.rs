@@ -1,9 +1,7 @@
 // Text shaping and measurement. Both bundled fonts are loaded explicitly so a
 // machine without system fonts still produces identical output.
 
-use cosmic_text::{
-    Attrs, Buffer, Family, FontSystem, Metrics, Shaping, SwashCache, Weight,
-};
+use cosmic_text::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, SwashCache, Weight};
 
 use crate::scene::Style;
 
@@ -61,10 +59,7 @@ impl TextEngine {
         weight: u16,
         width: f32,
     ) -> Buffer {
-        let mut buffer = Buffer::new(
-            &mut self.font_system,
-            Metrics::new(size, line_height),
-        );
+        let mut buffer = Buffer::new(&mut self.font_system, Metrics::new(size, line_height));
         buffer.set_size(&mut self.font_system, Some(width.max(1.0)), None);
         buffer.set_text(
             &mut self.font_system,
@@ -85,5 +80,9 @@ impl Default for TextEngine {
 fn attrs(weight: u16) -> Attrs<'static> {
     Attrs::new()
         .family(Family::Name(FAMILY))
-        .weight(if weight >= 600 { Weight::BOLD } else { Weight::NORMAL })
+        .weight(if weight >= 600 {
+            Weight::BOLD
+        } else {
+            Weight::NORMAL
+        })
 }

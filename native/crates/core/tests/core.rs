@@ -1,7 +1,7 @@
 use std::fs;
 
-use tiny_skia::Pixmap;
 use tardis_core::Engine;
+use tiny_skia::Pixmap;
 
 fn apply(engine: &mut Engine, ops: &str) {
     let json = format!(r##"{{"v":0,"frame":1,"ops":{ops}}}"##);
@@ -53,7 +53,11 @@ fn text_measure_wraps_at_the_available_width() {
     let dump = engine.dump().unwrap();
     let text = dump.nodes.iter().find(|node| node.id == 1).unwrap();
     assert_eq!(text.width, 120.0);
-    assert!(text.height > 30.0, "expected wrapped lines, got {}", text.height);
+    assert!(
+        text.height > 30.0,
+        "expected wrapped lines, got {}",
+        text.height
+    );
 }
 
 #[test]
@@ -112,11 +116,17 @@ fn renders_a_png_with_background_and_text_pixels() {
 
     let bytes = fs::read(&path).unwrap();
     assert!(bytes.len() > 1000);
-    assert_eq!(&bytes[0..8], &[0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a]);
+    assert_eq!(
+        &bytes[0..8],
+        &[0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a]
+    );
 
     let pixmap = Pixmap::load_png(&path).unwrap();
     let pixel = pixmap.pixel(5, 5).unwrap();
-    assert!(pixel.red() > 200 && pixel.green() < 60, "background was not red");
+    assert!(
+        pixel.red() > 200 && pixel.green() < 60,
+        "background was not red"
+    );
 
     let dump = engine.dump().unwrap();
     let text = dump.nodes.iter().find(|node| node.id == 2).unwrap();
