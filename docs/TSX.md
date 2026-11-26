@@ -326,8 +326,13 @@ Alt+arrows by word, and Ctrl/Cmd+Home/End for document ends. Pass
 `multiline` and optional `rows` (minimum visible rows) for a growing text area:
 Enter inserts a newline, Ctrl/Cmd+Enter calls `onSubmit`, and Up/Down keep the
 column. Selection is painted as a highlighted run on both hosts. IME
-composition is not implemented. `Checkbox` toggles on click, Enter, or Space and
-exposes `role="checkbox"`/`aria-checked`.
+composition is bridged on web (hidden editable + composition events) and native
+(winit IME events): the preedit is shown at the caret and the committed text is
+inserted. `Checkbox` toggles on click, Enter, or Space and exposes
+`role="checkbox"`/`aria-checked`.
+
+Tab moves focus through scene nodes with `tabIndex >= 0` in document order;
+Shift+Tab reverses. Disabled nodes (`aria-disabled="true"`) are skipped.
 
 For validation, `createForm` owns values, touched fields, errors, submitting,
 submit, and reset:

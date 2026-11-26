@@ -182,3 +182,11 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - Navigation: Alt+arrows by word, Ctrl/Cmd+Home/End document ends.
 - Native: text-node backgrounds paint behind glyphs so selection is visible.
 - 107 JS / 13 Rust tests. Still open: IME, pointer caret placement, focus tree.
+
+## Focus/IME slice result (2026-11-27)
+
+- Tab/Shift+Tab traverse scene tabbables in document order and skip disabled nodes.
+- Web IME: hidden offscreen textarea focused with the scene field; composition
+  preedit renders at the caret; commit inserts text. Tab is routed to scene focus.
+- Native IME: winit IME enabled; preedit/commit/disabled map to `text` events.
+- 110 JS / 13 Rust tests. Still open: native accesskit tree, pointer caret.

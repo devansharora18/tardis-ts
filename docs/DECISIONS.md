@@ -69,3 +69,6 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 63 | Text selection is an anchor + active caret pair | Shift+movement extends from the anchor; plain movement collapses; one model for mouse and keyboard |
 | 64 | Multiline fields render one scene row per line | Avoids relying on host newline layout; selection and caret split per line |
 | 65 | Vertical caret movement keeps a goal column | Matches editor behavior through short/long lines; reset on horizontal movement and edits |
+| 66 | Tab order is document order of nodes with `tabIndex >= 0` | Predictable and host-neutral; no CSS-layout hit-testing in JS |
+| 67 | IME uses a hidden focused textarea on web | Composition events require a real editable; the scene caret stays the source of truth |
+| 68 | Native IME commits arrive as `text` events, preedit as composition updates | Keeps platform IME out of the editor model; same event shape on both hosts |

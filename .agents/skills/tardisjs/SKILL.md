@@ -115,9 +115,10 @@ request immediately and ignores stale responses (no AbortSignal yet).
 `TextField` is controlled/uncontrolled with caret, selection, and optional
 multiline. Shortcuts: arrows/Home/End, Shift+movement selection, Ctrl/Cmd+A,
 Ctrl/Cmd+C/X/V, Alt+arrows by word, Ctrl/Cmd+Home/End document ends; Enter
-submits single-line, ctrl+enter submits multiline. No IME composition yet.
-Clipboard uses memory + `navigator.clipboard` on web, `arboard` natively when a
-display exists. `Checkbox` toggles on click/Enter/Space with
+submits single-line, ctrl+enter submits multiline. IME preedit/commit is bridged
+on both hosts (web uses a hidden textarea). Tab/Shift+Tab traverse `tabIndex >= 0`
+nodes in document order. Clipboard uses memory + `navigator.clipboard` on web,
+`arboard` natively when a display exists. `Checkbox` toggles on click/Enter/Space with
 `role="checkbox"`/`aria-checked`.
 
 Intrinsic tags render as real web elements (`button`, `h1`, `p`, `ul`, ...).
@@ -196,7 +197,7 @@ Do not claim one.
 
 - `overflow: hidden` is rectangular clipping; no ellipsis.
 - Native images are PNG only; ScrollView clips and offsets, no native scroll node.
-- TextField has selection/multiline; IME composition is missing.
+- TextField has selection/multiline/IME; pointer caret placement is missing.
 - Clipboard is system-backed when available; otherwise memory.
 - Hydration is a remount, not node adoption; no streaming SSR.
 - No Dioxus frame-time benchmark.
