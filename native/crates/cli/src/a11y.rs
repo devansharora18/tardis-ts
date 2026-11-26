@@ -78,8 +78,8 @@ fn included(scene: &Scene, id: u32) -> bool {
     let Some(node) = scene.nodes.get(&id) else {
         return false;
     };
-    if node.kind == NodeKind::Text && control_ancestor(scene, id) {
-        return false;
+    if node.kind == NodeKind::Text {
+        return !control_ancestor(scene, id);
     }
     true
 }
