@@ -1,12 +1,11 @@
-// Render-time error boundary.
+// Error boundary.
 //
-// The content factory is called inside a dynamic region and guarded by
-// try/catch, so component/render errors become a fallback instead of a blank
-// screen. Errors thrown later inside child effects are caught and logged by the
-// signal graph, not routed here yet.
+// Render errors are caught by try/catch around the content factory. Effects
+// created inside the content register this boundary as their error context, so
+// later effect failures also switch to the fallback instead of only logging.
 
 import { dynamic, jsx } from './jsx'
-import { createSignal } from './signals'
+import { createSignal, withErrorContext } from './signals'
 import type { DynamicValue, SceneNode } from './types'
 
 export interface BoundaryProps {
@@ -49,14 +48,17 @@ export function Boundary(props: BoundaryProps): DynamicValue {
     if (current) {
       return props.fallback ? props.fallback(current, reset) : message(current)
     }
-    try {
-      return props.content()
-    } catch (reason) {
+    const fail = (reason: unknown): SceneNode => {
       const next =
         reason instanceof Error ? reason : new Error(String(reason))
       setError(next)
       props.onError?.(next)
       return props.fallback ? props.fallback(next, reset) : message(next)
+    }
+    try {
+      return withErrorContext(fail, () => props.content())
+    } catch (reason) {
+      return fail(reason)
     }
   })
 }

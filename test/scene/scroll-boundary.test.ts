@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createWebHost, type WebHost } from '../../src/web/index'
 import {
   Boundary,
+  createEffect,
   createSignal,
   flushNow,
   jsx,
@@ -124,5 +125,26 @@ describe('Boundary', () => {
     retry.dispatchEvent(new window.MouseEvent('pointerup', { bubbles: true }))
     flushNow()
     expect(app().textContent).toContain('recovered')
+  })
+})
+
+describe('Boundary effect errors', () => {
+  it('routes later effect failures to the fallback', () => {
+    const [boom, setBoom] = createSignal(false)
+    handle = render(() =>
+      jsx(Boundary, {
+        content: () => {
+          createEffect(() => {
+            if (boom()) throw new Error('effect boom')
+          })
+          return jsx('p', {}, 'ok')
+        },
+      })
+    )
+    flushNow()
+    expect(app().textContent).toContain('ok')
+    setBoom(true)
+    flushNow()
+    expect(app().textContent).toContain('Something went wrong: effect boom')
   })
 })

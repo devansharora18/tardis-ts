@@ -54,6 +54,7 @@ class EffectNode {
   readonly _deps = new Set<SourceNode>()
   _stopped = false
   _cleanup: (() => void) | undefined = undefined
+  _errorContext: ((error: unknown) => void) | null = null
   constructor(public _fn: () => void | (() => void)) {}
 }
 
@@ -64,6 +65,24 @@ const observerStack: Array<ObserverNode | null> = []
 const ownerStack: Owner[] = []
 let batchDepth = 0
 const pendingEffects = new Set<EffectNode>()
+let errorContext: ((error: unknown) => void) | null = null
+
+/**
+ * Run `fn` with an error handler attached to every effect created inside it.
+ * Used by error boundaries to catch effect failures from their subtree.
+ */
+export function withErrorContext<T>(
+  handler: (error: unknown) => void,
+  fn: () => T
+): T {
+  const previous = errorContext
+  errorContext = handler
+  try {
+    return fn()
+  } finally {
+    errorContext = previous
+  }
+}
 
 // ── owners ─────────────────────────────────────────────────────────────────
 
@@ -156,10 +175,13 @@ function runEffect(node: EffectNode): void {
   }
   detach(node)
   observerStack.push(node)
+  const previousContext = errorContext
+  errorContext = node._errorContext
   try {
     const ret = node._fn()
     if (typeof ret === 'function') node._cleanup = ret
   } finally {
+    errorContext = previousContext
     observerStack.pop()
   }
 }
@@ -189,7 +211,8 @@ function flushEffects(): void {
       try {
         runEffect(e)
       } catch (err) {
-        console.error(err)
+        if (e._errorContext) e._errorContext(err)
+        else console.error(err)
       }
     }
   }
@@ -226,7 +249,8 @@ function trigger(source: SourceNode): void {
       try {
         runEffect(e)
       } catch (err) {
-        console.error(err)
+        if (e._errorContext) e._errorContext(err)
+        else console.error(err)
       }
     }
   }
@@ -302,6 +326,7 @@ export function computed<T>(fn: () => T): Computed<T> {
 
 export function effect(fn: () => void | (() => void)): () => void {
   const node = new EffectNode(fn)
+  node._errorContext = errorContext
   runEffect(node)
   const stop = (): void => stopEffect(node)
   onCleanup(stop)
