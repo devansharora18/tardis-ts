@@ -271,3 +271,29 @@ fn stores_accessibility_attributes() {
         Some("Full name")
     );
 }
+
+#[test]
+fn renders_at_hidpi_scale() {
+    use tardis_core::scene::{Node, NodeKind};
+
+    let mut engine = Engine::new(20.0, 20.0);
+    engine.set_scale(2.0);
+    let mut node = Node::new(1, NodeKind::View);
+    node.parent = Some(0);
+    node.style.width = Some(10.0);
+    node.style.height = Some(10.0);
+    node.style.background = Some(tardis_core::Color::rgb(0xff, 0, 0));
+    engine.scene.nodes.insert(1, node);
+    engine.scene.nodes.get_mut(&0).unwrap().children.push(1);
+    engine.relayout().unwrap();
+
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("hidpi.png");
+    engine.render_png(path.to_str().unwrap()).unwrap();
+    let frame = Pixmap::load_png(&path).unwrap();
+    assert_eq!((frame.width(), frame.height()), (40, 40));
+    let inside = frame.pixel(15, 15).unwrap();
+    assert!(inside.red() > 200 && inside.green() < 60);
+    let outside = frame.pixel(25, 25).unwrap();
+    assert!(outside.red() < 60);
+}
