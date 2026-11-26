@@ -54,3 +54,7 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 48 | TextField is a scene composition, not a native input node | Same TSX on both hosts; single-line caret editing now, IME/native input later |
 | 49 | Clipboard uses memory + navigator.clipboard + native arboard | Works without a display; system clipboard where available |
 | 50 | Selection, multiline, and IME are deferred | They require platform text/IME plumbing, not fakeable in this slice |
+| 51 | `createForm` owns values/touched/errors/submitting; no schema dependency | Apps own validation rules; the form owns state transitions |
+| 52 | `createResource` ignores stale responses instead of cancelling | No AbortSignal plumbing yet; correctness is preserved, cancellation is TODO |
+| 53 | Form errors surface after touch or submit | Avoids showing errors while a user is first typing |
+| 54 | `TextField` exposes `onBlur` for form integration | Touched/error state needs a blur boundary |

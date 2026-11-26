@@ -290,6 +290,50 @@ It supports Home/End/arrows/Backspace/Delete, Enter (`onSubmit`), and
 Ctrl/Cmd+C/X/V. The caret is visible while focused. `Checkbox` toggles on click,
 Enter, or Space and exposes `role="checkbox"`/`aria-checked`.
 
+For validation, `createForm` owns values, touched fields, errors, submitting,
+submit, and reset:
+
+```tsx
+import { createForm, FormField } from '@devansharora18/tardisjs/scene'
+
+const form = createForm({
+  initial: { name: '' },
+  validate: (values) =>
+    values.name.trim() ? {} : { name: 'Name is required' },
+  onSubmit: async (values) => save(values),
+})
+const name = form.field('name')
+
+<FormField label="Name" error={() => name.error()}>
+  <TextField
+    value={() => name.value()}
+    onChange={name.onChange}
+    onBlur={name.onBlur}
+    ariaLabel="Name"
+  />
+</FormField>
+<button onClick={() => form.submit()}>
+  {form.submitting() ? 'Submitting…' : 'Submit'}
+</button>
+```
+
+`field.error()` is hidden until the field is touched or the form is submitted.
+Pass function-valued props with arrow wrappers (`error={() => name.error()}`);
+event props such as `onChange` are not wrapped.
+
+Async data uses `createResource`:
+
+```tsx
+const posts = createResource(() => fetch('/api/posts').then((r) => r.json()))
+
+if (posts.loading()) return <p>Loading…</p>
+if (posts.error()) return <p>{posts.error()!.message}</p>
+<For each={posts.data() ?? []}>...</For>
+```
+
+`refetch()` starts a new request; an older response that finishes later is
+ignored. The resource is disposed with its owner.
+
 Accessibility props on any node: `role`, `tabIndex`, and `aria-*` (for example
 `aria-label`, `aria-checked`). They are applied as DOM attributes on web and
 stored in the native scene for a future accesskit tree.
@@ -346,6 +390,8 @@ npx vitest run test/web test/compiler/web-bundle.test.ts
 - Text input is single-line and caret-only; no selection, multiline, or IME.
 - Clipboard is system-backed when available; otherwise in-memory.
 - Native accessibility attributes are stored; accesskit is not wired.
+- Resources are not abortable yet; stale responses are ignored, not cancelled.
+- Forms are flat; no nested fields/arrays or async validation.
 - Native window scaling is 1x.
 - Web has no SSR/hydration; it is client-rendered.
 - Web layout is CSS; native layout is taffy. Pixel parity is not guaranteed.

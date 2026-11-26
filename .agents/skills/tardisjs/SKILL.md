@@ -62,6 +62,10 @@ render(() => <App />)
 - `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?, onSubmit? })`
 - `Checkbox({ checked, onChange?, label?, ariaLabel? })`
 - accessibility props: `role`, `tabIndex`, `aria-*` (web attributes, native stored)
+- `createForm({ initial, validate?, onSubmit? })` → values/touched/errors,
+  submitting/submitted, submit/reset, `field(key)`
+- `FormField({ label, error?, hint?, children })`
+- `createResource(fetcher, { initial? })` → data/error/loading/refetch/dispose
 
 ## JSX rules
 
@@ -98,6 +102,22 @@ native maps winit keyboard input. Wheel events reach `onWheel`. Text input, IME,
 and clipboard are not implemented.
 
 ## Forms and accessibility
+
+`TextField` is single-line and controlled/uncontrolled; Home/End/arrows,
+Backspace/Delete, Enter (`onSubmit`), Ctrl/Cmd+C/X/V. Clipboard uses memory +
+`navigator.clipboard` on web, `arboard` natively when a display exists.
+`Checkbox` toggles on click/Enter/Space with `role="checkbox"`/`aria-checked`.
+No selection, multiline, or IME yet.
+
+Intrinsic tags render as real web elements (`button`, `h1`, `p`, `ul`, ...).
+`role`, `tabIndex`, and `aria-*` become an `a11y` op. Native stores them; the
+accesskit tree is not wired.
+
+## Forms, resources, accessibility
+
+`createForm` owns values/touched/errors/submitting; `FormField` renders
+label/error/hint; errors show after touch or submit. `createResource` starts a
+request immediately and ignores stale responses (no AbortSignal yet).
 
 `TextField` is single-line and controlled/uncontrolled; Home/End/arrows,
 Backspace/Delete, Enter (`onSubmit`), Ctrl/Cmd+C/X/V. Clipboard uses memory +

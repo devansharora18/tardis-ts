@@ -141,3 +141,14 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   `arboard` + web `navigator.clipboard` bridges.
 - Forms example renders natively; 82 JS / 11 Rust tests.
 - Still deferred: selection, multiline, IME, native accesskit, form validation.
+
+## Forms/resource result (2026-11-27)
+
+- `createForm`: values, touched, errors, submitting, submitted, submit, reset,
+  per-field bindings; errors after touch/submit.
+- `FormField`: label + control + error/hint.
+- `createResource`: loading/error/refetch; last request wins; owner disposal.
+- Forms example uses validation and async submit.
+- 88 JS / 11 Rust tests.
+- Deferred: selection/multiline/IME, nested form arrays, abortable fetches,
+  native accesskit.

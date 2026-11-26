@@ -71,7 +71,8 @@ npm publish --tag alpha
 - Web accessibility audit (semantic tags and role/aria exist; run axe and a
   screen-reader pass).
 - Native accesskit tree wired from the stored a11y attributes.
-- Form validation helpers and error/empty/loading states.
+- Form arrays/nested fields and async/schema validation (basic `createForm` and
+  `FormField` exist).
 
 ## Developer experience
 
@@ -84,6 +85,7 @@ npm publish --tag alpha
 - A Dioxus frame-time head-to-head on the same workloads; only startup/binary
   size is scoped so far.
 - Client-side routing for the web target.
+- Abortable resources (`AbortSignal`) instead of ignoring stale responses.
 
 ## Docs
 

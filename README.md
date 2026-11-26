@@ -106,6 +106,10 @@ app.tsx ─ compiler ─ bundle
 - **Accessible forms** — `TextField` and `Checkbox` with caret editing,
   focus/blur, `role`/`aria-*`, tab focus, copy/cut/paste, and native
   `arboard`/web `navigator.clipboard` bridges.
+- **Form state** — `createForm` (values, touched, errors, submitting, submit,
+  reset) and `FormField` for labels/errors.
+- **Async resources** — `createResource` with loading, error, refetch, and
+  last-request-wins semantics.
 - **Semantic web output** — `button`, `h1`, `p`, `ul`, `li`, `label`, `strong`,
   and `em` render as real elements instead of generic divs.
 

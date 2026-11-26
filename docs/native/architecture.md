@@ -34,6 +34,8 @@ There is no second grammar.
   DOM attributes and semantic tags; native stores them for accesskit.
 - **VirtualList** — visible-window windowing with wheel scrolling; ~40 nodes for
   10,000 rows.
+- **Form state** — `createForm` values/touched/errors/submitting; `FormField`.
+- **Resources** — `createResource` loading/error/refetch with last-request-wins.
 - **Router** — path signal, `:param` matching, memory or browser history.
 - **Patches** — JSON ops flushed once per microtask and after events.
 
