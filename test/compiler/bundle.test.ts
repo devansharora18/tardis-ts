@@ -60,7 +60,7 @@ describe('bundleApp', () => {
     ): void => {
       patches.push(JSON.parse(json) as Patch)
     }
-    await import(/* @vite-ignore */ `${pathToFileURL(outfile).href}?t=${Date.now()}`)
+    await import(/* @vite-ignore */ pathToFileURL(outfile).href)
     const ops = patches.flatMap((patch) => patch.ops)
     expect(ops.some((op) => op.op === 'text' && op.value === 'Count: 2')).toBe(true)
     expect(ops.some((op) => op.op === 'create' && op.kind === 'view')).toBe(true)
