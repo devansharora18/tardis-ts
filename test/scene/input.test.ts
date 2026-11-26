@@ -313,3 +313,55 @@ describe('accessibility actions', () => {
     expect(value()).toBe('Ada')
   })
 })
+
+describe('TextField code editing aids', () => {
+  it('inserts spaces on tab when enabled and still traverses otherwise', () => {
+    const [value, setValue] = createSignal('ab')
+    handle = render(() =>
+      jsx(TextField, {
+        value: () => value(),
+        onChange: setValue,
+        multiline: true,
+        tabInserts: true,
+      })
+    )
+    focusField()
+    key('End')
+    key('Tab')
+    expect(value()).toBe('ab  ')
+    key('Tab', { shiftKey: true })
+    expect(value()).toBe('ab')
+  })
+
+  it('keeps the current indentation on enter', () => {
+    const [value, setValue] = createSignal('  const x = 1')
+    handle = render(() =>
+      jsx(TextField, {
+        value: () => value(),
+        onChange: setValue,
+        multiline: true,
+        autoIndent: true,
+      })
+    )
+    focusField()
+    key('End')
+    key('Enter')
+    type('y')
+    expect(value()).toBe('  const x = 1\n  y')
+  })
+})
+
+describe('pointer focus stability', () => {
+  it('keeps typing after clicking a rendered text run', () => {
+    const [value, setValue] = createSignal('ab')
+    handle = render(() =>
+      jsx(TextField, { value: () => value(), onChange: setValue })
+    )
+    const run = app().querySelector<HTMLElement>('[role="textbox"] span')!
+    run.dispatchEvent(new window.MouseEvent('pointerdown', { bubbles: true }))
+    run.dispatchEvent(new window.MouseEvent('pointerup', { bubbles: true }))
+    flushNow()
+    key('Z')
+    expect(value()).toBe('Zab')
+  })
+})

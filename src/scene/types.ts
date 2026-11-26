@@ -17,6 +17,7 @@ export interface SceneEvent {
   action?: string
   replace?: boolean
   preventDefault?: () => void
+  defaultPrevented?: boolean
   dx?: number
   dy?: number
   repeat?: boolean

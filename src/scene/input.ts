@@ -7,7 +7,7 @@
 
 import { pasteClipboard, writeClipboard } from './clipboard'
 import { dynamic, jsx } from './jsx'
-import { createSignal } from './signals'
+import { createEffect, createSignal } from './signals'
 import type { SceneEvent, SceneNode } from './types'
 type MaybeGetter<T> = T | (() => T)
 
@@ -75,6 +75,13 @@ export interface TextFieldProps {
   placeholder?: MaybeGetter<string>
   ariaLabel?: MaybeGetter<string>
   width?: MaybeGetter<number>
+  fontFamily?: MaybeGetter<string>
+  tabInserts?: MaybeGetter<boolean>
+  autoIndent?: MaybeGetter<boolean>
+  wrap?: MaybeGetter<boolean>
+  onCaretChange?: (offset: number) => void
+  onKeyDown?: (event: SceneEvent) => void
+  lineStyle?: (index: number) => Record<string, unknown> | undefined
   disabled?: MaybeGetter<boolean>
   multiline?: MaybeGetter<boolean>
   /** Minimum visible rows; the field grows with its content. */
@@ -98,6 +105,9 @@ export function TextField(props: TextFieldProps): SceneNode {
   const value = (): string => (controlled ? read(props.value, '') : internal())
   const disabled = (): boolean => read(props.disabled, false)
   const multiline = (): boolean => read(props.multiline, false)
+  const tabInserts = (): boolean => read(props.tabInserts, false)
+  const autoIndent = (): boolean => read(props.autoIndent, false)
+  const wrap = (): boolean => read(props.wrap, true)
   const safeCaret = (): number => clamp(caret(), 0, value().length)
   const selectionStart = (): number => Math.min(anchor(), safeCaret())
   const selectionEnd = (): number => Math.max(anchor(), safeCaret())
@@ -134,6 +144,24 @@ export function TextField(props: TextFieldProps): SceneNode {
   const insert = (text: string): void => {
     if (disabled() || text === '') return
     replaceSelection(multiline() ? text : text.replace(/\r?\n/g, ' '))
+  }
+
+  const onTab = (event: SceneEvent): void => {
+    if (disabled() || !tabInserts()) return
+    event.defaultPrevented = true
+    if (event.mods?.shift) {
+      const at = safeCaret()
+      const current = value()
+      if (at >= 2 && current.slice(at - 2, at) === '  ') {
+        commit(current.slice(0, at - 2) + current.slice(at))
+        collapse(at - 2)
+      } else if (at >= 1 && current[at - 1] === ' ') {
+        commit(current.slice(0, at - 1) + current.slice(at))
+        collapse(at - 1)
+      }
+      return
+    }
+    insert('  ')
   }
 
   const deleteBackward = (): void => {
@@ -214,6 +242,8 @@ export function TextField(props: TextFieldProps): SceneNode {
   }
 
   const onKeyDown = (event: SceneEvent): void => {
+    props.onKeyDown?.(event)
+    if (event.defaultPrevented) return
     if (disabled() || event.composing) return
     const key = event.key ?? ''
     const mods = event.mods ?? { ctrl: false, shift: false, alt: false, meta: false }
@@ -296,7 +326,14 @@ export function TextField(props: TextFieldProps): SceneNode {
       }
       case 'Enter':
         if (multiline() && !command) {
-          replaceSelection('\n')
+          if (autoIndent()) {
+            const lines = splitLines(current)
+            const line = lines[lineIndexAt(lines, at)]
+            const indent = line ? /^[ \t]*/.exec(line.text)?.[0] ?? '' : ''
+            replaceSelection(`\n${indent}`)
+          } else {
+            replaceSelection('\n')
+          }
         } else {
           props.onSubmit?.()
         }
@@ -310,6 +347,10 @@ export function TextField(props: TextFieldProps): SceneNode {
 
     if (key.length === 1 && !mods.alt) insert(key)
   }
+
+  createEffect(() => {
+    props.onCaretChange?.(safeCaret())
+  })
 
   const label = (): string => read(props.ariaLabel, read(props.placeholder, 'Text field'))
   const rows = (): number => Math.max(1, read(props.rows, 1))
@@ -355,13 +396,11 @@ export function TextField(props: TextFieldProps): SceneNode {
 
     const text = (from: number, to: number, selected: boolean): void => {
       if (to <= from) return
-      runs.push(
-        jsx(
-          'span',
-          selected ? { style: { backgroundColor: SELECTION_COLOR } } : {},
-          line.text.slice(from, to)
-        )
-      )
+      const base: Record<string, unknown> = selected
+        ? { backgroundColor: SELECTION_COLOR }
+        : {}
+      if (!wrap()) base.whiteSpace = 'nowrap'
+      runs.push(jsx('span', { style: base }, line.text.slice(from, to)))
     }
 
     text(0, localStart, false)
@@ -384,6 +423,10 @@ export function TextField(props: TextFieldProps): SceneNode {
           flexDirection: 'row',
           alignItems: 'center',
           minHeight: lineHeight,
+          ...(wrap()
+            ? {}
+            : { height: lineHeight, overflow: 'hidden' }),
+          ...(props.lineStyle?.(index) ?? {}),
         },
       },
       ...runs
@@ -398,15 +441,17 @@ export function TextField(props: TextFieldProps): SceneNode {
         minHeight: rows() * lineHeight + 16,
         padding: 8,
         flexDirection: 'column',
-        justifyContent: 'center',
+        justifyContent: multiline() ? 'flex-start' : 'center',
         backgroundColor: focused() ? '#151515' : '#111111',
         borderRadius: 8,
         color: '#ededed',
         fontSize: 14,
+        fontFamily: read(props.fontFamily, undefined),
         opacity: disabled() ? 0.5 : 1,
       }),
       onKeyDown,
       onText,
+      onTab,
       onFocus: () => {
         setFocused(true)
         props.onFocus?.()

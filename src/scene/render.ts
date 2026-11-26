@@ -128,7 +128,7 @@ export function dispatchEvent(event: SceneEvent): void {
     const target = typeof event.node === 'number' ? event.node : null
     if (event.phase === 'down') {
       pressed = target
-      setFocus(target)
+      setFocus(focusableAncestor(target))
       if (target !== null) {
         nearestHandler(target, 'onPointerDown')?.handler(event)
       }
@@ -161,6 +161,13 @@ export function dispatchEvent(event: SceneEvent): void {
   if (event.type === 'key') {
     const phase = event.phase ?? 'down'
     if (phase === 'down' && event.key === 'Tab') {
+      const tab =
+        focused !== null ? nearestHandler(focused, 'onTab') : null
+      tab?.handler(event)
+      if (event.defaultPrevented) {
+        flushNow()
+        return
+      }
       focusNext(event.mods?.shift ? -1 : 1)
       flushNow()
       return
@@ -253,6 +260,17 @@ export function dispatchEvent(event: SceneEvent): void {
   }
   // Keyboard and text input arrive with the focus subsystem.
   flushNow()
+}
+
+function focusableAncestor(id: number | null): number | null {
+  let node: SceneNode | null = id === null ? null : getNode(id) ?? null
+  while (node) {
+    const tabIndex = node.a11y['tabIndex']
+    if (typeof tabIndex === 'number' && tabIndex >= 0) return node.id
+    if (node.a11y['aria-disabled'] === 'true') return null
+    node = node.parent
+  }
+  return id
 }
 
 function nearestHandler(
