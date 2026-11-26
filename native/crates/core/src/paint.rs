@@ -1,13 +1,13 @@
 // Software rasterizer.
 //
-// tiny-skia draws rectangles and glyph masks into an RGBA pixmap. This is the
-// v0 renderer: it works headlessly, needs no GPU, and sits behind the same
-// computed layout as a future wgpu backend.
+// tiny-skia draws rectangles and glyph masks into an RGBA pixmap. v0 is the
+// CPU backend: it works headlessly and needs no GPU. The renderer is clipped to
+// the viewport and to every `overflow: hidden` view, and culls fully offscreen
+// subtrees.
 
 use cosmic_text::{SwashContent, SwashImage};
 use tiny_skia::{
-    FillRule, Paint, Path, PathBuilder, Pixmap, PixmapPaint, PremultipliedColorU8, Rect as SkRect,
-    Transform,
+    FillRule, Paint, Path, PathBuilder, Pixmap, PremultipliedColorU8, Rect as SkRect, Transform,
 };
 
 use crate::layout::{ComputedLayout, Rect};
@@ -26,6 +26,52 @@ struct ResolvedText {
     weight: u16,
     color: Color,
     align: TextAlign,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Clip {
+    x0: f32,
+    y0: f32,
+    x1: f32,
+    y1: f32,
+}
+
+impl Clip {
+    fn viewport(width: f32, height: f32) -> Self {
+        Self {
+            x0: 0.0,
+            y0: 0.0,
+            x1: width,
+            y1: height,
+        }
+    }
+
+    fn is_empty(self) -> bool {
+        self.x1 <= self.x0 || self.y1 <= self.y0
+    }
+
+    fn intersects(self, rect: Rect) -> bool {
+        rect.x < self.x1
+            && rect.y < self.y1
+            && rect.x + rect.width > self.x0
+            && rect.y + rect.height > self.y0
+    }
+
+    fn intersect(self, rect: Rect) -> Self {
+        Self {
+            x0: self.x0.max(rect.x),
+            y0: self.y0.max(rect.y),
+            x1: self.x1.min(rect.x + rect.width),
+            y1: self.y1.min(rect.y + rect.height),
+        }
+    }
+
+    fn contains(self, rect: Rect) -> bool {
+        rect.x >= self.x0
+            && rect.y >= self.y0
+            && rect.x + rect.width <= self.x1
+            && rect.y + rect.height <= self.y1
+    }
 }
 
 pub fn render(
@@ -47,21 +93,13 @@ pub fn render(
     );
     pixmap.fill_rect(background, &paint, Transform::identity(), None);
 
+    let clip = Clip::viewport(options.width as f32, options.height as f32);
     let root = scene
         .nodes
         .get(&scene.root)
         .ok_or_else(|| "paint: root node missing".to_string())?;
     for child in &root.children {
-        draw_node(
-            scene,
-            layout,
-            text,
-            &mut pixmap,
-            *child,
-            1.0,
-            options.width as f32,
-            options.height as f32,
-        );
+        draw_node(scene, layout, text, &mut pixmap, *child, 1.0, clip);
     }
     Ok(pixmap)
 }
@@ -77,7 +115,6 @@ pub fn render_to_png(
     pixmap.save_png(path).map_err(|err| err.to_string())
 }
 
-#[allow(clippy::too_many_arguments)]
 fn draw_node(
     scene: &Scene,
     layout: &ComputedLayout,
@@ -85,23 +122,18 @@ fn draw_node(
     pixmap: &mut Pixmap,
     id: u32,
     inherited_opacity: f32,
-    viewport_width: f32,
-    viewport_height: f32,
+    clip: Clip,
 ) {
+    if clip.is_empty() {
+        return;
+    }
     let Some(node) = scene.nodes.get(&id) else {
         return;
     };
     let rect = layout.rects.get(&id).copied().unwrap_or_default();
 
-    // Fully offscreen subtrees are skipped. v0 assumes children stay inside
-    // their parent's rect (no absolutely positioned escapees); fragments have
-    // a zero rect at the origin and always recurse.
-    if node.kind != NodeKind::Fragment
-        && (rect.x >= viewport_width
-            || rect.y >= viewport_height
-            || rect.x + rect.width <= 0.0
-            || rect.y + rect.height <= 0.0)
-    {
+    // Fragments have a zero rect at the origin; they must always recurse.
+    if node.kind != NodeKind::Fragment && !clip.intersects(rect) {
         return;
     }
 
@@ -110,16 +142,7 @@ fn draw_node(
     match node.kind {
         NodeKind::Fragment => {
             for child in &node.children {
-                draw_node(
-                    scene,
-                    layout,
-                    text,
-                    pixmap,
-                    *child,
-                    inherited_opacity,
-                    viewport_width,
-                    viewport_height,
-                );
+                draw_node(scene, layout, text, pixmap, *child, inherited_opacity, clip);
             }
         }
         NodeKind::View | NodeKind::Scroll => {
@@ -129,23 +152,22 @@ fn draw_node(
                     rect,
                     background.with_opacity(opacity),
                     node.style.border_radius,
+                    clip,
                 );
             }
+            let child_clip = if node.style.overflow_hidden {
+                clip.intersect(rect)
+            } else {
+                clip
+            };
             for child in &node.children {
-                draw_node(
-                    scene,
-                    layout,
-                    text,
-                    pixmap,
-                    *child,
-                    opacity,
-                    viewport_width,
-                    viewport_height,
-                );
+                draw_node(scene, layout, text, pixmap, *child, opacity, child_clip);
             }
         }
         NodeKind::Text => {
-            draw_text(scene, pixmap, text, node.id, &node.text, rect, opacity);
+            draw_text(
+                scene, pixmap, text, node.id, &node.text, rect, opacity, clip,
+            );
         }
         NodeKind::Image => {
             draw_rect(
@@ -153,20 +175,21 @@ fn draw_node(
                 rect,
                 Color::rgb(0x26, 0x26, 0x26),
                 node.style.border_radius,
+                clip,
             );
         }
     }
 }
 
-fn draw_rect(pixmap: &mut Pixmap, rect: Rect, color: Color, radius: f32) {
-    if rect.width <= 0.0 || rect.height <= 0.0 || color.a == 0 {
+fn draw_rect(pixmap: &mut Pixmap, rect: Rect, color: Color, radius: f32, clip: Clip) {
+    if rect.width <= 0.0 || rect.height <= 0.0 || color.a == 0 || clip.is_empty() {
         return;
     }
     let mut paint = Paint::default();
     paint.set_color_rgba8(color.r, color.g, color.b, color.a);
     paint.anti_alias = true;
 
-    if radius > 0.5 {
+    if radius > 0.5 && clip.contains(rect) {
         if let Some(path) = rounded_path(rect, radius) {
             pixmap.fill_path(
                 &path,
@@ -176,7 +199,17 @@ fn draw_rect(pixmap: &mut Pixmap, rect: Rect, color: Color, radius: f32) {
                 None,
             );
         }
-    } else if let Some(sk_rect) = SkRect::from_xywh(rect.x, rect.y, rect.width, rect.height) {
+        return;
+    }
+
+    let x0 = rect.x.max(clip.x0);
+    let y0 = rect.y.max(clip.y0);
+    let x1 = (rect.x + rect.width).min(clip.x1);
+    let y1 = (rect.y + rect.height).min(clip.y1);
+    if x1 <= x0 || y1 <= y0 {
+        return;
+    }
+    if let Some(sk_rect) = SkRect::from_xywh(x0, y0, x1 - x0, y1 - y0) {
         pixmap.fill_rect(sk_rect, &paint, Transform::identity(), None);
     }
 }
@@ -205,6 +238,7 @@ fn rounded_path(rect: Rect, radius: f32) -> Option<Path> {
     builder.finish()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn draw_text(
     scene: &Scene,
     pixmap: &mut Pixmap,
@@ -213,8 +247,9 @@ fn draw_text(
     content: &str,
     rect: Rect,
     opacity: f32,
+    clip: Clip,
 ) {
-    if content.is_empty() || rect.width <= 0.0 || rect.height <= 0.0 {
+    if content.is_empty() || rect.width <= 0.0 || rect.height <= 0.0 || !clip.intersects(rect) {
         return;
     }
     let style = resolve_text_style(scene, node_id);
@@ -247,6 +282,7 @@ fn draw_text(
                     physical.x + image.placement.left,
                     physical.y - image.placement.top,
                     color,
+                    clip,
                 );
             }
         }
@@ -291,20 +327,43 @@ fn resolve_text_style(scene: &Scene, node_id: u32) -> ResolvedText {
     style
 }
 
-fn draw_glyph(pixmap: &mut Pixmap, image: &SwashImage, x: i32, y: i32, color: Color) {
-    let width = image.placement.width;
-    let height = image.placement.height;
-    if width == 0 || height == 0 {
+fn draw_glyph(pixmap: &mut Pixmap, image: &SwashImage, x: i32, y: i32, color: Color, clip: Clip) {
+    let width = image.placement.width as i32;
+    let height = image.placement.height as i32;
+    if width <= 0 || height <= 0 {
         return;
     }
-    let Some(mut glyph) = Pixmap::new(width, height) else {
-        return;
-    };
+    let pixmap_width = pixmap.width() as i32;
+    let pixmap_height = pixmap.height() as i32;
+    let clip_x0 = clip.x0.floor() as i32;
+    let clip_y0 = clip.y0.floor() as i32;
+    let clip_x1 = clip.x1.ceil() as i32;
+    let clip_y1 = clip.y1.ceil() as i32;
+    if x + width <= clip_x0
+        || y + height <= clip_y0
+        || x >= clip_x1
+        || y >= clip_y1
+        || x + width <= 0
+        || y + height <= 0
+        || x >= pixmap_width
+        || y >= pixmap_height
     {
-        let pixels = glyph.pixels_mut();
-        let count = (width as usize) * (height as usize);
-        for (index, pixel) in pixels.iter_mut().enumerate().take(count) {
-            let (r, g, b, alpha) = match image.content {
+        return;
+    }
+
+    let pixels = pixmap.pixels_mut();
+    for row in 0..height {
+        let py = y + row;
+        if py < 0 || py >= pixmap_height || py < clip_y0 || py >= clip_y1 {
+            continue;
+        }
+        for col in 0..width {
+            let px = x + col;
+            if px < 0 || px >= pixmap_width || px < clip_x0 || px >= clip_x1 {
+                continue;
+            }
+            let index = (row as usize) * (width as usize) + (col as usize);
+            let (r, g, b, coverage) = match image.content {
                 SwashContent::Mask => {
                     let Some(alpha) = image.data.get(index).copied() else {
                         continue;
@@ -335,26 +394,28 @@ fn draw_glyph(pixmap: &mut Pixmap, image: &SwashImage, x: i32, y: i32, color: Co
                     (color.r, color.g, color.b, r.max(g).max(b))
                 }
             };
-            let alpha = ((alpha as u16 * color.a as u16) / 255) as u8;
-            if alpha == 0 {
+            let src_alpha = ((coverage as u16 * color.a as u16) / 255) as u8;
+            if src_alpha == 0 {
                 continue;
             }
-            let premul_r = ((r as u16 * alpha as u16) / 255) as u8;
-            let premul_g = ((g as u16 * alpha as u16) / 255) as u8;
-            let premul_b = ((b as u16 * alpha as u16) / 255) as u8;
-            if let Some(color) =
-                PremultipliedColorU8::from_rgba(premul_r, premul_g, premul_b, alpha)
-            {
-                *pixel = color;
+            let pixel_index = (py as usize) * (pixmap_width as usize) + (px as usize);
+            let dst = pixels[pixel_index];
+            let inv = 255 - src_alpha;
+            let out_a = src_alpha as u16 + (dst.alpha() as u16 * inv as u16) / 255;
+            let out_r =
+                ((r as u16 * src_alpha as u16) / 255) + (dst.red() as u16 * inv as u16) / 255;
+            let out_g =
+                ((g as u16 * src_alpha as u16) / 255) + (dst.green() as u16 * inv as u16) / 255;
+            let out_b =
+                ((b as u16 * src_alpha as u16) / 255) + (dst.blue() as u16 * inv as u16) / 255;
+            if let Some(blended) = PremultipliedColorU8::from_rgba(
+                out_r.min(255) as u8,
+                out_g.min(255) as u8,
+                out_b.min(255) as u8,
+                out_a.min(255) as u8,
+            ) {
+                pixels[pixel_index] = blended;
             }
         }
     }
-    pixmap.draw_pixmap(
-        x,
-        y,
-        glyph.as_ref(),
-        &PixmapPaint::default(),
-        Transform::identity(),
-        None,
-    );
 }

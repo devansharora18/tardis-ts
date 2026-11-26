@@ -176,3 +176,25 @@ fn supports_row_layout_and_gap() {
     assert_eq!(first.x, 10.0);
     assert_eq!(second.x, 60.0);
 }
+
+#[test]
+fn clips_overflow_hidden_children_to_the_parent() {
+    let mut engine = Engine::new(200.0, 200.0);
+    apply(
+        &mut engine,
+        r##"[
+          {"op":"create","id":1,"kind":"view","parent":0,"index":0},
+          {"op":"style","id":1,"props":{"width":100,"height":100,"overflow":"hidden"}},
+          {"op":"create","id":2,"kind":"view","parent":1,"index":0},
+          {"op":"style","id":2,"props":{"position":"absolute","top":50,"left":0,"width":100,"height":100,"backgroundColor":"#ff0000"}}
+        ]"##,
+    );
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("clip.png");
+    engine.render_png(path.to_str().unwrap()).unwrap();
+    let pixmap = Pixmap::load_png(&path).unwrap();
+    let inside = pixmap.pixel(10, 60).unwrap();
+    assert!(inside.red() > 200 && inside.green() < 60);
+    let outside = pixmap.pixel(10, 120).unwrap();
+    assert!(outside.red() < 60, "child leaked below the clip");
+}
