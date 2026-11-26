@@ -21,6 +21,8 @@ pub enum Op {
     Create {
         id: u32,
         kind: String,
+        #[serde(default)]
+        tag: String,
         parent: u32,
         index: u32,
     },
@@ -55,6 +57,9 @@ pub enum Op {
         x: f32,
         y: f32,
     },
+    Focus {
+        id: Option<u32>,
+    },
 }
 
 #[derive(Debug, Default, Clone)]
@@ -73,6 +78,7 @@ enum Prepared {
     Text(u32, String),
     Image(u32, String),
     Scroll(u32, f32, f32),
+    Focus(Option<u32>),
 }
 
 pub fn apply_patch(scene: &mut Scene, patch: Patch) -> Result<ChangeSet, String> {
@@ -141,6 +147,14 @@ pub fn apply_patch(scene: &mut Scene, patch: Patch) -> Result<ChangeSet, String>
                 }
                 prepared.push(Prepared::Scroll(id, x, y));
             }
+            Op::Focus { id } => {
+                if let Some(id) = id {
+                    if !scene.nodes.contains_key(&id) {
+                        return Err(format!("focus: id {id} does not exist"));
+                    }
+                }
+                prepared.push(Prepared::Focus(id));
+            }
             Op::Create { id, .. } | Op::Destroy { id } | Op::Insert { id, .. } => {
                 return Err(format!("structural op {id} in a non-structural patch"));
             }
@@ -183,6 +197,9 @@ pub fn apply_patch(scene: &mut Scene, patch: Patch) -> Result<ChangeSet, String>
                     node.scroll = (x, y);
                 }
             }
+            Prepared::Focus(id) => {
+                scene.focused = id;
+            }
         }
     }
     Ok(changes)
@@ -193,6 +210,7 @@ fn apply_op(scene: &mut Scene, op: Op) -> Result<(), String> {
         Op::Create {
             id,
             kind,
+            tag,
             parent,
             index,
         } => {
@@ -216,6 +234,7 @@ fn apply_op(scene: &mut Scene, op: Op) -> Result<(), String> {
                 .children
                 .insert(at, id);
             let mut node = Node::new(id, node_kind);
+            node.tag = tag;
             node.parent = Some(parent);
             scene.nodes.insert(id, node);
         }
@@ -315,6 +334,14 @@ fn apply_op(scene: &mut Scene, op: Op) -> Result<(), String> {
                 .get_mut(&id)
                 .ok_or_else(|| format!("scroll: id {id} does not exist"))?;
             node.scroll = (x, y);
+        }
+        Op::Focus { id } => {
+            if let Some(id) = id {
+                if !scene.nodes.contains_key(&id) {
+                    return Err(format!("focus: id {id} does not exist"));
+                }
+            }
+            scene.focused = id;
         }
     }
     Ok(())

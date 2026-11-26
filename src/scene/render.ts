@@ -1,5 +1,5 @@
 import { createRoot } from './signals'
-import { destroyNode, flushNow, getNode, rootNode } from './tree'
+import { destroyNode, emitFocus, flushNow, getNode, rootNode } from './tree'
 import { mountAttached } from './mount'
 import type { EventHandler, SceneEvent, SceneNode } from './types'
 
@@ -52,6 +52,7 @@ function setFocus(id: number | null): void {
     blur?.handler({ type: 'blur', node: previous.id })
   }
   focused = id
+  emitFocus(id)
   if (id !== null) {
     const focus = nearestHandler(id, 'onFocus')
     focus?.handler({ type: 'focus', node: id })
@@ -158,6 +159,42 @@ export function dispatchEvent(event: SceneEvent): void {
       node = node.parent
     }
     flushNow()
+    return
+  }
+  if (event.type === 'a11y') {
+    const id = typeof event.node === 'number' ? event.node : null
+    if (event.action === 'focus') {
+      setFocus(id)
+      flushNow()
+      return
+    }
+    if (event.action === 'default' && id !== null) {
+      const entry = clickableAncestor(id)
+      entry?.handler({ ...event, type: 'click', node: id })
+      flushNow()
+      return
+    }
+    if (
+      (event.action === 'replace-text' || event.action === 'set-value') &&
+      typeof event.text === 'string'
+    ) {
+      let node: SceneNode | null = focused !== null ? getNode(focused) ?? null : null
+      while (node) {
+        const handler = node.handlers['onText']
+        if (handler) {
+          handler({
+            type: 'text',
+            text: event.text,
+            composition: 'end',
+            replace: event.action === 'set-value',
+          })
+          break
+        }
+        node = node.parent
+      }
+      flushNow()
+      return
+    }
     return
   }
   if (event.type === 'text') {

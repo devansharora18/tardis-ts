@@ -63,6 +63,10 @@ export function flushNow(): void {
   flush(JSON.stringify(payload))
 }
 
+export function emitFocus(id: number | null): void {
+  emit({ op: 'focus', id })
+}
+
 export function pendingOps(): number {
   return ops.length
 }

@@ -379,6 +379,8 @@ fn set_signed_edge(target: &mut f32, value: &Value, clear: bool) -> Result<(), S
 pub struct Node {
     pub id: u32,
     pub kind: NodeKind,
+    /// Source tag (`button`, `h1`, `div`, ...) for semantics and accessibility.
+    pub tag: String,
     pub parent: Option<u32>,
     pub children: Vec<u32>,
     pub style: Style,
@@ -395,6 +397,7 @@ impl Node {
         Self {
             id,
             kind,
+            tag: String::new(),
             parent: None,
             children: Vec::new(),
             style: Style::default(),
@@ -410,6 +413,8 @@ impl Node {
 pub struct Scene {
     pub nodes: HashMap<u32, Node>,
     pub root: u32,
+    /// Scene node that owns keyboard focus, if any.
+    pub focused: Option<u32>,
 }
 
 impl Default for Scene {
@@ -423,7 +428,11 @@ impl Scene {
         let root = Node::new(0, NodeKind::Fragment);
         let mut nodes = HashMap::new();
         nodes.insert(0, root);
-        Self { nodes, root: 0 }
+        Self {
+            nodes,
+            root: 0,
+            focused: None,
+        }
     }
 
     pub fn node(&self, id: u32) -> Option<&Node> {

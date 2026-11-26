@@ -246,6 +246,9 @@ export class WebHost {
         this.elements.set(op.id, element)
         break
       }
+      case 'focus': {
+        return
+      }
       case 'destroy': {
         const element = this.elements.get(op.id)
         if (!element) return

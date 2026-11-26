@@ -14,6 +14,8 @@ export interface SceneEvent {
   text?: string
   composition?: 'start' | 'update' | 'end'
   composing?: boolean
+  action?: string
+  replace?: boolean
   dx?: number
   dy?: number
   repeat?: boolean
@@ -61,6 +63,7 @@ export type HostOp =
       id: number
       props: Record<string, string | number | boolean | null>
     }
+  | { op: 'focus'; id: number | null }
   | { op: 'destroy'; id: number }
   | { op: 'insert'; id: number; parent: number; index: number }
   | { op: 'style'; id: number; props: Record<string, unknown> }
