@@ -147,10 +147,13 @@ single update. The virtualized path is the production shape and passes with
 headroom.
 
 Same-machine startup/size baseline against Dioxus 0.6.3 desktop (first paint,
-Xvfb, release): **Tardis 451 ms / 7.3 MB vs Dioxus 625 ms / 8.7 MB**. That is a
-measured startup/size win only. There is no frame-time head-to-head, and Dioxus
-web is blocked without a wasm toolchain. See
-[docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+Xvfb, release): **Tardis 451 ms / 7.3 MB vs Dioxus 625 ms / 8.7 MB**.
+
+Browser frame-time head-to-head (10k mounted rows, every row updated per frame,
+Chrome): **Tardis 143.1 ms/frame (7.0 fps) vs Dioxus 93.2 ms/frame (10.7 fps)**.
+Dioxus is ~1.54x faster on that stress workload; both miss 60 fps. Tardis wins
+startup/size and native paint, and virtualized lists update in 0.55 ms. See
+[docs/BENCHMARKS.md](docs/BENCHMARKS.md) for method and the optimization plan.
 
 ## Server rendering
 
@@ -225,7 +228,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - ScrollView needs an explicit content height; its scrollbar is draggable.
 - Ellipsis is opt-in with `textOverflow: 'ellipsis'` (single line).
 - Mobile is not started.
-- Dioxus frame timing has not been measured on the same workloads.
+- Browser full-list updates are slower than Dioxus (see benchmarks);
+  virtualized lists are the supported large-list shape.
 
 ## Docs
 

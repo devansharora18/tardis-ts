@@ -157,11 +157,44 @@ Method and raw values: `bench/results/2026-11-27-startup.txt`,
 only. This is a measured Tardis win on those two axes, not a frame-time or
 feature-parity win.
 
+## Web frame-time head-to-head (2026-11-27)
+
+Same app shape in Chrome (headless, 1000x800), 10,000 fully-mounted rows, every
+row's text updated on every animation frame for 120 frames. Both apps use the
+same text (`row: tick`), no virtualization, and the runner alternates app order
+across three rounds and reports the median. Source:
+`bench/web-frame/`; raw values: `bench/web-frame/results.json`.
+
+| App | Mean frame | p50 | p95 | Dropped (>16.7 ms) | Effective FPS |
+|---|---:|---:|---:|---:|---:|
+| TardisJS 2.0 web | 143.1 ms | 140.5 ms | 177.9 ms | 119/120 | **7.0** |
+| Dioxus 0.6.3 web | 93.2 ms | 89.7 ms | 111.5 ms | 119/120 | **10.7** |
+
+Dioxus is ~1.54x faster on this workload. Both apps miss 60 fps badly because
+10,000 mounted DOM rows is not the production shape. The result is a Tardis
+loss, not a win; it stays in the repo because hiding it would be dishonest.
+
+Why Tardis loses here:
+
+1. Every scene text node is a DOM element (`span`) plus a text child, so the page
+   has ~2x the element count of Dioxus' text nodes.
+2. 10,000 per-node effects run and detach each frame; Dioxus diffs one component.
+3. Patch application is JS per node (even after removing JSON from the web path).
+
+The next optimization is a text fast path that maps plain scene text to raw DOM
+text nodes (with anchors for hydration), plus effect batching. Until that exists,
+the recommended large-list shape remains `VirtualList`, where Tardis updates
+~0.55 ms natively.
+
+Startup/size remains a Tardis win (451 ms vs 625 ms first paint; 7.3 MB vs
+8.7 MB). Native paint is 1.87 ms for 10k rows. The browser full-list frame loss
+stands.
+
 What is still missing:
 
-- A frame-time/update head-to-head on the same virtualized workload.
-- Dioxus web (blocked: wasm32 + wasm-bindgen/dx not installed).
-- Feature parity: Dioxus has SSR/fullstack, mobile, and a larger ecosystem;
-  Tardis has basic keyboard/focus but no text input/IME or SSR.
+- A Dioxus native frame-time comparison (desktop uses a webview; paint timing is
+  not exposed).
+- A virtualized browser head-to-head (both should sit at vsync; not yet run).
+- Feature parity: Dioxus has SSR/fullstack, mobile, and a larger ecosystem.
 
 No blanket "better than Dioxus" claim is justified.

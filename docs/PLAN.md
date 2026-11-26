@@ -237,3 +237,11 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   mismatch, and clears stale markup when no server root exists.
 - Router guards/redirects, cached lazy routes, scroll restoration, link roles.
 - 10 router tests, 2 hydration tests.
+
+## Dioxus web frame benchmark (2026-11-27)
+
+- Built both apps to wasm/JS with wasm-bindgen and the Tardis web compiler.
+- 10k mounted rows, all rows updated per frame, 120 frames, 3 alternating rounds.
+- Result: Tardis 143.1 ms/frame (7.0 fps) vs Dioxus 93.2 ms/frame (10.7 fps).
+  A measured Tardis loss; documented with causes and next steps.
+- Startup/size still favors Tardis (451 ms/7.3 MB vs 625 ms/8.7 MB).

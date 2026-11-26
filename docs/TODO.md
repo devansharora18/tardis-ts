@@ -113,3 +113,7 @@ npm publish --tag alpha
 - Run the GUI smoke on real hardware:
   `npx tardis dev` on macOS and Windows, and verify a screen reader reads the
   AccessKit tree.
+
+- Web full-list frame time: add a raw-text-node fast path and effect batching;
+  Dioxus is currently ~1.54x faster on 10k mounted rows (see BENCHMARKS).
+- Run a virtualized browser head-to-head once the text fast path lands.
