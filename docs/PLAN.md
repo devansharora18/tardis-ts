@@ -41,3 +41,19 @@ clicks; the old `.tardis` surface is gone; build, typecheck, and tests are clean
 - M6: macOS/Windows builds, npm platform binary packages.
 - M7: wgpu backend behind `paint.rs`.
 - Then: keyboard/focus/IME, images, scroll painting, text clipping, HiDPI.
+
+## Cross-platform follow-up (2026-11-26)
+
+Targets: Linux, macOS, Windows, web. Mobile deferred.
+
+1. **Web DOM host** — apply the patch stream to DOM, map styles to CSS, delegate
+   pointer events, auto-install on `#app`, no-op without `document`.
+2. **Web bundler** — `bundleApp({ target: 'web' })` with a browser IIFE and a
+   generated `index.html` shell.
+3. **CLI** — `build --target web`, `preview`, `dev --target web` (watch +
+   rebuild + reload), cross-platform npm scripts.
+4. **Package** — `./web` export, Rollup entry, types.
+5. **Tests** — jsdom host tests, web bundle end-to-end (render + click),
+   dev-server tests; native e2e keeps working with the web import.
+6. **CI** — Linux/macOS/Windows matrix: typecheck, tests, build, cargo tests.
+7. **Docs** — target matrix, web quick start, ADR 0004, TODO host checks.

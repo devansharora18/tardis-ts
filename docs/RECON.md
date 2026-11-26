@@ -58,3 +58,42 @@ rendering stack, not an additive feature:
 - JS: `npm test`, `npm run typecheck`, `npm run build`
 - Rust: `cargo test --manifest-path native/Cargo.toml`
 - Native smoke: `cargo run -p tardis-native -- --headless ...`
+
+## Cross-platform correction (2026-11-26)
+
+Targets are **Linux, macOS, Windows, and web**. Mobile is explicitly deferred.
+
+Current state at the start of this pass:
+
+- The native core (winit, softbuffer, taffy, cosmic-text, tiny-skia, QuickJS) is
+  cross-platform code, but only Linux/X11 has been run here. macOS and Windows
+  compile paths are unverified.
+- There is no web target. The scene runtime emits patches to `__tardis_flush`;
+  only the QuickJS host consumes them.
+- CLI/build scripts contain Unix-only commands (`rm -rf`, `chmod`), and the
+  native end-to-end test assumes a binary name without `.exe`.
+- No CI matrix exists.
+
+## Web approach
+
+A DOM adapter consumes the same scene patch stream:
+
+- view/text/image/scroll → `<div>`/`<img>` with CSS flex properties,
+- fragments → `display: contents`,
+- pointer events delegated from the container to `dispatchEvent`,
+- the generated HTML shell provides `#app` and dark page defaults.
+
+The same TSX entry works on native and web by importing the web module for its
+side effect; in QuickJS `typeof document === 'undefined'`, so it is a no-op.
+
+## Risks
+
+1. **Layout parity.** Native uses taffy; web uses CSS flex. Box sizing, line
+   heights, and font metrics can differ. Mitigation: `box-sizing: border-box`,
+   explicit line heights on block text, jsdom assertions on structure/styles.
+2. **DOM event mapping.** Native hit-tests; web uses `closest('[data-tardis]')`.
+   Mitigation: the runtime already bubbles to the nearest clickable ancestor.
+3. **CI platform coverage.** macOS/Windows GUI cannot be exercised here.
+   Mitigation: compile and test in a CI matrix; log GUI smoke commands in TODO.
+4. **Bundle divergence.** Two targets could drift. Mitigation: one compiler,
+   one runtime, one patch protocol; only the host differs.
