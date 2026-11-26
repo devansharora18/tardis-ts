@@ -9,6 +9,7 @@ import {
   createNode,
   isSceneNode,
   replaceStyle,
+  setA11y,
   setImage,
   setText,
 } from './tree'
@@ -197,11 +198,12 @@ function host(tag: string, props: Record<string, unknown>, children: unknown[]):
   }
 
   if (spec.kind === 'text') {
-    return textHost(spec, props, children)
+    return textHost(tag, spec, props, children)
   }
 
-  const node = createNode(spec.kind)
+  const node = createNode(spec.kind, tag)
   applyEvents(node, props)
+  applyA11y(node, props)
   bindStyle(node, props['style'], spec.style)
   if (node.kind === 'image') {
     bindImage(node, props)
@@ -211,6 +213,7 @@ function host(tag: string, props: Record<string, unknown>, children: unknown[]):
 }
 
 function textHost(
+  tag: string,
   spec: TagSpec,
   props: Record<string, unknown>,
   children: unknown[]
@@ -219,16 +222,18 @@ function textHost(
     (child) => isPrimitive(child) || isDynamic(child) || isEmptyChild(child)
   )
   if (inline) {
-    const node = createNode('text')
+    const node = createNode('text', tag)
     applyEvents(node, props)
+    applyA11y(node, props)
     bindStyle(node, props['style'], spec.style)
     bindText(node, children)
     return node
   }
   // Mixed content (e.g. <p>Hello <strong>world</strong></p>): a row view with
   // the tag's text styles, so children inherit size/weight/color natively.
-  const node = createNode('view')
+  const node = createNode('view', tag)
   applyEvents(node, props)
+  applyA11y(node, props)
   bindStyle(node, props['style'], {
     ...spec.style,
     flexDirection: 'row',
@@ -295,6 +300,23 @@ function applyEvents(node: SceneNode, props: Record<string, unknown>): void {
     node.handlers[name] = value as EventHandler
   }
 }
+
+function isA11yKey(name: string): boolean {
+  return name === 'role' || name === 'tabIndex' || name.startsWith('aria-')
+}
+
+function applyA11y(node: SceneNode, props: Record<string, unknown>): void {
+  for (const [name, value] of Object.entries(props)) {
+    if (!isA11yKey(name)) continue
+    if (typeof value === 'function') {
+      createEffect(() => setA11y(node, name, (value as () => unknown)() as A11yValue))
+    } else {
+      setA11y(node, name, value as A11yValue)
+    }
+  }
+}
+
+type A11yValue = string | number | boolean | null | undefined
 
 function readKey(props: Record<string, unknown>): string | number | null {
   const key = props['key']

@@ -36,6 +36,10 @@ pub enum Op {
         id: u32,
         props: serde_json::Map<String, Value>,
     },
+    A11y {
+        id: u32,
+        props: serde_json::Map<String, Value>,
+    },
     Text {
         id: u32,
         value: String,
@@ -65,6 +69,7 @@ pub struct ChangeSet {
 
 enum Prepared {
     Style(u32, Style),
+    A11y(u32, serde_json::Map<String, Value>),
     Text(u32, String),
     Image(u32, String),
     Scroll(u32, f32, f32),
@@ -112,6 +117,12 @@ pub fn apply_patch(scene: &mut Scene, patch: Patch) -> Result<ChangeSet, String>
                 }
                 prepared.push(Prepared::Style(id, style));
             }
+            Op::A11y { id, props } => {
+                if !scene.nodes.contains_key(&id) {
+                    return Err(format!("a11y: id {id} does not exist"));
+                }
+                prepared.push(Prepared::A11y(id, props));
+            }
             Op::Text { id, value } => {
                 if !scene.nodes.contains_key(&id) {
                     return Err(format!("text: id {id} does not exist"));
@@ -143,6 +154,17 @@ pub fn apply_patch(scene: &mut Scene, patch: Patch) -> Result<ChangeSet, String>
                 if let Some(node) = scene.nodes.get_mut(&id) {
                     node.style = style;
                     changes.styled.push(id);
+                }
+            }
+            Prepared::A11y(id, props) => {
+                if let Some(node) = scene.nodes.get_mut(&id) {
+                    for (key, value) in props {
+                        if value.is_null() {
+                            node.a11y.remove(&key);
+                        } else {
+                            node.a11y.insert(key, value);
+                        }
+                    }
                 }
             }
             Prepared::Text(id, value) => {
@@ -259,6 +281,19 @@ fn apply_op(scene: &mut Scene, op: Op) -> Result<(), String> {
                 style.set(&key, &value)?;
             }
             node.style = style;
+        }
+        Op::A11y { id, props } => {
+            let node = scene
+                .nodes
+                .get_mut(&id)
+                .ok_or_else(|| format!("a11y: id {id} does not exist"))?;
+            for (key, value) in props {
+                if value.is_null() {
+                    node.a11y.remove(&key);
+                } else {
+                    node.a11y.insert(key, value);
+                }
+            }
         }
         Op::Text { id, value } => {
             let node = scene

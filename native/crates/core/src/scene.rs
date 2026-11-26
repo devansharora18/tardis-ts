@@ -385,6 +385,9 @@ pub struct Node {
     pub text: String,
     pub src: Option<String>,
     pub scroll: (f32, f32),
+    /// Accessibility attributes from the JS runtime. Stored for a future
+    /// accesskit tree; the v0 renderer does not read them.
+    pub a11y: serde_json::Map<String, Value>,
 }
 
 impl Node {
@@ -398,6 +401,7 @@ impl Node {
             text: String::new(),
             src: None,
             scroll: (0.0, 0.0),
+            a11y: serde_json::Map::new(),
         }
     }
 }

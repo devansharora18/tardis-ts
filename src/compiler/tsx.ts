@@ -115,7 +115,7 @@ function createTransformer(diagnostics: string[]): ts.TransformerFactory<ts.Sour
         } else {
           value = visitExpression(attr.initializer as unknown as ts.Expression)
         }
-        properties.push(factory.createPropertyAssignment(name, value))
+        properties.push(factory.createPropertyAssignment(propertyName(factory, name), value))
       }
       return factory.createObjectLiteralExpression(properties, false)
     }
@@ -192,6 +192,15 @@ function createTransformer(diagnostics: string[]): ts.TransformerFactory<ts.Sour
       return visited
     }
   }
+}
+
+function propertyName(
+  factory: ts.NodeFactory,
+  name: string
+): ts.PropertyName {
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)
+    ? factory.createIdentifier(name)
+    : factory.createStringLiteral(name)
 }
 
 function attributeName(name: ts.JsxAttributeName): string | null {

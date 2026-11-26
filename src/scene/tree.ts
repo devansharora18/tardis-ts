@@ -10,6 +10,8 @@ export const ROOT_ID = 0
 export const rootNode: SceneNode = {
   id: ROOT_ID,
   kind: 'fragment',
+  tag: '',
+  a11y: {},
   parent: null,
   children: [],
   style: {},
@@ -77,10 +79,12 @@ export function isSceneNode(value: unknown): value is SceneNode {
   )
 }
 
-export function createNode(kind: NodeKind): SceneNode {
+export function createNode(kind: NodeKind, tag = ''): SceneNode {
   const node: SceneNode = {
     id: nextId++,
     kind,
+    tag,
+    a11y: {},
     parent: null,
     children: [],
     style: {},
@@ -115,9 +119,13 @@ function emitTree(node: SceneNode): void {
     op: 'create',
     id: node.id,
     kind: node.kind,
+    tag: node.tag,
     parent: parent ? parent.id : ROOT_ID,
     index,
   })
+  if (Object.keys(node.a11y).length > 0) {
+    emit({ op: 'a11y', id: node.id, props: { ...node.a11y } })
+  }
   if (Object.keys(node.style).length > 0) {
     emit({ op: 'style', id: node.id, props: { ...node.style } })
   }
@@ -134,6 +142,26 @@ export function attachNode(node: SceneNode, parent: SceneNode): void {
   if (node.attached) return
   if (node.parent !== parent) addChild(parent, node)
   emitTree(node)
+}
+
+export function setA11y(
+  node: SceneNode,
+  key: string,
+  value: string | number | boolean | null | undefined
+): void {
+  if (value === null || value === undefined) {
+    if (!(key in node.a11y)) return
+    delete node.a11y[key]
+    if (node.attached) {
+      emit({ op: 'a11y', id: node.id, props: { [key]: null } })
+    }
+    return
+  }
+  if (node.a11y[key] === value) return
+  node.a11y[key] = value
+  if (node.attached) {
+    emit({ op: 'a11y', id: node.id, props: { [key]: value } })
+  }
 }
 
 export function setText(node: SceneNode, value: string): void {

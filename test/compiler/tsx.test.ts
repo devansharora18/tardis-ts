@@ -84,6 +84,13 @@ describe('tsx compiler', () => {
     expect(out).toContain('_tjsx(UI.Card')
   })
 
+  it('emits hyphenated accessibility attributes as string keys', () => {
+    const out = compile(`export const A = () => <div role="textbox" aria-label="Name" tabIndex={0} />`)
+    expect(out).toContain('role: "textbox"')
+    expect(out).toContain('"aria-label": "Name"')
+    expect(out).toContain('tabIndex: () => 0')
+  })
+
   it('reports unsupported namespaced attributes', () => {
     const result = compileTsx(`export const A = () => <div xmlns:foo="x" />`, 'a.tsx')
     expect(result.diagnostics.join('\n')).toContain('unsupported JSX attribute')

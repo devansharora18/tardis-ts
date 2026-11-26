@@ -28,6 +28,8 @@ export interface DynamicValue {
 export interface SceneNode {
   id: number
   kind: NodeKind
+  tag: string
+  a11y: Record<string, string | number | boolean>
   parent: SceneNode | null
   children: SceneNode[]
   style: Record<string, unknown>
@@ -43,7 +45,19 @@ export interface SceneNode {
 }
 
 export type HostOp =
-  | { op: 'create'; id: number; kind: NodeKind; parent: number; index: number }
+  | {
+      op: 'create'
+      id: number
+      kind: NodeKind
+      tag: string
+      parent: number
+      index: number
+    }
+  | {
+      op: 'a11y'
+      id: number
+      props: Record<string, string | number | boolean | null>
+    }
   | { op: 'destroy'; id: number }
   | { op: 'insert'; id: number; parent: number; index: number }
   | { op: 'style'; id: number; props: Record<string, unknown> }

@@ -3,7 +3,7 @@
 // Native uses taffy/text raster; the web uses CSS flex and the browser's text
 // engine. The patch op set is identical — only this adapter differs.
 
-import { dispatchEvent } from '../scene/render'
+import { dispatchEvent, focusNode } from '../scene/render'
 import type { HostOp, Patch } from '../scene/types'
 
 export interface WebHostOptions {
@@ -54,6 +54,29 @@ const CSS_PROPERTIES: Record<string, string> = {
   lineHeight: 'line-height',
   textAlign: 'text-align',
 }
+
+const TAG_ELEMENTS = new Set([
+  'div',
+  'section',
+  'main',
+  'header',
+  'footer',
+  'nav',
+  'ul',
+  'li',
+  'span',
+  'label',
+  'strong',
+  'em',
+  'p',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'button',
+])
 
 const PIXEL_PROPERTIES = new Set([
   'width',
@@ -178,6 +201,16 @@ export class WebHost {
     this.container.addEventListener('wheel', wheel, { passive: false })
     this.listeners.push({ target: this.container, type: 'wheel', fn: wheel })
 
+    const focusin = (event: Event): void => {
+      const target = event.target as Element | null
+      const element = target?.closest?.('[data-tardis]') as HTMLElement | null
+      if (element) {
+        focusNode(Number(element.getAttribute('data-tardis')))
+      }
+    }
+    this.container.addEventListener('focusin', focusin)
+    this.listeners.push({ target: this.container, type: 'focusin', fn: focusin })
+
     for (const [type, phase] of [
       ['keydown', 'down'],
       ['keyup', 'up'],
@@ -216,7 +249,7 @@ export class WebHost {
           console.warn(`tardis web: missing parent ${op.parent}`)
           return
         }
-        const element = this.createElement(op.kind)
+        const element = this.createElement(op.kind, op.tag)
         element.setAttribute('data-tardis', String(op.id))
         const reference = parent.children.item(op.index) ?? null
         parent.insertBefore(element, reference)
@@ -252,6 +285,19 @@ export class WebHost {
         }
         break
       }
+      case 'a11y': {
+        const element = this.elements.get(op.id)
+        if (!element) return
+        for (const [key, value] of Object.entries(op.props)) {
+          const attribute = key === 'tabIndex' ? 'tabindex' : key
+          if (value === null || value === undefined) {
+            element.removeAttribute(attribute)
+          } else {
+            element.setAttribute(attribute, String(value))
+          }
+        }
+        break
+      }
       case 'text': {
         const element = this.elements.get(op.id)
         if (element) element.textContent = op.value
@@ -276,41 +322,44 @@ export class WebHost {
     }
   }
 
-  private createElement(kind: string): HTMLElement {
+  private createElement(kind: string, tag = ''): HTMLElement {
     const doc = document
-    switch (kind) {
-      case 'view':
-      case 'scroll': {
-        const element = doc.createElement('div')
-        element.style.display = 'flex'
-        element.style.flexDirection = 'column'
-        if (kind === 'scroll') element.style.overflow = 'auto'
-        return element
-      }
-      case 'text': {
-        const element = doc.createElement('div')
-        element.style.display = 'block'
-        element.style.whiteSpace = 'pre-wrap'
-        element.style.overflowWrap = 'break-word'
-        element.style.minWidth = '0'
-        return element
-      }
-      case 'image': {
-        const element = doc.createElement('img')
-        element.style.display = 'block'
-        return element
-      }
-      case 'fragment': {
-        const element = doc.createElement('div')
-        element.style.display = 'contents'
-        return element
-      }
-      default: {
-        const element = doc.createElement('div')
-        element.style.display = 'flex'
-        return element
-      }
+    if (kind === 'fragment') {
+      const element = doc.createElement('div')
+      element.style.display = 'contents'
+      return element
     }
+    if (kind === 'image') {
+      const element = doc.createElement('img')
+      element.style.display = 'block'
+      return element
+    }
+    const semantic = TAG_ELEMENTS.has(tag) ? tag : 'div'
+    const element = doc.createElement(semantic) as HTMLElement
+    if (kind === 'text') {
+      element.style.display = 'block'
+      element.style.whiteSpace = 'pre-wrap'
+      element.style.overflowWrap = 'break-word'
+      element.style.minWidth = '0'
+      element.style.margin = '0'
+      return element
+    }
+    element.style.display = 'flex'
+    element.style.flexDirection = 'column'
+    if (kind === 'scroll') element.style.overflow = 'auto'
+    if (semantic === 'button') {
+      ;(element as HTMLButtonElement).type = 'button'
+      element.style.border = '0'
+      element.style.font = 'inherit'
+      element.style.cursor = 'pointer'
+    }
+    if (semantic === 'ul') {
+      element.style.margin = '0'
+      element.style.padding = '0'
+      element.style.listStyle = 'none'
+    }
+    if (semantic === 'li') element.style.listStyle = 'none'
+    return element
   }
 
   private applyStyle(element: HTMLElement, key: string, value: unknown): void {
