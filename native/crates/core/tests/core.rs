@@ -297,3 +297,32 @@ fn renders_at_hidpi_scale() {
     let outside = frame.pixel(25, 25).unwrap();
     assert!(outside.red() < 60);
 }
+
+#[test]
+fn paints_text_background_behind_glyphs() {
+    let mut engine = Engine::new(200.0, 100.0);
+    apply(
+        &mut engine,
+        r##"[
+          {"op":"create","id":1,"kind":"view","parent":0,"index":0},
+          {"op":"style","id":1,"props":{"padding":10,"backgroundColor":"#000000"}},
+          {"op":"create","id":2,"kind":"text","parent":1,"index":0},
+          {"op":"text","id":2,"value":"M"},
+          {"op":"style","id":2,"props":{"fontSize":40,"backgroundColor":"#ff0000","color":"#00ff00"}}
+        ]"##,
+    );
+    let dump = engine.dump().unwrap();
+    let text = dump.nodes.iter().find(|node| node.id == 2).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("text-bg.png");
+    engine.render_png(path.to_str().unwrap()).unwrap();
+    let frame = Pixmap::load_png(&path).unwrap();
+    let x = text.x as u32 + 2;
+    let y = text.y as u32 + 2;
+    let pixel = frame.pixel(x, y).unwrap();
+    assert!(
+        pixel.red() > 200 && pixel.green() < 60,
+        "expected red background at {x},{y}, got {:?}",
+        (pixel.red(), pixel.green(), pixel.blue())
+    );
+}
