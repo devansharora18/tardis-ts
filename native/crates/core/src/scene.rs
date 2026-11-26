@@ -178,6 +178,8 @@ pub struct Style {
     pub inset: Edges,
     pub background: Option<Color>,
     pub border_radius: f32,
+    pub border_width: f32,
+    pub border_color: Option<Color>,
     pub opacity: f32,
     pub overflow_hidden: bool,
     pub font_size: Option<f32>,
@@ -211,6 +213,8 @@ impl Default for Style {
             inset: Edges::default(),
             background: None,
             border_radius: 0.0,
+            border_width: 0.0,
+            border_color: None,
             opacity: 1.0,
             overflow_hidden: false,
             font_size: None,
@@ -333,6 +337,17 @@ impl Style {
                 }
             }
             "borderRadius" => self.border_radius = number().unwrap_or(0.0).max(0.0),
+            "borderWidth" => self.border_width = number().unwrap_or(0.0).max(0.0),
+            "borderColor" => {
+                self.border_color = if clear {
+                    None
+                } else {
+                    Some(
+                        Color::parse(string().ok_or("borderColor must be a string")?)
+                            .ok_or_else(|| "invalid borderColor".to_string())?,
+                    )
+                }
+            }
             "opacity" => self.opacity = number().unwrap_or(1.0).clamp(0.0, 1.0),
             "overflow" => {
                 self.overflow_hidden =

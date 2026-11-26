@@ -363,3 +363,26 @@ fn ellipsis_truncates_to_the_available_width() {
     let narrow = text.ellipsize("Hello", 16.0, 400, 1.0);
     assert_eq!(narrow, "\u{2026}");
 }
+
+#[test]
+fn draws_view_borders_inside_the_box() {
+    let mut engine = Engine::new(40.0, 40.0);
+    apply(
+        &mut engine,
+        r##"[
+          {"op":"create","id":1,"kind":"view","parent":0,"index":0},
+          {"op":"style","id":1,"props":{"width":20,"height":20,"backgroundColor":"#000000","borderWidth":4,"borderColor":"#ff0000"}}
+        ]"##,
+    );
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("border.png");
+    engine.render_png(path.to_str().unwrap()).unwrap();
+    let frame = Pixmap::load_png(&path).unwrap();
+    let edge = frame.pixel(1, 10).unwrap();
+    assert!(
+        edge.red() > 200 && edge.green() < 60,
+        "edge not red: {edge:?}"
+    );
+    let center = frame.pixel(10, 10).unwrap();
+    assert!(center.red() < 60, "center not black: {center:?}");
+}

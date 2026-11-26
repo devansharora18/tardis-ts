@@ -86,6 +86,24 @@ describe('web host', () => {
     expect(label.style.overflow).toBe('hidden')
   })
 
+  it('maps borders to CSS', () => {
+    const app = mount(() =>
+      jsx('div', {
+        style: {
+          width: 40,
+          height: 40,
+          borderWidth: 2,
+          borderColor: '#ff0000',
+          borderStyle: 'solid',
+        },
+      })
+    )
+    const box = app.querySelector<HTMLElement>('[data-tardis]:not([data-tardis="0"])')!
+    expect(box.style.borderWidth).toBe('2px')
+    expect(box.style.borderColor).toBe('rgb(255, 0, 0)')
+    expect(box.style.borderStyle).toBe('solid')
+  })
+
   it('updates dynamic text in place', () => {
     const [count, setCount] = createSignal(0)
     const app = mount(() => jsx('h1', {}, 'Count: ', dynamic(() => count())))

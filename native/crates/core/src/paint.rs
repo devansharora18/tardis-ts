@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use cosmic_text::{SwashContent, SwashImage};
 use tiny_skia::{
     FillRule, Paint, Path, PathBuilder, Pixmap, PixmapPaint, PremultipliedColorU8, Rect as SkRect,
-    Transform,
+    Stroke, Transform,
 };
 
 use crate::layout::{ComputedLayout, Rect};
@@ -182,6 +182,18 @@ fn draw_node(
                     clip,
                 );
             }
+            if node.style.border_width > 0.0 {
+                if let Some(border) = node.style.border_color {
+                    draw_border(
+                        pixmap,
+                        rect,
+                        border.with_opacity(opacity),
+                        node.style.border_width * scale,
+                        node.style.border_radius * scale,
+                        clip,
+                    );
+                }
+            }
             let child_clip = if node.style.overflow_hidden {
                 clip.intersect(rect)
             } else {
@@ -290,6 +302,30 @@ fn draw_rect(pixmap: &mut Pixmap, rect: Rect, color: Color, radius: f32, clip: C
     if let Some(sk_rect) = SkRect::from_xywh(x0, y0, x1 - x0, y1 - y0) {
         pixmap.fill_rect(sk_rect, &paint, Transform::identity(), None);
     }
+}
+
+fn draw_border(pixmap: &mut Pixmap, rect: Rect, color: Color, width: f32, radius: f32, clip: Clip) {
+    let inset = width / 2.0;
+    let inner = Rect {
+        x: rect.x + inset,
+        y: rect.y + inset,
+        width: (rect.width - width).max(0.0),
+        height: (rect.height - width).max(0.0),
+    };
+    if inner.width <= 0.0 || inner.height <= 0.0 || !clip.intersects(inner) {
+        return;
+    }
+    let Some(path) = rounded_path(inner, (radius - inset).max(0.0)) else {
+        return;
+    };
+    let mut paint = Paint::default();
+    paint.set_color_rgba8(color.r, color.g, color.b, color.a);
+    paint.anti_alias = true;
+    let stroke = Stroke {
+        width,
+        ..Stroke::default()
+    };
+    pixmap.stroke_path(&path, &paint, &stroke, Transform::identity(), None);
 }
 
 fn rounded_path(rect: Rect, radius: f32) -> Option<Path> {

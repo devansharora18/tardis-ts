@@ -34,6 +34,9 @@ export const CSS_PROPERTIES: Record<string, string> = {
   left: 'left',
   backgroundColor: 'background-color',
   borderRadius: 'border-radius',
+  borderWidth: 'border-width',
+  borderColor: 'border-color',
+  borderStyle: 'border-style',
   opacity: 'opacity',
   overflow: 'overflow',
   whiteSpace: 'white-space',
@@ -71,6 +74,7 @@ export const PIXEL_PROPERTIES = new Set([
   'bottom',
   'left',
   'borderRadius',
+  'borderWidth',
   'fontSize',
   'lineHeight',
 ])
