@@ -169,3 +169,17 @@ describe('web host', () => {
     expect(app.textContent).toBe('')
   })
 })
+
+describe('className', () => {
+  it('maps className to the class attribute and updates reactively', () => {
+    const [name, setName] = createSignal('one')
+    const app = mount(() =>
+      jsx('div', { className: () => `box ${name()}` }, 'content')
+    )
+    const box = app.querySelector<HTMLElement>('.box')!
+    expect(box.getAttribute('class')).toBe('box one')
+    setName('two')
+    flushNow()
+    expect(box.getAttribute('class')).toBe('box two')
+  })
+})

@@ -305,7 +305,12 @@ function applyEvents(node: SceneNode, props: Record<string, unknown>): void {
 }
 
 function isA11yKey(name: string): boolean {
-  return name === 'role' || name === 'tabIndex' || name.startsWith('aria-')
+  return (
+    name === 'role' ||
+    name === 'tabIndex' ||
+    name === 'className' ||
+    name.startsWith('aria-')
+  )
 }
 
 function applyA11y(node: SceneNode, props: Record<string, unknown>): void {

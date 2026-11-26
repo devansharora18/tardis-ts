@@ -180,7 +180,8 @@ export class StringHost {
     if (style) out += ` style="${escapeAttr(style)}"`
     for (const [key, value] of Object.entries(node.a11y)) {
       if (value === null || value === undefined) continue
-      const attribute = key === 'tabIndex' ? 'tabindex' : key
+      const attribute =
+        key === 'tabIndex' ? 'tabindex' : key === 'className' ? 'class' : key
       out += ` ${attribute}="${escapeAttr(String(value))}"`
     }
     return out

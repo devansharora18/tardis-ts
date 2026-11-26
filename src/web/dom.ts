@@ -357,7 +357,8 @@ export class WebHost {
         const element = this.elements.get(op.id)
         if (!element) return
         for (const [key, value] of Object.entries(op.props)) {
-          const attribute = key === 'tabIndex' ? 'tabindex' : key
+          const attribute =
+            key === 'tabIndex' ? 'tabindex' : key === 'className' ? 'class' : key
           if (value === null || value === undefined) {
             element.removeAttribute(attribute)
           } else {
