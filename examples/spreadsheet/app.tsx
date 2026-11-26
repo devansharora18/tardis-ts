@@ -177,7 +177,7 @@ function App(): ReturnType<typeof jsx> {
       jsx('span', { style: { fontSize: 18, fontWeight: 600 } }, 'Tardis Sheet'),
       jsx(
         'span',
-        { style: { color: '#8b949e', fontSize: 12 } },
+        { style: { color: '#8b949e', fontSize: 12, width: 300 } },
         '100,000 rows × 8 columns · virtualized'
       ),
       jsx('div', { style: { flexGrow: 1 } }),
