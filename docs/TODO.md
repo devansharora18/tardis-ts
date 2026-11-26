@@ -58,12 +58,13 @@ npm publish --tag alpha
 - Native/web layout parity: audit box sizing, line heights, font metrics, and
   wrapping against the same scene dump.
 - Text clipping (`overflow: hidden`) and ellipsis.
-- Image decode and sizing (`fit: cover|contain|fill`); the web host sets `src`,
-  the native renderer draws a placeholder.
-- Scroll containers: painting offsets, wheel events, scrollbars.
+- Image sizing (`fit: cover|contain|fill`) and formats beyond PNG.
+- Scroll containers with scrollbars; VirtualList currently windows itself via
+  wheel offsets.
 - HiDPI: pass `scale_factor` through layout, text, and pointer coordinates
   (native windows are 1x today).
-- Keyboard events, focus tree, IME, clipboard.
+- Text input, IME, clipboard, and a real focus tree (basic keyboard/focus
+  exists).
 - Mouse hover/press visual states; web currently has no cursor affordance.
 - Window close lifecycle and multiple windows.
 - Error boundary for panics in the Rust core (reject patch, keep last frame).
@@ -78,6 +79,8 @@ npm publish --tag alpha
 - `tardis inspect` to print the scene tree from a running app.
 - Playwright end-to-end tests for the web target (jsdom covers logic; a real
   browser covers layout and events).
+- A Dioxus frame-time head-to-head on the same workloads; only startup/binary
+  size is scoped so far.
 - Client-side routing for the web target.
 
 ## Docs

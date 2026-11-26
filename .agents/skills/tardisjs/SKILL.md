@@ -55,6 +55,10 @@ render(() => <App />)
 - `render(() => <App />) -> { root, dispose }`
 - `jsx`, `dynamic`, `Fragment` (compiler output; rarely used directly)
 - `installWebHost(options?)` for custom web mounting; auto-installed on `#app`
+- `VirtualList({ items, rowHeight, height, renderRow, overscan?, scrollTop?, onScroll? })`
+- `createRouter({ initial?, history? })`, `Router({ router, routes, fallback? })`,
+  `Link({ router, to, children })`, `matchPath(pattern, path)`
+- `focusNode(id)`; keyboard handlers `onKeyDown`/`onKeyUp`; wheel `onWheel`
 
 ## JSX rules
 
@@ -83,7 +87,21 @@ heights are explicit on block text; font metrics still differ by host.
 
 `onClick` / `onPress` (equivalent). Native hit-tests the pointer; web delegates
 `pointerdown`/`pointerup` through `closest('[data-tardis]')`. Both bubble to the
-nearest clickable ancestor. No keyboard/focus/IME yet.
+nearest clickable ancestor.
+
+Pointer down focuses a node; `onKeyDown`/`onKeyUp` bubble to the nearest handler.
+Enter/Space activate the nearest clickable ancestor. Web listens on `window`;
+native maps winit keyboard input. Wheel events reach `onWheel`. Text input, IME,
+and clipboard are not implemented.
+
+## Large lists, routing, images
+
+- `VirtualList` mounts only the visible window (~40 nodes for 10,000 rows) and
+  scrolls on wheel events. Use it for any long list.
+- `createRouter` + `Router` + `Link` work with memory history natively and
+  `window.history`/`popstate` on web. Routes support `:param` and `*`.
+- Native `<img src="path.png" style={{width,height}} />` decodes PNGs and caches
+  them; web uses `<img>`. Explicit dimensions are required.
 
 ## CLI
 
@@ -99,6 +117,17 @@ tardis preview --dir dist/web --port 4173
 Default entry: `app.tsx`, `src/app.tsx`, `index.tsx`, or `src/index.tsx`.
 Native binary lookup: `TARDIS_NATIVE_BIN`, `native/target/{release,debug}`,
 `node_modules/.bin/tardis-native` (`.exe` on Windows).
+
+## Performance
+
+Release core harness (`cargo run -p tardis-bench --release -- --rows 1000`):
+
+- 1k update 1.97 ms; 10k fully mounted update 23.0 ms; 10k paint 1.87 ms.
+- Virtualized 10k window: 0.55 ms update, 3.1 ms mount.
+- Patch apply is ~0.003 ms for style/text updates (no scene clone); the taffy
+  tree is reused. Fully mounted 10k is a stress case, not the production shape.
+
+There is no Dioxus frame-time head-to-head. Do not claim one.
 
 ## Testing
 
@@ -116,9 +145,11 @@ Native binary lookup: `TARDIS_NATIVE_BIN`, `native/target/{release,debug}`,
 ## Gotchas
 
 - Native window is 1x scale; no HiDPI.
-- Text is not clipped to its box; native images are placeholders.
-- No scroll painting, keyboard, focus, IME, or clipboard.
+- `overflow: hidden` is rectangular clipping; no ellipsis.
+- Native images are PNG only; scroll is VirtualList windowing, not a scroll node.
+- Keyboard/focus exists; no text input, IME, or clipboard.
 - No web SSR/hydration.
+- No Dioxus frame-time benchmark.
 - Sending a native bundle through a headless-only build? Keep the window build
   in `native/target/debug`; tests use `native/target/headless`.
 - The npm tarball ships Rust sources; platform binaries are still TODO.

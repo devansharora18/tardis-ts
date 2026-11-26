@@ -202,6 +202,77 @@ scene node, use a container tag instead; text tags ignore non-primitive values.
 - Unknown intrinsic tags throw at compile time.
 - TypeScript syntax errors fail the build; the compiler does not emit garbage.
 
+## Large lists
+
+Use `VirtualList` for long data sets. Only the visible window plus overscan is
+mounted in the scene.
+
+```tsx
+import { VirtualList } from '@devansharora18/tardisjs/scene'
+
+<VirtualList
+  items={() => rows}
+  rowHeight={40}
+  height={600}
+  renderRow={(row, index) => (
+    <div style={{ height: 40, paddingLeft: 12 }}>
+      <span>{row}</span>
+    </div>
+  )}
+/>
+```
+
+`items`, `rowHeight`, and `height` may be values or getters. For a controlled
+list, pass `scrollTop={() => offset()}` and `onScroll={(next) => setOffset(next)}`.
+Wheel events over the list move the window; native and web both dispatch them.
+
+## Routing
+
+```tsx
+import { createRouter, Router, Link } from '@devansharora18/tardisjs/scene'
+
+const router = createRouter({ initial: '/', history: true })
+
+<Router
+  router={router}
+  routes={{
+    '/': () => <Home />,
+    '/user/:id': (params) => <User id={params.id} />,
+  }}
+  fallback={() => <NotFound />}
+/>
+```
+
+`history: true` uses `window.history` and `popstate`; without it the router uses
+an in-memory stack. `router.navigate('/user/42')`, `back()`, and `forward()` work
+on both hosts. `<Link router={router} to="/about">About</Link>` navigates on
+click. `matchPath('/user/:id', '/user/42')` returns `{ id: '42' }`.
+
+## Keyboard and focus
+
+Any node can take `onKeyDown` / `onKeyUp`. Pointer down focuses the deepest node;
+events bubble to the nearest handler. Enter and Space activate the nearest
+`onClick`/`onPress` ancestor. `focusNode(id)` sets focus from code.
+
+```tsx
+<div onKeyDown={(event) => {
+  if (event.key === 'ArrowDown') setIndex(index() + 1)
+}}>
+```
+
+Web listens on `window`; native listens for winit keyboard input. Text input,
+IME, and clipboard are not implemented.
+
+## Images
+
+```tsx
+<img src="./assets/logo.png" style={{ width: 120, height: 40 }} />
+```
+
+Native loads PNGs from the path (relative to the process working directory) and
+caches the raster. Web uses the browser's `<img>`. Give images explicit width and
+height; intrinsic sizing is not implemented.
+
 ## Testing
 
 The scene runtime is pure JavaScript. Set a fake host and assert patches:
@@ -234,11 +305,13 @@ npx vitest run test/web test/compiler/web-bundle.test.ts
 ## Known boundaries
 
 - Dynamic arrays are rebuilt, not keyed-diffed.
-- Text is not clipped to its box; `overflow` affects layout only.
-- Images are placeholders on native; the web host sets `<img src>`.
-- Scroll offsets exist in the protocol but are not painted.
-- No keyboard/focus/IME/clipboard.
+- `overflow: hidden` clips rectangularly; no ellipsis.
+- Native images are PNG only and need explicit dimensions.
+- Scroll offsets exist in the protocol but are not painted; `VirtualList`
+  implements its own windowing with wheel input.
+- Keyboard/focus exists; text input, IME, and clipboard do not.
 - Native window scaling is 1x.
 - Web has no SSR/hydration; it is client-rendered.
 - Web layout is CSS; native layout is taffy. Pixel parity is not guaranteed.
 - Mobile is not started.
+- No Dioxus head-to-head frame benchmark exists.

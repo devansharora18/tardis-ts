@@ -90,6 +90,37 @@ app.tsx ─ compiler ─ bundle
   taffy, and the browser text engine replaces cosmic-text.
 - The patch protocol is identical; only the host differs.
 
+## Production surface
+
+- **Virtualized lists** — `VirtualList` mounts only the visible window plus
+  overscan. A 10,000-row app holds ~40 scene nodes, not 20,000.
+- **Router** — `createRouter`, `Router`, `Link`, and `matchPath` work natively
+  (memory history) and in the browser (`history` + `popstate`).
+- **Keyboard and focus** — pointer down focuses a node; `onKeyDown`/`onKeyUp`
+  bubble; Enter/Space activates the nearest clickable ancestor; `focusNode(id)`
+  sets focus explicitly.
+- **Wheel scrolling** — native winit and DOM wheel events reach `onWheel`.
+- **Images** — native decodes PNGs with a cached raster; web uses `<img>`.
+- **Clipping** — `overflow: hidden` clips children in the native renderer, so
+  virtual lists and nested content do not bleed.
+
+## Measured performance
+
+Release build, AMD Ryzen AI 7 350, core harness (patch + layout + paint):
+
+| Workload | Before | Now |
+|---|---:|---:|
+| 1k rows, one text update | 50.1 ms | 1.97 ms |
+| 10k rows fully mounted, update | 594.6 ms | 23.0 ms |
+| 10k rows, virtualized window update | — | 0.55 ms |
+| 10k rows, paint | 150.0 ms | 1.87 ms |
+
+A fully mounted 10k-node scene is a stress case and still misses 60 fps on a
+single update. The virtualized path is the production shape and passes with
+headroom. There is no Dioxus frame-time head-to-head yet; `bench/dioxus-desktop`
+exists for a startup/size baseline, and the web arm is blocked without a wasm
+toolchain. See [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+
 ## Commands
 
 | Command | What it does |
@@ -112,10 +143,12 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Styles are objects, not CSS. Web maps them to CSS; native maps them to taffy.
 - Web layout is DOM/CSS, native is taffy; font metrics and line breaks can differ.
 - Dynamic arrays rebuild; keyed reuse is not implemented.
-- No keyboard, focus, IME, clipboard, scrolling, images, or text clipping yet.
+- No text input, IME, or clipboard yet. Keyboard events and focus are basic.
+- Native text clipping is rectangle clipping; no ellipsis.
 - Native HiDPI is not handled (1x).
 - No web SSR/hydration yet.
 - Mobile is not started.
+- Dioxus frame timing has not been measured on the same workloads.
 
 ## Docs
 

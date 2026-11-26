@@ -98,3 +98,15 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 8. **Dioxus** — desktop startup/binary baseline where measurable; web blocked by
    missing wasm toolchain, log host commands. No claim without both sides.
 9. **Tests/docs** — regression tests, benchmark report, README, TODO.
+
+## M5 result (2026-11-27)
+
+- Zero-clone style/text patches, persistent taffy tree, paint culling/clipping,
+  direct glyph blending, and a virtual list are in.
+- 1k update: 50.1 ms → 1.97 ms. 10k fully mounted update: 594.6 ms → 23.0 ms.
+  10k paint: 150.0 ms → 1.87 ms. Virtualized 10k window: 0.55 ms update, 3.1 ms
+  mount.
+- Gate status: virtualized 10k passes the 16.6 ms frame budget; a fully mounted
+  10k-node scene still takes 23 ms for one update and remains a stress case.
+- Dioxus: desktop startup/binary baseline scaffolded; no frame-time head-to-head
+  yet. Web arm blocked without wasm-bindgen/dx. No "better than Dioxus" claim.

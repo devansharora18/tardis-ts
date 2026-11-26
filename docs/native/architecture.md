@@ -27,7 +27,11 @@ There is no second grammar.
 - **Scene tree** — retained nodes with integer ids and typed style records.
 - **Dynamic regions** — fragments whose children are reconciled in an effect;
   each evaluation gets a fresh owner.
-- **Events** — pointer down/up, nearest clickable ancestor.
+- **Events** — pointer down/up, wheel, keyboard; focus by pointer or
+  `focusNode`; nearest clickable/key ancestor.
+- **VirtualList** — visible-window windowing with wheel scrolling; ~40 nodes for
+  10,000 rows.
+- **Router** — path signal, `:param` matching, memory or browser history.
 - **Patches** — JSON ops flushed once per microtask and after events.
 
 ### 4. Bridge
@@ -60,7 +64,8 @@ in QuickJS there is no `document`, so it is a no-op.
 - `taffy` — flexbox layout; fragments are flattened into the nearest parent.
 - `cosmic-text` — shaping, wrapping, and measurement with bundled Liberation
   Sans regular/bold.
-- `tiny-skia` — rounded rectangles, glyph masks, PNG output.
+- `tiny-skia` — rounded rectangles, direct glyph-mask blending, PNG images and
+  output. Paint culls offscreen subtrees and clips `overflow: hidden` views.
 - Patches apply atomically to a clone; invalid ops leave the scene untouched.
 - Hit testing walks the laid-out tree in reverse paint order.
 
