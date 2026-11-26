@@ -1,4 +1,6 @@
 export { jsx, dynamic, Fragment } from './jsx'
+export { VirtualList } from './virtual'
+export type { VirtualListProps } from './virtual'
 export { render, dispatchEvent } from './render'
 export { flushNow } from './tree'
 export {

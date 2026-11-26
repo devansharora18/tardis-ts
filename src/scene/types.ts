@@ -11,6 +11,8 @@ export interface SceneEvent {
   button?: number
   key?: string
   value?: string
+  dx?: number
+  dy?: number
   [key: string]: unknown
 }
 

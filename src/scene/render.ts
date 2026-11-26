@@ -62,6 +62,20 @@ export function dispatchEvent(event: SceneEvent): void {
     }
     return
   }
+  if (event.type === 'wheel') {
+    let node: SceneNode | null =
+      typeof event.node === 'number' ? getNode(event.node) ?? null : null
+    while (node) {
+      const handler = node.handlers['onWheel']
+      if (handler) {
+        handler(event)
+        break
+      }
+      node = node.parent
+    }
+    flushNow()
+    return
+  }
   // Keyboard and text input arrive with the focus subsystem.
   flushNow()
 }

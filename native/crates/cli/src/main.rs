@@ -15,6 +15,7 @@ struct Args {
     out: Option<PathBuf>,
     dump: Option<PathBuf>,
     click: Option<(f32, f32)>,
+    wheel: Option<(f32, f32, f32)>,
 }
 
 fn main() -> ExitCode {
@@ -46,6 +47,16 @@ fn run() -> Result<(), String> {
             let up = format!(r#"{{"type":"pointer","phase":"up","x":{x},"y":{y},"node":{node}}}"#);
             host.dispatch(&down)?;
             host.dispatch(&up)?;
+        }
+        if let Some((x, y, dy)) = args.wheel {
+            let node = host
+                .engine()
+                .borrow()
+                .hit_test(x, y)
+                .map(|id| id.to_string())
+                .unwrap_or_else(|| "null".to_string());
+            let event = format!(r#"{{"type":"wheel","dy":{dy},"node":{node}}}"#);
+            host.dispatch(&event)?;
         }
         let engine = host.engine();
         let mut engine = engine.borrow_mut();
@@ -89,6 +100,7 @@ fn parse_args() -> Result<Args, String> {
         out: None,
         dump: None,
         click: None,
+        wheel: None,
     };
     let mut iter = env::args().skip(1);
     while let Some(arg) = iter.next() {
@@ -138,6 +150,28 @@ fn parse_args() -> Result<Args, String> {
                         .map_err(|_| "--click y must be a number".to_string())?,
                 ));
             }
+            "--wheel" => {
+                let value = iter
+                    .next()
+                    .ok_or_else(|| "--wheel needs x,y,dy".to_string())?;
+                let mut parts = value.split(',');
+                let x = parts
+                    .next()
+                    .ok_or_else(|| "--wheel needs x,y,dy".to_string())?
+                    .parse()
+                    .map_err(|_| "--wheel x must be a number".to_string())?;
+                let y = parts
+                    .next()
+                    .ok_or_else(|| "--wheel needs x,y,dy".to_string())?
+                    .parse()
+                    .map_err(|_| "--wheel y must be a number".to_string())?;
+                let dy = parts
+                    .next()
+                    .ok_or_else(|| "--wheel needs x,y,dy".to_string())?
+                    .parse()
+                    .map_err(|_| "--wheel dy must be a number".to_string())?;
+                args.wheel = Some((x, y, dy));
+            }
             "--help" | "-h" => {
                 print_help();
                 std::process::exit(0);
@@ -159,6 +193,7 @@ fn print_help() {
          --out <path>      PNG output in headless mode (default: frame.png)\n\
          --dump <path>     write the laid-out scene as JSON\n\
          --click <x,y>      dispatch a pointer click before rendering\n\
+         --wheel <x,y,dy>   dispatch a wheel event before rendering\n\
          -h, --help        show this help"
     );
 }
@@ -172,7 +207,7 @@ mod window {
         DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
     };
     use tardis_js::JsHost;
-    use winit::event::{ElementState, Event, MouseButton, WindowEvent};
+    use winit::event::{ElementState, Event, MouseButton, MouseScrollDelta, WindowEvent};
     use winit::event_loop::{ControlFlow, EventLoop};
     use winit::window::WindowBuilder;
 
@@ -224,6 +259,25 @@ mod window {
                         }
                         WindowEvent::CursorMoved { position, .. } => {
                             cursor = (position.x as f32, position.y as f32);
+                        }
+                        WindowEvent::MouseWheel { delta, .. } => {
+                            let dy = match delta {
+                                MouseScrollDelta::LineDelta(_, y) => -y * 48.0,
+                                MouseScrollDelta::PixelDelta(position) => -(position.y as f32),
+                            };
+                            let node = {
+                                let engine = host.engine();
+                                let hit = engine.borrow().hit_test(cursor.0, cursor.1);
+                                hit.map(|id| id.to_string())
+                                    .unwrap_or_else(|| "null".to_string())
+                            };
+                            let event_json = format!(
+                                r#"{{"type":"wheel","dy":{dy},"node":{node}}}"#
+                            );
+                            if let Err(err) = host.dispatch(&event_json) {
+                                eprintln!("tardis: {err}");
+                            }
+                            dirty = true;
                         }
                         WindowEvent::MouseInput { state, button, .. } => {
                             if button != MouseButton::Left {

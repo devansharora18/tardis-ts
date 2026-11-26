@@ -161,6 +161,22 @@ export class WebHost {
       this.container.addEventListener(type, fn)
       this.listeners.push({ target: this.container, type, fn })
     }
+
+    const wheel = (event: Event): void => {
+      const wheelEvent = event as WheelEvent
+      const target = event.target as Element | null
+      const element = target?.closest?.('[data-tardis]') as HTMLElement | null
+      const node = element ? Number(element.getAttribute('data-tardis')) : undefined
+      dispatchEvent({
+        type: 'wheel',
+        node,
+        dx: wheelEvent.deltaX,
+        dy: wheelEvent.deltaY,
+      })
+      wheelEvent.preventDefault()
+    }
+    this.container.addEventListener('wheel', wheel, { passive: false })
+    this.listeners.push({ target: this.container, type: 'wheel', fn: wheel })
   }
 
   flush(json: string): void {
