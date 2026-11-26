@@ -83,9 +83,13 @@ export function runWithOwner<T>(owner: Owner | null, fn: () => T): T {
   }
 }
 
+export function createOwner(): Owner {
+  return { cleanups: [], disposed: false }
+}
+
 export function createRoot<T>(fn: (dispose: RootDispose) => T): T {
   const parent = getOwner()
-  const owner: Owner = { cleanups: [], disposed: false }
+  const owner = createOwner()
   const dispose = (): void => disposeOwner(owner)
   if (parent && !parent.disposed) parent.cleanups.push(dispose)
   ownerStack.push(owner)
@@ -106,7 +110,7 @@ export function onCleanup(fn: () => void): void {
   owner.cleanups.push(fn)
 }
 
-function disposeOwner(owner: Owner): void {
+export function disposeOwner(owner: Owner): void {
   if (owner.disposed) return
   owner.disposed = true
   const list = owner.cleanups.splice(0).reverse()
