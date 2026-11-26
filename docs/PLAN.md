@@ -112,3 +112,21 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   625 ms / 8.7 MB (first paint, Xvfb, release). This is a startup/size win only;
   no frame-time head-to-head, and the web arm is blocked without
   wasm-bindgen/dx. No blanket "better than Dioxus" claim.
+
+## Production input/a11y slice (2026-11-27)
+
+1. **Semantic tags** — add `tag` to create ops; web maps intrinsic tags to
+   `<button>`, `<h1>`, `<p>`, `<ul>`, `<li>`, `<label>`, `<strong>`, `<em>`,
+   `<img>` (native ignores it). Tests assert real elements.
+2. **A11y props** — `role`, `tabIndex`, and `aria-*` become an `a11y` patch op;
+   web sets attributes; native stores them for a future accesskit tree. Reactive
+   getters supported. Tests.
+3. **Focus/blur** — pointer down fires `onPointerDown`, `onFocus`, and the
+   previous node's `onBlur`; pointer up fires `onPointerUp` and the click.
+4. **TextField** — controlled/uncontrolled single-line input with caret,
+   arrows/Home/End/Backspace/Delete, printable keys, Enter ignored, and
+   Ctrl/Cmd+C/X/V. `role="textbox"`, `aria-label`, `tabIndex=0`.
+5. **Clipboard** — in-memory + `navigator.clipboard` on web; native host
+   functions using `arboard` when a display is available.
+6. **Example + docs + tests** — `examples/forms`, jsdom tests, native e2e still
+   green. IME, selection, multiline, accesskit: TODO.
