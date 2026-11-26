@@ -112,17 +112,18 @@ export class WebHost {
         button: pointer.button ?? 0,
       })
     }
-    this.container.addEventListener('pointermove', move)
-    this.listeners.push({ target: this.container, type: 'pointermove', fn: move })
-
-    for (const [type, phase] of [
-      ['pointerdown', 'down'],
-      ['pointerup', 'up'],
-    ] as const) {
-      const fn = handler(phase)
-      this.container.addEventListener(type, fn)
-      this.listeners.push({ target: this.container, type, fn })
-    }
+    window.addEventListener('pointermove', move)
+    this.listeners.push({ target: window, type: 'pointermove', fn: move })
+    const up = handler('up')
+    window.addEventListener('pointerup', up)
+    this.listeners.push({ target: window, type: 'pointerup', fn: up })
+    const down = handler('down')
+    this.container.addEventListener('pointerdown', down)
+    this.listeners.push({
+      target: this.container,
+      type: 'pointerdown',
+      fn: down,
+    })
 
     const wheel = (event: Event): void => {
       const wheelEvent = event as WheelEvent

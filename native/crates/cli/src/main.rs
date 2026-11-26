@@ -224,7 +224,9 @@ mod window {
         DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
     };
     use tardis_js::JsHost;
-    use winit::event::{ElementState, Event, Ime, MouseButton, MouseScrollDelta, WindowEvent};
+    use winit::event::{
+        ElementState, Event, Ime, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent,
+    };
     use winit::event_loop::{ControlFlow, EventLoopBuilder};
     use winit::keyboard::{Key, NamedKey};
     use winit::window::WindowBuilder;
@@ -490,6 +492,33 @@ mod window {
                             if let Err(err) = host.dispatch(&event_json) {
                                 eprintln!("tardis: {err}");
                             }
+                            dirty = true;
+                        }
+                        WindowEvent::Touch(touch) => {
+                            let (phase, pressed) = match touch.phase {
+                                TouchPhase::Started => ("down", true),
+                                TouchPhase::Moved => ("move", true),
+                                TouchPhase::Ended | TouchPhase::Cancelled => ("up", false),
+                            };
+                            cursor = (
+                                (touch.location.x / scale) as f32,
+                                (touch.location.y / scale) as f32,
+                            );
+                            mouse_down = pressed;
+                            let node = {
+                                let engine = host.engine();
+                                let hit = engine.borrow().hit_test(cursor.0, cursor.1);
+                                hit.map(|id| id.to_string())
+                                    .unwrap_or_else(|| "null".to_string())
+                            };
+                            let event_json = format!(
+                                r#"{{"type":"pointer","phase":"{phase}","x":{},"y":{},"node":{node}}}"#,
+                                cursor.0, cursor.1
+                            );
+                            if let Err(err) = host.dispatch(&event_json) {
+                                eprintln!("tardis: {err}");
+                            }
+                            update_accessibility(&mut adapter, &host, &mut classes);
                             dirty = true;
                         }
                         WindowEvent::MouseInput { state, button, .. } => {
