@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/core", "crates/js", "crates/cli"]
+members = ["crates/core", "crates/js", "crates/cli", "crates/bench"]
 resolver = "2"
 
 [profile.release]

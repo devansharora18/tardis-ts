@@ -1,0 +1,11 @@
+[package]
+name = "tardis-bench"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Core performance harness for TardisJS"
+
+[dependencies]
+tardis-core = { path = "../core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
