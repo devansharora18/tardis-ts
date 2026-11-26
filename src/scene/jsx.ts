@@ -151,7 +151,13 @@ export function jsx(
     return node
   }
   if (typeof type === 'function') {
-    const result = type({ ...clean, children })
+    const passed =
+      children.length > 0
+        ? children
+        : Array.isArray(clean['children'])
+          ? (clean['children'] as unknown[])
+          : []
+    const result = type({ ...clean, children: passed })
     const node = normalizeResult(result)
     if (key !== null) node.key = key
     return node

@@ -67,6 +67,18 @@ describe('ScrollView', () => {
     expect(inner.style.top).toBe('-300px')
   })
 
+  it('mounts children passed through the props object', () => {
+    handle = render(() =>
+      jsx(ScrollView, {
+        height: 100,
+        contentHeight: 200,
+        children: [jsx('p', {}, 'inside scroll')],
+      })
+    )
+    flushNow()
+    expect(app().textContent).toContain('inside scroll')
+  })
+
   it('supports controlled scroll offsets', () => {
     const [offset, setOffset] = createSignal(0)
     handle = render(() =>
