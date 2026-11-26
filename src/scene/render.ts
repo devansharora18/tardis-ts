@@ -152,8 +152,13 @@ export function dispatchEvent(event: SceneEvent): void {
       return
     }
     if (phase === 'down' && (event.key === 'Enter' || event.key === ' ')) {
-      const entry = focused !== null ? clickableAncestor(focused) : null
-      entry?.handler(event)
+      const keyHandled =
+        focused !== null &&
+        getNode(focused)?.handlers['onKeyDown'] !== undefined
+      if (!keyHandled) {
+        const entry = focused !== null ? clickableAncestor(focused) : null
+        entry?.handler(event)
+      }
     }
     let node: SceneNode | null =
       focused !== null ? getNode(focused) ?? null : null
