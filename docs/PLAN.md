@@ -297,5 +297,5 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   229 MB; feature table in `docs/EDITORS.md`.
 - Dioxus 100k virtualized scroll: Tardis 60.2 fps (p95 17.5 ms) vs Dioxus
   60.3 fps (p95 17.0 ms); tie documented in `docs/SHEETS.md`.
-- 152 JS / 21 Rust tests before the final app tests; benchmark harnesses in
+- 156 JS / 21 Rust tests; benchmark harnesses in
   `bench/web-frame/dioxus-sheet` and `bench/sheet-frame`.
