@@ -342,6 +342,7 @@ mod window {
     }
 
     pub fn run(host: JsHost, width: u32, height: u32, backend: &str) -> Result<(), String> {
+        let _ = backend;
         let event_loop = EventLoopBuilder::<UserEvent>::with_user_event()
             .build()
             .map_err(|err| format!("event loop: {err}"))?;
@@ -381,7 +382,7 @@ mod window {
             None
         };
         #[cfg(not(feature = "wgpu"))]
-        let mut presenter: Option<()> = None;
+        let _no_wgpu = ();
 
         let mut cursor = (0.0_f32, 0.0_f32);
         let mut mouse_down = false;
