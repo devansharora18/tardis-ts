@@ -8,3 +8,11 @@ dist/
 coverage/
 native/target/
 bench/dioxus-desktop/target/
+bench/web-frame/dioxus/target/
+bench/web-frame/dioxus/*.js
+bench/web-frame/dioxus/*.wasm
+bench/web-frame/dioxus/*.ts
+bench/web-frame/tardis/app.js
+bench/web-frame/tardis/index.html
+platform-dist/
+forms.png
