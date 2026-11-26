@@ -7,7 +7,8 @@ import { bundleApp } from '../../src/compiler/bundle'
 
 const root = path.resolve(__dirname, '../..')
 const nativeDir = path.join(root, 'native')
-const bin = path.join(nativeDir, 'target', 'debug', 'tardis-native')
+const headlessTarget = path.join(nativeDir, 'target', 'headless')
+const bin = path.join(headlessTarget, 'debug', 'tardis-native')
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'tardis-e2e-'))
 
 interface Dump {
@@ -29,6 +30,7 @@ beforeAll(() => {
   execFileSync('cargo', ['build', '--no-default-features'], {
     cwd: nativeDir,
     stdio: 'pipe',
+    env: { ...process.env, CARGO_TARGET_DIR: headlessTarget },
   })
 })
 
