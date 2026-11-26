@@ -5,7 +5,7 @@
 // content height is explicit because the scene has no layout-measurement
 // feedback channel yet.
 
-import { dynamic, jsx } from './jsx'
+import { jsx } from './jsx'
 import { createSignal } from './signals'
 import type { SceneEvent, SceneNode } from './types'
 
@@ -27,6 +27,9 @@ export interface ScrollViewProps {
 
 export function ScrollView(props: ScrollViewProps): SceneNode {
   const [internal, setInternal] = createSignal(0)
+  const [dragging, setDragging] = createSignal(false)
+  let dragStartY = 0
+  let dragStartScroll = 0
   const height = (): number => Math.max(1, read(props.height, 200))
   const contentHeight = (): number =>
     Math.max(height(), read(props.contentHeight, height()))
@@ -55,6 +58,25 @@ export function ScrollView(props: ScrollViewProps): SceneNode {
     return (scroll() / max) * (height() - barHeight())
   }
 
+  const onThumbDown = (event: SceneEvent): void => {
+    if (maxScroll() <= 0) return
+    setDragging(true)
+    dragStartY = event.y ?? 0
+    dragStartScroll = scroll()
+  }
+
+  const onThumbMove = (event: SceneEvent): void => {
+    if (!dragging()) return
+    const track = height() - barHeight()
+    if (track <= 0) return
+    const delta = (event.y ?? 0) - dragStartY
+    scrollTo(dragStartScroll + (delta * maxScroll()) / track)
+  }
+
+  const onThumbUp = (): void => {
+    setDragging(false)
+  }
+
   return jsx(
     'div',
     {
@@ -77,21 +99,26 @@ export function ScrollView(props: ScrollViewProps): SceneNode {
       },
       ...(props.children ?? [])
     ),
-    dynamic(() => {
-      if (read(props.showScrollbar, true) === false || barHeight() === 0) {
-        return null
-      }
-      return jsx('div', {
-        style: {
-          position: 'absolute',
-          right: 2,
-          top: barTop(),
-          width: 4,
-          height: barHeight(),
-          borderRadius: 2,
-          backgroundColor: '#333333',
-        },
-      })
+    jsx('div', {
+      role: 'scrollbar',
+      'aria-orientation': 'vertical',
+      'aria-valuemin': 0,
+      'aria-valuemax': () => maxScroll(),
+      'aria-valuenow': () => scroll(),
+      onPointerDown: onThumbDown,
+      onPointerMove: onThumbMove,
+      onPointerUp: onThumbUp,
+      style: () => ({
+        display:
+          read(props.showScrollbar, true) && barHeight() > 0 ? 'block' : 'none',
+        position: 'absolute',
+        right: 2,
+        top: barTop(),
+        width: 6,
+        height: barHeight(),
+        borderRadius: 3,
+        backgroundColor: dragging() ? '#666666' : '#333333',
+      }),
     })
   )
 }

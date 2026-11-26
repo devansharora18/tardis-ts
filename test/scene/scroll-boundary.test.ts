@@ -5,6 +5,7 @@ import {
   Boundary,
   createEffect,
   createSignal,
+  dispatchEvent,
   flushNow,
   jsx,
   render,
@@ -146,5 +147,34 @@ describe('Boundary effect errors', () => {
     setBoom(true)
     flushNow()
     expect(app().textContent).toContain('Something went wrong: effect boom')
+  })
+})
+
+describe('ScrollView thumb', () => {
+  it('drags the thumb to scroll proportionally', () => {
+    handle = render(() =>
+      jsx(ScrollView, {
+        height: 100,
+        contentHeight: 400,
+        children: [jsx('div', { style: { height: 400 } }, 'content')],
+      })
+    )
+    flushNow()
+    const scroller = app().querySelector<HTMLElement>(
+      '[data-tardis][style*="overflow: hidden"]'
+    )!
+    const inner = scroller.querySelector<HTMLElement>(
+      '[data-tardis][style*="position: absolute"]'
+    )!
+    const thumb = scroller.querySelector<HTMLElement>('[role="scrollbar"]')!
+    expect(thumb.getAttribute('aria-valuemax')).toBe('300')
+
+    const id = Number(thumb.getAttribute('data-tardis'))
+    dispatchEvent({ type: 'pointer', phase: 'down', node: id, x: 0, y: 20 })
+    dispatchEvent({ type: 'pointer', phase: 'move', node: id, x: 0, y: 70 })
+    dispatchEvent({ type: 'pointer', phase: 'up', node: id, x: 0, y: 70 })
+    flushNow()
+    expect(inner.style.top).toBe('-200px')
+    expect(thumb.getAttribute('aria-valuenow')).toBe('200')
   })
 })

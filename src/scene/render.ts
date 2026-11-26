@@ -121,14 +121,22 @@ export function dispatchEvent(event: SceneEvent): void {
       flushNow()
       return
     }
-    if (event.phase === 'up') {
-      if (target !== null) {
-        nearestHandler(target, 'onPointerUp')?.handler(event)
+    if (event.phase === 'move') {
+      if (pressed !== null) {
+        nearestHandler(pressed, 'onPointerMove')?.handler(event)
       }
+      flushNow()
+      return
+    }
+    if (event.phase === 'up') {
       if (target !== null && pressed !== null) {
         const down = clickableAncestor(pressed)
         const up = clickableAncestor(target)
         if (down && up && down.node.id === up.node.id) up.handler(event)
+      }
+      const upNode = pressed ?? target
+      if (upNode !== null) {
+        nearestHandler(upNode, 'onPointerUp')?.handler(event)
       }
       pressed = null
       flushNow()

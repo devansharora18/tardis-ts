@@ -79,6 +79,24 @@ export class WebHost {
       })
       this.syncIme()
     }
+    const move = (event: Event): void => {
+      const pointer = event as PointerEvent
+      if (pointer.buttons === 0) return
+      const target = event.target as Element | null
+      const element = target?.closest?.('[data-tardis]') as HTMLElement | null
+      const node = element ? Number(element.getAttribute('data-tardis')) : undefined
+      dispatchEvent({
+        type: 'pointer',
+        phase: 'move',
+        node,
+        x: pointer.clientX ?? 0,
+        y: pointer.clientY ?? 0,
+        button: pointer.button ?? 0,
+      })
+    }
+    this.container.addEventListener('pointermove', move)
+    this.listeners.push({ target: this.container, type: 'pointermove', fn: move })
+
     for (const [type, phase] of [
       ['pointerdown', 'down'],
       ['pointerup', 'up'],

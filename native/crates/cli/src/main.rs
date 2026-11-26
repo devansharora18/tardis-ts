@@ -342,6 +342,7 @@ mod window {
             .map_err(|err| format!("softbuffer surface: {err}"))?;
 
         let mut cursor = (0.0_f32, 0.0_f32);
+        let mut mouse_down = false;
         let mut dirty = true;
         let mut modifiers = winit::keyboard::ModifiersState::empty();
         let mut scale = window.scale_factor();
@@ -391,6 +392,23 @@ mod window {
                                 (position.x / scale) as f32,
                                 (position.y / scale) as f32,
                             );
+                            if mouse_down {
+                                let node = {
+                                    let engine = host.engine();
+                                    let hit = engine.borrow().hit_test(cursor.0, cursor.1);
+                                    hit.map(|id| id.to_string())
+                                        .unwrap_or_else(|| "null".to_string())
+                                };
+                                let event_json = format!(
+                                    r#"{{"type":"pointer","phase":"move","x":{},"y":{},"node":{node}}}"#,
+                                    cursor.0, cursor.1
+                                );
+                                if let Err(err) = host.dispatch(&event_json) {
+                                    eprintln!("tardis: {err}");
+                                }
+                                update_accessibility(&mut adapter, &host, &mut classes);
+                                dirty = true;
+                            }
                         }
                         WindowEvent::ModifiersChanged(next) => {
                             modifiers = next.state();
@@ -478,6 +496,7 @@ mod window {
                             if button != MouseButton::Left {
                                 return;
                             }
+                            mouse_down = state == ElementState::Pressed;
                             let phase = if state == ElementState::Pressed {
                                 "down"
                             } else {
