@@ -13,7 +13,7 @@ describe('renderToString', () => {
         jsx('p', { role: 'note', 'aria-label': 'Body' }, 'Line')
       )
     const html = renderToString(App)
-    expect(html).toContain('<div data-tardis="0" style="display: flex;')
+    expect(html).toContain('<div data-tardis-ts="0" style="display: flex;')
     expect(html).toContain('<h1')
     expect(html).toContain('Hello &amp; &lt;')
     expect(html).toContain('padding: 16px')
@@ -29,7 +29,7 @@ describe('renderToString', () => {
     const html = renderToString(App)
     expect(html).toContain('Name: Ada')
     const g = globalThis as unknown as Record<string, unknown>
-    expect(g['__tardis_flush']).toBeUndefined()
+    expect(g['__tardis_ts_flush']).toBeUndefined()
   })
 
   it('escapes document titles', () => {

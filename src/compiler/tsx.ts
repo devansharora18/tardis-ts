@@ -13,7 +13,7 @@
 
 import ts from 'typescript'
 
-const RUNTIME_MODULE = '@devansharora18/tardisjs/scene'
+const RUNTIME_MODULE = '@devansharora18/tardis-ts/scene'
 const JSX = '_tjsx'
 const DYNAMIC = '_tdynamic'
 const FRAGMENT = '_tFragment'

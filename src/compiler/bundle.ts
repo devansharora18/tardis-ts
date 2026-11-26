@@ -33,8 +33,8 @@ export interface BundleResult {
 }
 
 export function resolveRuntimeEntry(): string {
-  if (process.env['TARDIS_SCENE_ENTRY']) {
-    return process.env['TARDIS_SCENE_ENTRY']
+  if (process.env['TARDIS_TS_SCENE_ENTRY']) {
+    return process.env['TARDIS_TS_SCENE_ENTRY']
   }
   const here = path.dirname(fileURLToPath(import.meta.url))
   const candidates = [
@@ -47,13 +47,13 @@ export function resolveRuntimeEntry(): string {
     if (fs.existsSync(candidate)) return candidate
   }
   throw new Error(
-    'tardis: scene runtime not found. Build the package or set TARDIS_SCENE_ENTRY.'
+    'tardis-ts: scene runtime not found. Build the package or set TARDIS_TS_SCENE_ENTRY.'
   )
 }
 
 export function resolveWebEntry(): string {
-  if (process.env['TARDIS_WEB_ENTRY']) {
-    return process.env['TARDIS_WEB_ENTRY']
+  if (process.env['TARDIS_TS_WEB_ENTRY']) {
+    return process.env['TARDIS_TS_WEB_ENTRY']
   }
   const here = path.dirname(fileURLToPath(import.meta.url))
   const candidates = [
@@ -66,7 +66,7 @@ export function resolveWebEntry(): string {
     if (fs.existsSync(candidate)) return candidate
   }
   throw new Error(
-    'tardis: web host not found. Build the package or set TARDIS_WEB_ENTRY.'
+    'tardis-ts: web host not found. Build the package or set TARDIS_TS_WEB_ENTRY.'
   )
 }
 
@@ -98,7 +98,7 @@ export function tsxPlugin(): Plugin {
 export async function bundleApp(options: BundleOptions): Promise<BundleResult> {
   const entry = path.resolve(options.entry)
   if (!fs.existsSync(entry)) {
-    throw new Error(`tardis: entry not found: ${entry}`)
+    throw new Error(`tardis-ts: entry not found: ${entry}`)
   }
   const outfile = path.resolve(options.outfile)
   fs.mkdirSync(path.dirname(outfile), { recursive: true })
@@ -116,10 +116,10 @@ export async function bundleApp(options: BundleOptions): Promise<BundleResult> {
     minify: options.minify ?? false,
     sourcemap: options.sourcemap ?? false,
     alias: {
-      'tardisjs/scene': sceneRuntime,
-      '@devansharora18/tardisjs/scene': sceneRuntime,
-      'tardisjs/web': webRuntime,
-      '@devansharora18/tardisjs/web': webRuntime,
+      'tardis-ts/scene': sceneRuntime,
+      '@devansharora18/tardis-ts/scene': sceneRuntime,
+      'tardis-ts/web': webRuntime,
+      '@devansharora18/tardis-ts/web': webRuntime,
     },
     plugins: [tsxPlugin()],
     logLevel: 'silent',
@@ -140,7 +140,7 @@ export async function bundleApp(options: BundleOptions): Promise<BundleResult> {
 
 async function writeShell(
   outfile: string,
-  title = 'Tardis app',
+  title = 'Tardis TS app',
   css?: string
 ): Promise<string> {
   const dir = path.dirname(outfile)

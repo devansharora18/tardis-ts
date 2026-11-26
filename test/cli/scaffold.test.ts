@@ -35,7 +35,7 @@ describe('scaffolder', () => {
     const pkg = JSON.parse(
       fs.readFileSync(path.join(dir, 'sheet-app', 'package.json'), 'utf8')
     )
-    expect(pkg.scripts['dev']).toContain('tardis dev --target web')
+    expect(pkg.scripts['dev']).toContain('tardis-ts dev --target web')
     expect(pkg.scripts['build:web']).toContain('--css')
     expect(pkg.devDependencies.tailwindcss).toBeTruthy()
     expect(pkg.scripts['screenshot']).toBeUndefined()
@@ -59,8 +59,8 @@ describe('scaffolder', () => {
     const pkg = JSON.parse(
       fs.readFileSync(path.join(dir, 'native-app', 'package.json'), 'utf8')
     )
-    expect(pkg.scripts['dev']).toBe('tardis dev')
-    expect(pkg.scripts['screenshot']).toBe('tardis screenshot')
+    expect(pkg.scripts['dev']).toBe('tardis-ts dev')
+    expect(pkg.scripts['screenshot']).toBe('tardis-ts screenshot')
     expect(pkg.scripts['dev:web']).toBeUndefined()
     expect(pkg.devDependencies).toBeUndefined()
     expect(resultTailwindFile(dir)).toBe(false)

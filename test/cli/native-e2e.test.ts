@@ -11,7 +11,7 @@ const headlessTarget = path.join(nativeDir, 'target', 'headless')
 const bin = path.join(
   headlessTarget,
   'debug',
-  process.platform === 'win32' ? 'tardis-native.exe' : 'tardis-native'
+  process.platform === 'win32' ? 'tardis-ts-native.exe' : 'tardis-ts-native'
 )
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'tardis-e2e-'))
 

@@ -49,7 +49,7 @@ function schedule(): void {
 
 function hostFlush(): ((json: string) => void) | null {
   const g = globalThis as unknown as Record<string, unknown>
-  const fn = g['__tardis_flush']
+  const fn = g['__tardis_ts_flush']
   return typeof fn === 'function' ? (fn as (json: string) => void) : null
 }
 
@@ -67,7 +67,7 @@ export function flushNow(): void {
   if (ops.length === 0) return
   const g = globalThis as unknown as Record<string, unknown>
   const flush = hostFlush()
-  const fast = g['__tardis_flush_patch']
+  const fast = g['__tardis_ts_flush_patch']
   if (!flush && typeof fast !== 'function') return
   const payload: Patch = { v: 0, frame: ++frame, ops }
   ops = []
@@ -75,7 +75,7 @@ export function flushNow(): void {
     try {
       listener(payload)
     } catch (err) {
-      console.error('tardis: patch listener failed', err)
+      console.error('tardis-ts: patch listener failed', err)
     }
   }
   if (typeof fast === 'function') {

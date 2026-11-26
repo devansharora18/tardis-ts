@@ -65,21 +65,21 @@ describe('Dialog', () => {
     const trigger = buttons[0]!
     const ok = buttons[1]!
     const cancel = buttons[2]!
-    focusNode(Number(trigger.getAttribute('data-tardis')))
+    focusNode(Number(trigger.getAttribute('data-tardis-ts')))
 
     setOpen(true)
     await settle()
-    expect(getFocusedNode()).toBe(Number(ok.getAttribute('data-tardis')))
+    expect(getFocusedNode()).toBe(Number(ok.getAttribute('data-tardis-ts')))
 
     key('Tab')
-    expect(getFocusedNode()).toBe(Number(cancel.getAttribute('data-tardis')))
+    expect(getFocusedNode()).toBe(Number(cancel.getAttribute('data-tardis-ts')))
     key('Tab')
-    expect(getFocusedNode()).toBe(Number(ok.getAttribute('data-tardis')))
+    expect(getFocusedNode()).toBe(Number(ok.getAttribute('data-tardis-ts')))
     key('Escape')
     expect(onClose).toHaveBeenCalledTimes(1)
     await settle()
     expect(open()).toBe(false)
-    expect(getFocusedNode()).toBe(Number(trigger.getAttribute('data-tardis')))
+    expect(getFocusedNode()).toBe(Number(trigger.getAttribute('data-tardis-ts')))
   })
 
   it('renders modal semantics and hides when closed', async () => {

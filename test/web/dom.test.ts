@@ -34,7 +34,7 @@ function mount(factory: () => unknown): HTMLElement {
 }
 
 function byText(root: ParentNode, text: string): HTMLElement {
-  const found = Array.from(root.querySelectorAll<HTMLElement>('[data-tardis]')).find(
+  const found = Array.from(root.querySelectorAll<HTMLElement>('[data-tardis-ts]')).find(
     (element) => element.textContent === text && element.children.length === 0
   )
   if (!found) throw new Error(`no element with text ${text}`)
@@ -98,7 +98,7 @@ describe('web host', () => {
         },
       })
     )
-    const box = app.querySelector<HTMLElement>('[data-tardis]:not([data-tardis="0"])')!
+    const box = app.querySelector<HTMLElement>('[data-tardis-ts]:not([data-tardis-ts="0"])')!
     expect(box.style.borderWidth).toBe('2px')
     expect(box.style.borderColor).toBe('rgb(255, 0, 0)')
     expect(box.style.borderStyle).toBe('solid')
@@ -145,7 +145,7 @@ describe('web host', () => {
       jsx(Fragment, {}, jsx('div', {}, 'a'), jsx('div', {}, 'b'))
     )
     const fragment = app.querySelector<HTMLElement>(
-      '[data-tardis][style*="display: contents"]'
+      '[data-tardis-ts][style*="display: contents"]'
     )
     expect(fragment).not.toBeNull()
     expect(fragment!.children).toHaveLength(2)

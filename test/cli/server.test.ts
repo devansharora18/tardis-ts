@@ -35,14 +35,14 @@ describe('static server', () => {
 
     const html = await fetch(`${base}/`).then((response) => response.text())
     expect(html).toContain('id="app"')
-    expect(html).toContain('__tardis_version')
+    expect(html).toContain('__tardis_ts_version')
 
-    const first = await fetch(`${base}/__tardis_version`).then((response) =>
+    const first = await fetch(`${base}/__tardis_ts_version`).then((response) =>
       response.text()
     )
     expect(first).toBe('0')
     server.bump()
-    const second = await fetch(`${base}/__tardis_version`).then((response) =>
+    const second = await fetch(`${base}/__tardis_ts_version`).then((response) =>
       response.text()
     )
     expect(second).toBe('1')
@@ -65,6 +65,6 @@ describe('static server', () => {
     const html = await fetch(`http://127.0.0.1:${server.port}/`).then((response) =>
       response.text()
     )
-    expect(html).not.toContain('__tardis_version')
+    expect(html).not.toContain('__tardis_ts_version')
   })
 })

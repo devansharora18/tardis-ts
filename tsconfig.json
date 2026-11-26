@@ -15,16 +15,16 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "paths": {
-      "tardisjs/scene": ["./src/scene/index.ts"],
-      "@devansharora18/tardisjs/scene": ["./src/scene/index.ts"],
-      "@devansharora18/tardisjs/web": ["./src/web/index.ts"],
-      "@devansharora18/tardisjs/ssr": ["./src/ssr/index.ts"],
-      "tardisjs/compiler": ["./src/compiler/index.ts"],
-      "tardisjs/web": ["./src/web/index.ts"],
-      "tardisjs/ssr": ["./src/ssr/index.ts"],
-      "@devansharora18/tardisjs/compiler": ["./src/compiler/index.ts"]
+      "tardis-ts/scene": ["./src/scene/index.ts"],
+      "@devansharora18/tardis-ts/scene": ["./src/scene/index.ts"],
+      "@devansharora18/tardis-ts/web": ["./src/web/index.ts"],
+      "@devansharora18/tardis-ts/ssr": ["./src/ssr/index.ts"],
+      "tardis-ts/compiler": ["./src/compiler/index.ts"],
+      "tardis-ts/web": ["./src/web/index.ts"],
+      "tardis-ts/ssr": ["./src/ssr/index.ts"],
+      "@devansharora18/tardis-ts/compiler": ["./src/compiler/index.ts"]
     }
   },
   "include": ["src/**/*", "bin/**/*"],
-  "exclude": ["node_modules", "dist", "test", "vscode-extension", "native", "examples", "tardisjs-site"]
+  "exclude": ["node_modules", "dist", "test", "vscode-extension", "native", "examples", "tardis-ts-site"]
 }

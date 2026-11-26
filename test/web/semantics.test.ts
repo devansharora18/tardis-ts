@@ -36,7 +36,7 @@ function app(): HTMLElement {
 }
 
 function leaf(text: string): HTMLElement {
-  const found = Array.from(app().querySelectorAll<HTMLElement>('[data-tardis]'))
+  const found = Array.from(app().querySelectorAll<HTMLElement>('[data-tardis-ts]'))
     .filter((element) => element.children.length === 0)
     .find((element) => element.textContent === text)
   if (!found) throw new Error(`no element ${text}`)
@@ -134,7 +134,7 @@ describe('TextField', () => {
     expect(field.getAttribute('aria-label')).toBe('Name')
     expect(app().textContent).toContain('Type here')
 
-    focusNode(Number(field.getAttribute('data-tardis')))
+    focusNode(Number(field.getAttribute('data-tardis-ts')))
     key('H')
     key('i')
     expect(value()).toBe('Hi')
@@ -156,7 +156,7 @@ describe('TextField', () => {
       jsx(TextField, { value: () => value(), onChange: setValue })
     )
     const field = app().querySelector<HTMLElement>('[role="textbox"]')!
-    focusNode(Number(field.getAttribute('data-tardis')))
+    focusNode(Number(field.getAttribute('data-tardis-ts')))
 
     key('a', { ctrlKey: true })
     key('c', { ctrlKey: true })
@@ -169,7 +169,7 @@ describe('TextField', () => {
   it('supports an uncontrolled value', () => {
     handle = render(() => jsx(TextField, { placeholder: 'Free' }))
     const field = app().querySelector<HTMLElement>('[role="textbox"]')!
-    focusNode(Number(field.getAttribute('data-tardis')))
+    focusNode(Number(field.getAttribute('data-tardis-ts')))
     key('a')
     expect(app().textContent).toContain('a')
   })

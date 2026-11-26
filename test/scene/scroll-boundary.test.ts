@@ -47,10 +47,10 @@ describe('ScrollView', () => {
     )
     flushNow()
     const scroller = app().querySelector<HTMLElement>(
-      '[data-tardis][style*="overflow: hidden"]'
+      '[data-tardis-ts][style*="overflow: hidden"]'
     )!
     const inner = scroller.querySelector<HTMLElement>(
-      '[data-tardis][style*="position: absolute"]'
+      '[data-tardis-ts][style*="position: absolute"]'
     )!
     expect(inner.style.top).toBe('0px')
 
@@ -92,7 +92,7 @@ describe('ScrollView', () => {
     )
     flushNow()
     const scroller = app().querySelector<HTMLElement>(
-      '[data-tardis][style*="overflow: hidden"]'
+      '[data-tardis-ts][style*="overflow: hidden"]'
     )!
     scroller.dispatchEvent(
       new window.WheelEvent('wheel', { bubbles: true, deltaY: 100 })
@@ -173,15 +173,15 @@ describe('ScrollView thumb', () => {
     )
     flushNow()
     const scroller = app().querySelector<HTMLElement>(
-      '[data-tardis][style*="overflow: hidden"]'
+      '[data-tardis-ts][style*="overflow: hidden"]'
     )!
     const inner = scroller.querySelector<HTMLElement>(
-      '[data-tardis][style*="position: absolute"]'
+      '[data-tardis-ts][style*="position: absolute"]'
     )!
     const thumb = scroller.querySelector<HTMLElement>('[role="scrollbar"]')!
     expect(thumb.getAttribute('aria-valuemax')).toBe('300')
 
-    const id = Number(thumb.getAttribute('data-tardis'))
+    const id = Number(thumb.getAttribute('data-tardis-ts'))
     dispatchEvent({ type: 'pointer', phase: 'down', node: id, x: 0, y: 20 })
     dispatchEvent({ type: 'pointer', phase: 'move', node: id, x: 0, y: 70 })
     dispatchEvent({ type: 'pointer', phase: 'up', node: id, x: 0, y: 70 })

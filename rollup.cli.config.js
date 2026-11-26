@@ -4,9 +4,9 @@ const external = [/^node:/, 'commander', 'chokidar', 'esbuild', 'typescript']
 
 export default [
   {
-    input: 'bin/tardis.ts',
+    input: 'bin/tardis-ts.ts',
     output: {
-      file: 'dist/bin/tardis.js',
+      file: 'dist/bin/tardis-ts.js',
       format: 'esm',
       sourcemap: true,
     },

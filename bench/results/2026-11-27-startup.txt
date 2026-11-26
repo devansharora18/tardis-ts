@@ -8,7 +8,7 @@ a frame-time benchmark.
 
 Tardis native, counter app, 800x600:
   459 ms, 451 ms, 439 ms -> median 451 ms
-  binary: 7.3 MB (native/target/release/tardis-native)
+  binary: 7.3 MB (native/target/release/tardis-ts-native)
   app bundle: 33 KB (/tmp/counter/app.js)
 
 Dioxus 0.6.3 desktop, counter app, default window:

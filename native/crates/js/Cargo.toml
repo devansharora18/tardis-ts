@@ -1,11 +1,11 @@
 [package]
-name = "tardis-js"
+name = "tardis-ts-js"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Embedded QuickJS host for TardisJS apps"
+description = "Embedded QuickJS host for Tardis TS apps"
 
 [dependencies]
-tardis-core = { path = "../core" }
+tardis-ts-core = { path = "../core" }
 rquickjs = "0.14"
 arboard = "3.7"

@@ -35,7 +35,7 @@ the virtualized grid rendering path.
 - `A1` style references, `=SUM(D1:D2)`, `=AVERAGE(D1:D2)`, cycle and syntax
   errors (`#CYCLE!`, `#ERROR!`).
 - Formula parser tests: `test/examples/spreadsheet-formula.test.ts`.
-- Native screenshot: `tardis screenshot examples/spreadsheet/app.tsx`.
+- Native screenshot: `tardis-ts screenshot examples/spreadsheet/app.tsx`.
 
 Reproduce:
 

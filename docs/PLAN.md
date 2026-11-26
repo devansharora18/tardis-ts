@@ -15,7 +15,7 @@ clicks; the old `.tardis` surface is gone; build, typecheck, and tests are clean
 5. **Rust core** — patch decode (atomic), taffy layout with fragment flattening,
    cosmic-text measurement/shaping with bundled fonts, tiny-skia raster/PNG,
    hit testing.
-6. **QuickJS host** — `__tardis_flush`/`__tardis_event`, console shim.
+6. **QuickJS host** — `__tardis_ts_flush`/`__tardis_ts_event`, console shim.
 7. **Native CLI** — headless PNG/scene dump/click, winit + softbuffer window.
 8. **Node CLI** — init/build/run/dev/screenshot, entry resolution, binary lookup.
 9. **Example + e2e** — counter app; compile → QuickJS → layout → click → assert
@@ -159,7 +159,7 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - `hydrate` verified remount: staging render, text comparison, warning/onMismatch,
   listener/root move to the real container.
 - Shared `web/style.ts` and `web/tags.ts` keep server and client markup aligned.
-- `tardisjs/ssr` subpath export and bundle.
+- `tardis-ts/ssr` subpath export and bundle.
 - 93 JS / 11 Rust tests.
 - Deferred: streaming, node adoption, data prefetch, server-bundle CLI.
 
@@ -204,7 +204,7 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 
 ## Devtools/error slice result (2026-11-27)
 
-- `tardisjs/devtools`: toggleable overlay with scene tree, focus marker, patch
+- `tardis-ts/devtools`: toggleable overlay with scene tree, focus marker, patch
   frame log, node/op counters; subscribes through a patch listener.
 - Boundary now routes effect errors from its subtree via an error context
   captured at effect creation and restored while effects run.
@@ -231,7 +231,7 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 
 ## SSR adoption slice result (2026-11-27)
 
-- Web host `adopt` mode reuses server `[data-tardis]` nodes structurally,
+- Web host `adopt` mode reuses server `[data-tardis-ts]` nodes structurally,
   remaps ids, patches in place, and prunes unclaimed nodes after first flush.
 - `hydrate` no longer stages/remounts; it keeps node identity, warns on text
   mismatch, and clears stale markup when no server root exists.
@@ -279,16 +279,16 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 ## Platform matrix result (2026-11-27)
 
 - Release workflow built all five targets: linux-x64, linux-arm64, darwin-x64,
-  darwin-arm64, win32-x64. Artifacts contain `tardisjs-<platform>-<arch>` with a
+  darwin-arm64, win32-x64. Artifacts contain `tardis-ts-<platform>-<arch>` with a
   14 MB wgpu-enabled binary and a valid package manifest.
 - npm publish was skipped because this was a `workflow_dispatch` run, not a tag;
   publishing still requires `NPM_TOKEN` and signing secrets.
 
 ## Scaffolder, editor, and spreadsheet slice result (2026-11-27)
 
-- `tardis create` interactive prompts plus flags: platform, styling, template,
+- `tardis-ts create` interactive prompts plus flags: platform, styling, template,
   package manager, install, git. Non-TTY defaults never install.
-- Tailwind on web via `className`; `tardis build --css` links the stylesheet.
+- Tailwind on web via `className`; `tardis-ts build --css` links the stylesheet.
 - `examples/editor`: VS Code-style activity bar, explorer, tabs, breadcrumbs,
   command palette, minimap, status bar, and a per-line syntax tokenizer;
   native and web tests.

@@ -20,7 +20,7 @@ export function isDynamic(value: unknown): value is DynamicValue {
   return (
     typeof value === 'object' &&
     value !== null &&
-    (value as DynamicValue).__tardisDynamic === true &&
+    (value as DynamicValue).__tardisTsDynamic === true &&
     typeof (value as DynamicValue).fn === 'function'
   )
 }
@@ -61,7 +61,7 @@ export function appendValue(parent: SceneNode, value: unknown): void {
     addChild(parent, node)
     return
   }
-  throw new Error(`tardis: cannot mount value of type ${typeof value}`)
+  throw new Error(`tardis-ts: cannot mount value of type ${typeof value}`)
 }
 
 export function mountChildren(parent: SceneNode, children: readonly unknown[]): void {
@@ -102,7 +102,7 @@ export function mountAttached(parent: SceneNode, value: unknown): void {
     attachAndActivate(node, parent)
     return
   }
-  throw new Error(`tardis: cannot mount value of type ${typeof value}`)
+  throw new Error(`tardis-ts: cannot mount value of type ${typeof value}`)
 }
 
 function startDynamic(region: SceneNode, dynamicValue: DynamicValue): void {

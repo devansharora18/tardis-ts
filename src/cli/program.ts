@@ -19,7 +19,7 @@ import { createPrompter, isInteractive } from './lib/prompt'
 export function createProgram(): Command {
 	const program = new Command()
 	program
-		.name('tardis')
+		.name('tardis-ts')
 		.description('TSX-native UI framework for desktop and web')
 
 	const scaffoldOptions = (options: {

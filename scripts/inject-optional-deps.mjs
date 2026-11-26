@@ -18,7 +18,7 @@ const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
 pkg.version = version
 pkg.optionalDependencies = Object.fromEntries(
   platforms.map(([platform, arch]) => [
-    `@devansharora18/tardisjs-${platform}-${arch}`,
+    `@devansharora18/tardis-ts-${platform}-${arch}`,
     version,
   ])
 )

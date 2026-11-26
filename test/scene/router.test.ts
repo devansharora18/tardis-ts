@@ -88,7 +88,7 @@ describe('Router', () => {
       '/about': () => jsx('p', {}, 'about page'),
     }
     handle = render(() => jsx(Router, { router, routes: linkRoutes }))
-    const text = Array.from(app().querySelectorAll<HTMLElement>('[data-tardis]'))
+    const text = Array.from(app().querySelectorAll<HTMLElement>('[data-tardis-ts]'))
       .filter((element) => element.children.length === 0)
       .find((element) => element.textContent === 'go to about')
     expect(text).toBeDefined()

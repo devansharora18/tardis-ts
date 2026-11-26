@@ -1,7 +1,7 @@
 // Client takeover for server-rendered markup.
 //
 // The web host runs in adopt mode: patch `create` ops reuse the server nodes
-// with the same `data-tardis` id, and style/text/aria ops update them in place.
+// with the same `data-tardis-ts` id, and style/text/aria ops update them in place.
 // Unclaimed server nodes are removed after the first flush. Text is compared
 // before and after the takeover to report a mismatch.
 
@@ -24,13 +24,13 @@ export function hydrate(
   options: HydrateOptions = {}
 ): HydratedApp {
   if (typeof document === 'undefined') {
-    throw new Error('tardis: hydrate needs a DOM; use renderToString on the server')
+    throw new Error('tardis-ts: hydrate needs a DOM; use renderToString on the server')
   }
   if (!(container instanceof HTMLElement)) {
-    throw new Error('tardis: hydrate needs an HTMLElement container')
+    throw new Error('tardis-ts: hydrate needs an HTMLElement container')
   }
   const serverText = container.textContent ?? ''
-  if (!container.querySelector('[data-tardis="0"]')) {
+  if (!container.querySelector('[data-tardis-ts="0"]')) {
     container.replaceChildren()
   }
   const host = createWebHost({ container, adopt: true })

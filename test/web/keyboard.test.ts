@@ -31,7 +31,7 @@ function app(): HTMLElement {
 }
 
 function leaf(text: string): HTMLElement {
-  const found = Array.from(app().querySelectorAll<HTMLElement>('[data-tardis]'))
+  const found = Array.from(app().querySelectorAll<HTMLElement>('[data-tardis-ts]'))
     .filter((element) => element.children.length === 0)
     .find((element) => element.textContent === text)
   if (!found) throw new Error(`no element ${text}`)
@@ -56,7 +56,7 @@ describe('keyboard', () => {
       )
     )
     const text = leaf('go')
-    focusNode(Number(text.getAttribute('data-tardis')))
+    focusNode(Number(text.getAttribute('data-tardis-ts')))
     key('a')
     flushNow()
     expect(seen).toEqual(['a'])
@@ -71,7 +71,7 @@ describe('keyboard', () => {
     handle = render(() =>
       jsx('div', { onKeyUp: (event: SceneEvent) => up.push(String(event.key)) }, 'x')
     )
-    focusNode(Number(leaf('x').getAttribute('data-tardis')))
+    focusNode(Number(leaf('x').getAttribute('data-tardis-ts')))
     key('b', 'up')
     expect(up).toEqual(['b'])
   })

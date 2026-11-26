@@ -1,4 +1,4 @@
-import '@devansharora18/tardisjs/web'
+import '@devansharora18/tardis-ts/web'
 import {
   Checkbox,
   createForm,
@@ -6,7 +6,7 @@ import {
   FormField,
   render,
   TextField,
-} from '@devansharora18/tardisjs/scene'
+} from '@devansharora18/tardis-ts/scene'
 
 function App() {
   const [subscribed, setSubscribed] = createSignal(false)

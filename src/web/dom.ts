@@ -11,7 +11,7 @@ export interface WebHostOptions {
   force?: boolean
   background?: string
   color?: string
-  /** Reuse server-rendered `[data-tardis]` nodes in place. */
+  /** Reuse server-rendered `[data-tardis-ts]` nodes in place. */
   adopt?: boolean
 }
 
@@ -46,24 +46,24 @@ export class WebHost {
 
   constructor(options: WebHostOptions = {}) {
     if (typeof document === 'undefined') {
-      throw new Error('tardis: the web host needs a DOM')
+      throw new Error('tardis-ts: the web host needs a DOM')
     }
     const doc = document
     ensureBaseStyles(doc)
     this.container = options.container ?? doc.getElementById('app') ?? doc.body
     const existing = options.adopt
-      ? (this.container.querySelector('[data-tardis="0"]') as HTMLElement | null)
+      ? (this.container.querySelector('[data-tardis-ts="0"]') as HTMLElement | null)
       : null
     if (existing) {
       this.root = existing
       this.adopting = true
       this.elements.set(0, existing)
       this.adoptQueue = Array.from(
-        existing.querySelectorAll<HTMLElement>('[data-tardis]')
+        existing.querySelectorAll<HTMLElement>('[data-tardis-ts]')
       )
     } else {
       this.root = doc.createElement('div')
-      this.root.setAttribute('data-tardis', '0')
+      this.root.setAttribute('data-tardis-ts', '0')
       for (const [key, value] of Object.entries(
         rootStyle(options.background, options.color)
       )) {
@@ -74,9 +74,9 @@ export class WebHost {
     }
 
     this.flushFn = (json: string): void => this.flush(json)
-    ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] =
+    ;(globalThis as unknown as Record<string, unknown>)['__tardis_ts_flush'] =
       this.flushFn
-    ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush_patch'] =
+    ;(globalThis as unknown as Record<string, unknown>)['__tardis_ts_flush_patch'] =
       (patch: Patch): void => this.flushPatch(patch)
     this.installEvents()
   }
@@ -84,8 +84,8 @@ export class WebHost {
   private installEvents(): void {
     const handler = (phase: 'down' | 'up') => (event: Event): void => {
       const target = event.target as Element | null
-      const element = target?.closest?.('[data-tardis]') as HTMLElement | null
-      const node = element ? Number(element.getAttribute('data-tardis')) : undefined
+      const element = target?.closest?.('[data-tardis-ts]') as HTMLElement | null
+      const node = element ? Number(element.getAttribute('data-tardis-ts')) : undefined
       const pointer = event as PointerEvent
       dispatchEvent({
         type: 'pointer',
@@ -101,8 +101,8 @@ export class WebHost {
       const pointer = event as PointerEvent
       if (pointer.buttons === 0) return
       const target = event.target as Element | null
-      const element = target?.closest?.('[data-tardis]') as HTMLElement | null
-      const node = element ? Number(element.getAttribute('data-tardis')) : undefined
+      const element = target?.closest?.('[data-tardis-ts]') as HTMLElement | null
+      const node = element ? Number(element.getAttribute('data-tardis-ts')) : undefined
       dispatchEvent({
         type: 'pointer',
         phase: 'move',
@@ -128,8 +128,8 @@ export class WebHost {
     const wheel = (event: Event): void => {
       const wheelEvent = event as WheelEvent
       const target = event.target as Element | null
-      const element = target?.closest?.('[data-tardis]') as HTMLElement | null
-      const node = element ? Number(element.getAttribute('data-tardis')) : undefined
+      const element = target?.closest?.('[data-tardis-ts]') as HTMLElement | null
+      const node = element ? Number(element.getAttribute('data-tardis-ts')) : undefined
       dispatchEvent({
         type: 'wheel',
         node,
@@ -143,9 +143,9 @@ export class WebHost {
 
     const focusin = (event: Event): void => {
       const target = event.target as Element | null
-      const element = target?.closest?.('[data-tardis]') as HTMLElement | null
+      const element = target?.closest?.('[data-tardis-ts]') as HTMLElement | null
       if (element) {
-        focusNode(Number(element.getAttribute('data-tardis')))
+        focusNode(Number(element.getAttribute('data-tardis-ts')))
         this.syncIme()
       }
     }
@@ -280,7 +280,7 @@ export class WebHost {
   private removeUnclaimed(): void {
     const claimed = new Set(this.elements.values())
     for (const element of Array.from(
-      this.root.querySelectorAll<HTMLElement>('[data-tardis]')
+      this.root.querySelectorAll<HTMLElement>('[data-tardis-ts]')
     )) {
       if (!claimed.has(element)) element.remove()
     }
@@ -307,7 +307,7 @@ export class WebHost {
           )
           if (at !== -1) {
             const adopted = this.adoptQueue.splice(at, 1)[0]!
-            adopted.setAttribute('data-tardis', String(op.id))
+            adopted.setAttribute('data-tardis-ts', String(op.id))
             const reference = parent.children.item(op.index) ?? null
             if (reference !== adopted) parent.insertBefore(adopted, reference)
             this.elements.set(op.id, adopted)
@@ -315,7 +315,7 @@ export class WebHost {
           }
         }
         const element = this.createElement(op.kind, op.tag)
-        element.setAttribute('data-tardis', String(op.id))
+        element.setAttribute('data-tardis-ts', String(op.id))
         const reference = parent.children.item(op.index) ?? null
         parent.insertBefore(element, reference)
         this.elements.set(op.id, element)
@@ -329,8 +329,8 @@ export class WebHost {
         if (!element) return
         const ids = [
           op.id,
-          ...Array.from(element.querySelectorAll('[data-tardis]')).map((child) =>
-            Number(child.getAttribute('data-tardis'))
+          ...Array.from(element.querySelectorAll('[data-tardis-ts]')).map((child) =>
+            Number(child.getAttribute('data-tardis-ts'))
           ),
         ]
         element.remove()
@@ -439,8 +439,8 @@ export class WebHost {
     this.disposed = true
     this.detachEvents()
     const g = globalThis as unknown as Record<string, unknown>
-    if (g['__tardis_flush'] === this.flushFn) delete g['__tardis_flush']
-    delete g['__tardis_flush_patch']
+    if (g['__tardis_ts_flush'] === this.flushFn) delete g['__tardis_ts_flush']
+    delete g['__tardis_ts_flush_patch']
     if (currentHost === this) currentHost = null
     this.root.remove()
     this.ime?.remove()
@@ -461,7 +461,7 @@ export function installWebHost(options: WebHostOptions = {}): WebHost | null {
   if (typeof document === 'undefined') return null
   if (currentHost && !options.force) return currentHost
   const g = globalThis as unknown as Record<string, unknown>
-  if (!options.force && typeof g['__tardis_flush'] === 'function') return null
+  if (!options.force && typeof g['__tardis_ts_flush'] === 'function') return null
   currentHost?.dispose()
   currentHost = new WebHost(options)
   return currentHost

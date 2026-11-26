@@ -5,7 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use tardis_js::JsHost;
+use tardis_ts_js::JsHost;
 
 #[cfg(feature = "window")]
 mod a11y;
@@ -29,7 +29,7 @@ fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {
-            eprintln!("tardis-native: {err}");
+            eprintln!("tardis-ts-native: {err}");
             ExitCode::FAILURE
         }
     }
@@ -219,7 +219,7 @@ fn parse_args() -> Result<Args, String> {
 
 fn print_help() {
     println!(
-        "tardis-native [options]\n\
+        "tardis-ts-native [options]\n\
          \n\
          --bundle <path>   bundled app (default: dist/app.js)\n\
          --width <px>      viewport width (default: 800)\n\
@@ -243,7 +243,7 @@ mod window {
     use raw_window_handle::{
         DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
     };
-    use tardis_js::JsHost;
+    use tardis_ts_js::JsHost;
     use winit::event::{
         ElementState, Event, Ime, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent,
     };
@@ -323,7 +323,7 @@ mod window {
         }
         .to_string();
         if let Err(err) = host.dispatch(&event) {
-            eprintln!("tardis: a11y action: {err}");
+            eprintln!("tardis-ts: a11y action: {err}");
         }
     }
 
@@ -370,11 +370,11 @@ mod window {
             })) {
                 Ok(Ok(presenter)) => Some(presenter),
                 Ok(Err(err)) => {
-                    eprintln!("tardis: wgpu unavailable ({err}); using softbuffer");
+                    eprintln!("tardis-ts: wgpu unavailable ({err}); using softbuffer");
                     None
                 }
                 Err(_) => {
-                    eprintln!("tardis: wgpu init failed; using softbuffer");
+                    eprintln!("tardis-ts: wgpu init failed; using softbuffer");
                     None
                 }
             }
@@ -456,7 +456,7 @@ mod window {
                                     cursor.0, cursor.1
                                 );
                                 if let Err(err) = host.dispatch(&event_json) {
-                                    eprintln!("tardis: {err}");
+                                    eprintln!("tardis-ts: {err}");
                                 }
                                 update_accessibility(&mut adapter, &host, &mut classes);
                                 dirty = true;
@@ -491,7 +491,7 @@ mod window {
                             })
                             .to_string();
                             if let Err(err) = host.dispatch(&event_json) {
-                                eprintln!("tardis: {err}");
+                                eprintln!("tardis-ts: {err}");
                             }
                             dirty = true;
                         }
@@ -520,7 +520,7 @@ mod window {
                             }
                             .to_string();
                             if let Err(err) = host.dispatch(&event) {
-                                eprintln!("tardis: {err}");
+                                eprintln!("tardis-ts: {err}");
                             }
                             update_accessibility(&mut adapter, &host, &mut classes);
                             dirty = true;
@@ -540,7 +540,7 @@ mod window {
                                 r#"{{"type":"wheel","dy":{dy},"node":{node}}}"#
                             );
                             if let Err(err) = host.dispatch(&event_json) {
-                                eprintln!("tardis: {err}");
+                                eprintln!("tardis-ts: {err}");
                             }
                             dirty = true;
                         }
@@ -566,7 +566,7 @@ mod window {
                                 cursor.0, cursor.1
                             );
                             if let Err(err) = host.dispatch(&event_json) {
-                                eprintln!("tardis: {err}");
+                                eprintln!("tardis-ts: {err}");
                             }
                             update_accessibility(&mut adapter, &host, &mut classes);
                             dirty = true;
@@ -591,7 +591,7 @@ mod window {
                                 cursor.0, cursor.1
                             );
                             if let Err(err) = host.dispatch(&event_json) {
-                                eprintln!("tardis: {err}");
+                                eprintln!("tardis-ts: {err}");
                             }
                             update_accessibility(&mut adapter, &host, &mut classes);
                             dirty = true;
@@ -606,7 +606,7 @@ mod window {
                                     presenter.present(&mut engine)
                                 };
                                 if let Err(err) = result {
-                                    eprintln!("tardis: wgpu present: {err}");
+                                    eprintln!("tardis-ts: wgpu present: {err}");
                                 }
                                 return;
                             }
@@ -618,7 +618,7 @@ mod window {
                             let (pixels, width, height) = match rendered {
                                 Ok(frame) => frame,
                                 Err(err) => {
-                                    eprintln!("tardis: render: {err}");
+                                    eprintln!("tardis-ts: render: {err}");
                                     return;
                                 }
                             };
@@ -628,19 +628,19 @@ mod window {
                                 return;
                             };
                             if let Err(err) = surface.resize(width, height) {
-                                eprintln!("tardis: surface resize: {err}");
+                                eprintln!("tardis-ts: surface resize: {err}");
                                 return;
                             }
                             let mut buffer = match surface.buffer_mut() {
                                 Ok(buffer) => buffer,
                                 Err(err) => {
-                                    eprintln!("tardis: surface buffer: {err}");
+                                    eprintln!("tardis-ts: surface buffer: {err}");
                                     return;
                                 }
                             };
                             buffer.copy_from_slice(&pixels);
                             if let Err(err) = buffer.present() {
-                                eprintln!("tardis: present: {err}");
+                                eprintln!("tardis-ts: present: {err}");
                             }
                         }
                         _ => {}

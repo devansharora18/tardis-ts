@@ -53,8 +53,8 @@ To reproduce:
 
 ```sh
 npm run build
-node dist/bin/tardis.js build examples/editor/app.tsx --out /tmp/editor-app.js
+node dist/bin/tardis-ts.js build examples/editor/app.tsx --out /tmp/editor-app.js
 bash bench/measure-startup.sh 40 env -u WAYLAND_DISPLAY WINIT_UNIX_BACKEND=x11 \
-  native/target/release/tardis-native --bundle /tmp/editor-app.js --width 1024 --height 768
-node dist/bin/tardis.js run examples/editor/app.tsx --width 1280 --height 800
+  native/target/release/tardis-ts-native --bundle /tmp/editor-app.js --width 1024 --height 768
+node dist/bin/tardis-ts.js run examples/editor/app.tsx --width 1280 --height 800
 ```

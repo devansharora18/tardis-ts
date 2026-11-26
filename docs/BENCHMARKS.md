@@ -167,7 +167,7 @@ across three rounds and reports the median. Source:
 
 | App | Mean frame | p50 | p95 | Dropped (>16.7 ms) | Effective FPS |
 |---|---:|---:|---:|---:|---:|
-| TardisJS 2.0 web | 143.1 ms | 140.5 ms | 177.9 ms | 119/120 | **7.0** |
+| Tardis TS 2.0 web | 143.1 ms | 140.5 ms | 177.9 ms | 119/120 | **7.0** |
 | Dioxus 0.6.3 web | 93.2 ms | 89.7 ms | 111.5 ms | 119/120 | **10.7** |
 
 Dioxus is ~1.54x faster on this workload. Both apps miss 60 fps badly because

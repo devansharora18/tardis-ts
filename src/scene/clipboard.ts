@@ -1,7 +1,7 @@
 // Clipboard bridge.
 //
 // Web uses navigator.clipboard when available and falls back to an in-memory
-// buffer. Native hosts can install `__tardis_clipboard_read/write`; until then
+// buffer. Native hosts can install `__tardis_ts_clipboard_read/write`; until then
 // the in-memory buffer still makes copy/paste work within the app.
 
 let memory = ''
@@ -14,7 +14,7 @@ function hostGlobals(): HostGlobals {
 
 export function writeClipboard(text: string): void {
   memory = text
-  const write = hostGlobals()['__tardis_clipboard_write']
+  const write = hostGlobals()['__tardis_ts_clipboard_write']
   if (typeof write === 'function') {
     try {
       ;(write as (value: string) => void)(text)
@@ -30,7 +30,7 @@ export function writeClipboard(text: string): void {
 }
 
 export function readClipboard(): string {
-  const read = hostGlobals()['__tardis_clipboard_read']
+  const read = hostGlobals()['__tardis_ts_clipboard_read']
   if (typeof read === 'function') {
     try {
       const text = String((read as () => unknown)())
@@ -43,7 +43,7 @@ export function readClipboard(): string {
 }
 
 export function pasteClipboard(apply: (text: string) => void): void {
-  const read = hostGlobals()['__tardis_clipboard_read']
+  const read = hostGlobals()['__tardis_ts_clipboard_read']
   if (typeof read === 'function') {
     try {
       const text = String((read as () => unknown)())

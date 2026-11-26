@@ -1,5 +1,5 @@
-import '@devansharora18/tardisjs/web'
-import { createSignal, render } from '@devansharora18/tardisjs/scene'
+import '@devansharora18/tardis-ts/web'
+import { createSignal, render } from '@devansharora18/tardis-ts/scene'
 
 const [count, setCount] = createSignal(0)
 

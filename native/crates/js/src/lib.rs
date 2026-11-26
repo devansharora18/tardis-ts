@@ -1,7 +1,7 @@
 // Embedded QuickJS host.
 //
 // The bundle is evaluated once. Two globals bridge the runtime:
-// `__tardis_flush(json)` for scene patches and `__tardis_event(json)` for
+// `__tardis_ts_flush(json)` for scene patches and `__tardis_ts_event(json)` for
 // input. The engine lives on the same thread behind a RefCell; QuickJS is
 // single-threaded here by design.
 
@@ -9,7 +9,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use rquickjs::{Context, Function, Runtime};
-use tardis_core::Engine;
+use tardis_ts_core::Engine;
 
 pub struct JsHost {
     // Context must drop before the runtime it points into.
@@ -32,21 +32,21 @@ impl JsHost {
             })
             .map_err(|err| format!("host log: {err}"))?;
             globals
-                .set("__tardis_log", log)
+                .set("__tardis_ts_log", log)
                 .map_err(|err| format!("install log: {err}"))?;
 
             let flush_engine = engine.clone();
             let flush = Function::new(ctx.clone(), move |json: String| match flush_engine.try_borrow_mut() {
                 Ok(mut engine) => {
                     if let Err(err) = engine.apply_json(&json) {
-                        eprintln!("tardis: patch rejected: {err}");
+                        eprintln!("tardis-ts: patch rejected: {err}");
                     }
                 }
-                Err(_) => eprintln!("tardis: patch re-entered the engine"),
+                Err(_) => eprintln!("tardis-ts: patch re-entered the engine"),
             })
             .map_err(|err| format!("host flush: {err}"))?;
             globals
-                .set("__tardis_flush", flush)
+                .set("__tardis_ts_flush", flush)
                 .map_err(|err| format!("install flush: {err}"))?;
 
             // Clipboard bridge. arboard returns None without a display, in
@@ -62,7 +62,7 @@ impl JsHost {
             })
             .map_err(|err| format!("host clipboard read: {err}"))?;
             globals
-                .set("__tardis_clipboard_read", clipboard_read)
+                .set("__tardis_ts_clipboard_read", clipboard_read)
                 .map_err(|err| format!("install clipboard read: {err}"))?;
 
             let write_clipboard = clipboard.clone();
@@ -73,14 +73,14 @@ impl JsHost {
             })
             .map_err(|err| format!("host clipboard write: {err}"))?;
             globals
-                .set("__tardis_clipboard_write", clipboard_write)
+                .set("__tardis_ts_clipboard_write", clipboard_write)
                 .map_err(|err| format!("install clipboard write: {err}"))?;
 
             ctx.eval::<(), _>(
                 "globalThis.console = {\
-                   log: function(){ __tardis_log(Array.prototype.slice.call(arguments).map(String).join(' ')); },\
-                   warn: function(){ __tardis_log(Array.prototype.slice.call(arguments).map(String).join(' ')); },\
-                   error: function(){ __tardis_log(Array.prototype.slice.call(arguments).map(String).join(' ')); }\
+                   log: function(){ __tardis_ts_log(Array.prototype.slice.call(arguments).map(String).join(' ')); },\
+                   warn: function(){ __tardis_ts_log(Array.prototype.slice.call(arguments).map(String).join(' ')); },\
+                   error: function(){ __tardis_ts_log(Array.prototype.slice.call(arguments).map(String).join(' ')); }\
                  };",
             )
             .map_err(|err| format!("console shim: {err}"))?;
@@ -105,7 +105,7 @@ impl JsHost {
         self.context.with(|ctx| {
             let globals = ctx.globals();
             let handler: Function = globals
-                .get("__tardis_event")
+                .get("__tardis_ts_event")
                 .map_err(|err| format!("event hook: {err}"))?;
             handler
                 .call::<_, ()>((event_json.to_string(),))

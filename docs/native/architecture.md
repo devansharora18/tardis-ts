@@ -54,8 +54,8 @@ There is no second grammar.
 
 The embedded QuickJS host installs two globals:
 
-- `__tardis_flush(json)` — apply a scene patch.
-- `__tardis_event(json)` — dispatch input.
+- `__tardis_ts_flush(json)` — apply a scene patch.
+- `__tardis_ts_event(json)` — dispatch input.
 
 The protocol is documented in [protocol.md](protocol.md). v0 uses JSON; the op
 set is stable so a binary encoding is a transport change, not a redesign.
@@ -82,7 +82,7 @@ The same patch stream is applied to DOM elements:
 - `fragment` → `<div>` with `display: contents`,
 - styles → CSS properties; `box-sizing: border-box` matches taffy sizing.
 
-Pointer events are delegated from the container: `closest('[data-tardis]')` gives
+Pointer events are delegated from the container: `closest('[data-tardis-ts]')` gives
 the scene node id, then the runtime's `dispatchEvent` handles bubbling to the
 nearest clickable ancestor. The app imports the web module for its side effect;
 in QuickJS there is no `document`, so it is a no-op.
@@ -103,11 +103,11 @@ in QuickJS there is no `document`, so it is a no-op.
 ### 6. Host and shell
 
 - `native/crates/js` — rquickjs runtime, console shim, patch/event bridge.
-- `native/crates/cli` — `tardis-native`:
+- `native/crates/cli` — `tardis-ts-native`:
   - `--headless --out frame.png --dump scene.json [--click x,y]`
   - window mode: winit + softbuffer, resize, pointer events.
 - `src/cli` (Node) — builds native/web bundles, locates the binary, spawns it,
-  serves web previews, and watches files for `tardis dev`.
+  serves web previews, and watches files for `tardis-ts dev`.
 - `src/web` — DOM host for the web target.
 
 ## Frame loop
@@ -150,7 +150,7 @@ No benchmark suite exists yet. M5 is a 10k-row virtualized list gate.
 ## Repository layout
 
 ```
-tardisjs/
+tardis-ts/
   src/
     compiler/        tsx transformer + esbuild bundler (native + web)
     scene/           signals, jsx, tree, mount, render
@@ -160,7 +160,7 @@ tardisjs/
   native/
     crates/core/     scene, patch, layout, text, paint
     crates/js/       QuickJS host
-    crates/cli/      tardis-native binary
+    crates/cli/      tardis-ts-native binary
   test/
     compiler/        transformer + bundler + web bundle
     scene/           signals + runtime patches

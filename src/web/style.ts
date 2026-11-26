@@ -87,11 +87,11 @@ export const UNITLESS_PROPERTIES = new Set([
 ])
 
 export const BASE_CSS = [
-  '[data-tardis]{box-sizing:border-box}',
-  '[data-tardis="0"]{width:100%;min-height:100vh}',
-  'button[data-tardis]{border:0;font:inherit;cursor:pointer}',
-  'ul[data-tardis]{margin:0;padding:0;list-style:none}',
-  'li[data-tardis]{list-style:none}',
+  '[data-tardis-ts]{box-sizing:border-box}',
+  '[data-tardis-ts="0"]{width:100%;min-height:100vh}',
+  'button[data-tardis-ts]{border:0;font:inherit;cursor:pointer}',
+  'ul[data-tardis-ts]{margin:0;padding:0;list-style:none}',
+  'li[data-tardis-ts]{list-style:none}',
 ].join('')
 
 export function rootStyle(

@@ -50,15 +50,15 @@ export async function devApp(
       )
       child.once('exit', (code) => {
         if (!stopping) {
-          console.log(`tardis: app exited (${code ?? 0}); watching for changes`)
+          console.log(`tardis-ts: app exited (${code ?? 0}); watching for changes`)
         }
       })
       console.log(
-        `tardis: built ${path.relative(cwd, built.outfile)} (${built.bytes} bytes)`
+        `tardis-ts: built ${path.relative(cwd, built.outfile)} (${built.bytes} bytes)`
       )
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      console.error(`tardis: build failed\n${message}`)
+      console.error(`tardis-ts: build failed\n${message}`)
     } finally {
       building = false
       if (again && !stopping) {
@@ -80,7 +80,7 @@ export async function devApp(
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => void start(), 120)
   })
-  console.log('tardis: watching for changes (ctrl-c to stop)')
+  console.log('tardis-ts: watching for changes (ctrl-c to stop)')
 
   await new Promise<void>((resolve) => {
     const stop = (): void => {
@@ -104,7 +104,7 @@ async function devWeb(cwd: string, options: DevOptions): Promise<void> {
     port: options.port ?? 4173,
     reload: true,
   })
-  console.log(`tardis: web preview at ${server.url}`)
+  console.log(`tardis-ts: web preview at ${server.url}`)
 
   let stopping = false
   let building = false
@@ -120,11 +120,11 @@ async function devWeb(cwd: string, options: DevOptions): Promise<void> {
       const built = await buildApp(cwd, { ...options, target: 'web' })
       server.bump()
       console.log(
-        `tardis: built ${path.relative(cwd, built.outfile)} (${built.bytes} bytes)`
+        `tardis-ts: built ${path.relative(cwd, built.outfile)} (${built.bytes} bytes)`
       )
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      console.error(`tardis: build failed\n${message}`)
+      console.error(`tardis-ts: build failed\n${message}`)
     } finally {
       building = false
       if (again && !stopping) {
@@ -144,7 +144,7 @@ async function devWeb(cwd: string, options: DevOptions): Promise<void> {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => void rebuild(), 120)
   })
-  console.log('tardis: watching for changes (ctrl-c to stop)')
+  console.log('tardis-ts: watching for changes (ctrl-c to stop)')
 
   await new Promise<void>((resolve) => {
     const stop = (): void => {

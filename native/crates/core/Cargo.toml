@@ -1,9 +1,9 @@
 [package]
-name = "tardis-core"
+name = "tardis-ts-core"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Native scene layout, text, and raster core for TardisJS"
+description = "Native scene layout, text, and raster core for Tardis TS"
 
 [dependencies]
 base64 = "0.22"

@@ -40,7 +40,7 @@ describe('hydrate', () => {
       expect(container.querySelector('button')).toBe(serverButton)
       expect(container.textContent).toContain('Count: 0')
       const plus = Array.from(
-        container.querySelectorAll<HTMLElement>('[data-tardis]')
+        container.querySelectorAll<HTMLElement>('[data-tardis-ts]')
       ).find(
         (element) =>
           element.textContent === '+' && element.children.length === 0

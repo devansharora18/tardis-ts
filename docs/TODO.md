@@ -10,18 +10,18 @@ does not have.
 npm ci
 npm run build
 cargo build --release --manifest-path native/Cargo.toml
-node dist/bin/tardis.js run examples/native-counter/app.tsx
+node dist/bin/tardis-ts.js run examples/native-counter/app.tsx
 # verify: window opens, clicks/keys/IME work, resize/scale relayouts,
 # and a screen reader reads the AccessKit tree
 
 # Web in Safari and Firefox (Chrome 155 and jsdom are verified here)
-node dist/bin/tardis.js build examples/native-counter/app.tsx --target web
-node dist/bin/tardis.js preview
+node dist/bin/tardis-ts.js build examples/native-counter/app.tsx --target web
+node dist/bin/tardis-ts.js preview
 # open the URL, click Increment, Tab through controls, open a Dialog
 
 # Platform binary smoke after the first publish
-npm i @devansharora18/tardisjs@alpha
-npx tardis screenshot examples/native-counter/app.tsx -o check.png
+npm i @devansharora18/tardis-ts@alpha
+npx tardis-ts screenshot examples/native-counter/app.tsx -o check.png
 # must not require Rust or cargo
 ```
 

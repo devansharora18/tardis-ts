@@ -37,7 +37,7 @@ describe('bundleApp', () => {
     const entry = path.join(dir, 'app.tsx')
     fs.writeFileSync(
       entry,
-      `import { createSignal, render } from '@devansharora18/tardisjs/scene'
+      `import { createSignal, render } from '@devansharora18/tardis-ts/scene'
        const [count, setCount] = createSignal(2)
        function App() {
          return <div><h1>Count: {count()}</h1><button onClick={() => setCount(count() + 1)}>+1</button></div>
@@ -50,20 +50,20 @@ describe('bundleApp', () => {
     const result = await bundleApp({ entry, outfile })
     expect(result.bytes).toBeGreaterThan(500)
     const code = fs.readFileSync(outfile, 'utf8')
-    expect(code).not.toContain("from '@devansharora18/tardisjs/scene'")
+    expect(code).not.toContain("from '@devansharora18/tardis-ts/scene'")
     expect(code).not.toContain('<h1>')
-    expect(code).toContain('__tardis_flush')
+    expect(code).toContain('__tardis_ts_flush')
 
     const patches: Patch[] = []
-    ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] = (
+    ;(globalThis as unknown as Record<string, unknown>)['__tardis_ts_flush'] = (
       json: string
     ): void => {
       patches.push(JSON.parse(json) as Patch)
     }
     const previous = (globalThis as unknown as Record<string, unknown>)[
-      '__tardis_flush'
+      '__tardis_ts_flush'
     ]
-    ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] = (
+    ;(globalThis as unknown as Record<string, unknown>)['__tardis_ts_flush'] = (
       json: string
     ): void => {
       patches.push(JSON.parse(json) as Patch)
@@ -73,10 +73,10 @@ describe('bundleApp', () => {
     } finally {
       if (previous === undefined) {
         delete (globalThis as unknown as Record<string, unknown>)[
-          '__tardis_flush'
+          '__tardis_ts_flush'
         ]
       } else {
-        ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] =
+        ;(globalThis as unknown as Record<string, unknown>)['__tardis_ts_flush'] =
           previous
       }
     }

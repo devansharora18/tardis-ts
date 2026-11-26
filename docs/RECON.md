@@ -5,7 +5,7 @@ Date: 2026-11-26
 ## Baseline
 
 - 756 tests pass (`vitest run`), `tsc --noEmit` clean, tree committed at `cae3fc8`.
-- npm package: `@devansharora18/tardisjs@0.0.15`, ESM-first, Rollup build, Commander CLI,
+- npm package: `@devansharora18/tardis-ts@0.0.15`, ESM-first, Rollup build, Commander CLI,
   Vitest + jsdom, Node 22.
 - Rust 1.96, gcc, pkg-config, Xvfb, Mesa lavapipe (`lvp_icd`) available.
 - Fonts available: Liberation Sans (regular + bold), DejaVu, Montserrat.
@@ -22,7 +22,7 @@ Date: 2026-11-26
 | `src/cli` | init/build/dev/preview/compile/check/doctor/prerender |
 | `test` | 34 files, 756 tests |
 | `examples` | 19 `.tardis` demo sites |
-| `tardisjs-site` | 25-page `.tardis` docs site |
+| `tardis-ts-site` | 25-page `.tardis` docs site |
 | `vscode-extension` | `.tardis` grammar, 22 snippets |
 | `bench` | VDOM comparison harness |
 
@@ -57,7 +57,7 @@ rendering stack, not an additive feature:
 
 - JS: `npm test`, `npm run typecheck`, `npm run build`
 - Rust: `cargo test --manifest-path native/Cargo.toml`
-- Native smoke: `cargo run -p tardis-native -- --headless ...`
+- Native smoke: `cargo run -p tardis-ts-native -- --headless ...`
 
 ## Cross-platform correction (2026-11-26)
 
@@ -68,7 +68,7 @@ Current state at the start of this pass:
 - The native core (winit, softbuffer, taffy, cosmic-text, tiny-skia, QuickJS) is
   cross-platform code, but only Linux/X11 has been run here. macOS and Windows
   compile paths are unverified.
-- There is no web target. The scene runtime emits patches to `__tardis_flush`;
+- There is no web target. The scene runtime emits patches to `__tardis_ts_flush`;
   only the QuickJS host consumes them.
 - CLI/build scripts contain Unix-only commands (`rm -rf`, `chmod`), and the
   native end-to-end test assumes a binary name without `.exe`.
@@ -91,7 +91,7 @@ side effect; in QuickJS `typeof document === 'undefined'`, so it is a no-op.
 1. **Layout parity.** Native uses taffy; web uses CSS flex. Box sizing, line
    heights, and font metrics can differ. Mitigation: `box-sizing: border-box`,
    explicit line heights on block text, jsdom assertions on structure/styles.
-2. **DOM event mapping.** Native hit-tests; web uses `closest('[data-tardis]')`.
+2. **DOM event mapping.** Native hit-tests; web uses `closest('[data-tardis-ts]')`.
    Mitigation: the runtime already bubbles to the nearest clickable ancestor.
 3. **CI platform coverage.** macOS/Windows GUI cannot be exercised here.
    Mitigation: compile and test in a CI matrix; log GUI smoke commands in TODO.

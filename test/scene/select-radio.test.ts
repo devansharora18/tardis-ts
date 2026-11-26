@@ -81,7 +81,7 @@ describe('Select', () => {
       jsx(Select, { value: () => value(), options: fruits, onChange: setValue })
     )
     const combobox = app().querySelector<HTMLElement>('[role="combobox"]')!
-    focusNode(Number(combobox.getAttribute('data-tardis')))
+    focusNode(Number(combobox.getAttribute('data-tardis-ts')))
     key('Enter')
     expect(combobox.getAttribute('aria-expanded')).toBe('true')
     key('ArrowDown')
@@ -135,7 +135,7 @@ describe('RadioGroup', () => {
       })
     )
     const radios = app().querySelectorAll<HTMLElement>('[role="radio"]')
-    focusNode(Number(radios[0].getAttribute('data-tardis')))
+    focusNode(Number(radios[0].getAttribute('data-tardis-ts')))
     key('ArrowRight')
     expect(value()).toBe('b')
     key('ArrowRight')

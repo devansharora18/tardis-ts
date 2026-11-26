@@ -8,7 +8,7 @@ export type { WebHostOptions } from './dom'
 
 import { installWebHost } from './dom'
 
-// Side-effect entry: importing `@devansharora18/tardisjs/web` boots the DOM
+// Side-effect entry: importing `@devansharora18/tardis-ts/web` boots the DOM
 // host in a browser. In QuickJS there is no `document`, so this is a no-op and
-// the native host keeps `__tardis_flush`.
+// the native host keeps `__tardis_ts_flush`.
 if (typeof document !== 'undefined') installWebHost()

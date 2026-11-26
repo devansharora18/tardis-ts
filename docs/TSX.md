@@ -1,6 +1,6 @@
 # TSX guide
 
-TardisJS v2 is TSX only. There is no `.tardis` file, no custom grammar, and no
+Tardis TS v2 is TSX only. There is no `.tardis` file, no custom grammar, and no
 directive syntax. If you know React and signals, you know the surface.
 
 ## Targets
@@ -8,19 +8,19 @@ directive syntax. If you know React and signals, you know the surface.
 The same entry runs on Linux, macOS, Windows, and the web. Mobile is deferred.
 
 ```tsx
-import '@devansharora18/tardisjs/web' // no-op outside a browser
-import { createSignal, render } from '@devansharora18/tardisjs/scene'
+import '@devansharora18/tardis-ts/web' // no-op outside a browser
+import { createSignal, render } from '@devansharora18/tardis-ts/scene'
 ```
 
 The web import boots the DOM host when `document` exists. In QuickJS it is a
 no-op and the native host handles the same scene patches.
 
 ```sh
-tardis dev --target web            # browser, with reload
-tardis build --target web          # dist/web/app.js + index.html
-tardis preview                     # serve dist/web
-tardis dev                         # native window
-tardis screenshot -o shot.png      # native headless PNG
+tardis-ts dev --target web            # browser, with reload
+tardis-ts build --target web          # dist/web/app.js + index.html
+tardis-ts preview                     # serve dist/web
+tardis-ts dev                         # native window
+tardis-ts screenshot -o shot.png      # native headless PNG
 ```
 
 Layout differs by host: native uses taffy and cosmic-text; web uses CSS flex
@@ -33,7 +33,7 @@ aligned, but font metrics and line breaks can differ.
 Components run once. State is a signal; reading it inside JSX creates a binding.
 
 ```tsx
-import { createSignal, createMemo, createEffect, batch } from '@devansharora18/tardisjs/scene'
+import { createSignal, createMemo, createEffect, batch } from '@devansharora18/tardis-ts/scene'
 
 const [count, setCount] = createSignal(0)
 const double = createMemo(() => count() * 2)
@@ -174,8 +174,8 @@ Pointer moves, keyboard, focus, IME, and text input are not wired yet.
 Call `render` once at the entry point:
 
 ```tsx
-import '@devansharora18/tardisjs/web'
-import { render } from '@devansharora18/tardisjs/scene'
+import '@devansharora18/tardis-ts/web'
+import { render } from '@devansharora18/tardis-ts/scene'
 
 render(() => <App />)
 ```
@@ -208,7 +208,7 @@ Use `VirtualList` for long data sets. Only the visible window plus overscan is
 mounted in the scene.
 
 ```tsx
-import { VirtualList } from '@devansharora18/tardisjs/scene'
+import { VirtualList } from '@devansharora18/tardis-ts/scene'
 
 <VirtualList
   items={() => rows}
@@ -229,7 +229,7 @@ Wheel events over the list move the window; native and web both dispatch them.
 ## Routing
 
 ```tsx
-import { createRouter, Router, Link } from '@devansharora18/tardisjs/scene'
+import { createRouter, Router, Link } from '@devansharora18/tardis-ts/scene'
 
 const router = createRouter({ initial: '/', history: true })
 
@@ -294,7 +294,7 @@ error and `reset` clears it.
 ## Devtools
 
 ```ts
-import { installDevtools } from '@devansharora18/tardisjs/devtools'
+import { installDevtools } from '@devansharora18/tardis-ts/devtools'
 
 const devtools = installDevtools({ startOpen: true })
 devtools.dispose()
@@ -305,7 +305,7 @@ patch frames. It is DOM-only and intended for development.
 
 ## Native presentation backend
 
-`tardis run` (or the built binary) accepts `--backend softbuffer` (default) or
+`tardis-ts run` (or the built binary) accepts `--backend softbuffer` (default) or
 `--backend wgpu`. wgpu presents the CPU-rasterized RGBA frame through a wgpu
 surface with FIFO vsync, resize, and scale handling; if adapter/surface creation
 fails it logs and falls back to softbuffer. The published binary is built with
@@ -321,7 +321,7 @@ browser's CSS pixel handling.
 ## Forms
 
 ```tsx
-import { Checkbox, TextField } from '@devansharora18/tardisjs/scene'
+import { Checkbox, TextField } from '@devansharora18/tardis-ts/scene'
 
 const [name, setName] = createSignal('')
 const [subscribe, setSubscribe] = createSignal(false)
@@ -387,7 +387,7 @@ For validation, `createForm` owns values, touched fields, errors, submitting,
 submit errors, and reset:
 
 ```tsx
-import { createForm, FormField } from '@devansharora18/tardisjs/scene'
+import { createForm, FormField } from '@devansharora18/tardis-ts/scene'
 
 const form = createForm({
   initial: { name: '' },
@@ -458,13 +458,13 @@ if (typeof document !== 'undefined') render(() => <App />)
 ```
 
 For an app that also targets native, use
-`typeof document !== 'undefined' || typeof __tardis_flush === 'function'` so the
+`typeof document !== 'undefined' || typeof __tardis_ts_flush === 'function'` so the
 QuickJS host still boots it.
 
 Server:
 
 ```ts
-import { renderToString, renderDocument } from '@devansharora18/tardisjs/ssr'
+import { renderToString, renderDocument } from '@devansharora18/tardis-ts/ssr'
 import { App } from './app'
 
 const body = renderToString(App)
@@ -474,13 +474,13 @@ const html = renderDocument(body, { title: 'My app', script: '/app.js' })
 Client:
 
 ```ts
-import { hydrate } from '@devansharora18/tardisjs/ssr'
+import { hydrate } from '@devansharora18/tardis-ts/ssr'
 hydrate(App, document.getElementById('app')!)
 ```
 
 `renderDocument` includes the base CSS (`box-sizing`, semantic button/list
 resets) and the dark page defaults. `renderToString` needs no DOM and restores
-the previous `__tardis_flush`.
+the previous `__tardis_ts_flush`.
 
 Hydration is a **verified remount**: the app renders into a detached staging
 host, text content is compared, a mismatch warns (or calls `onMismatch`), and the
@@ -493,13 +493,13 @@ the API from your Node server.
 The scene runtime is pure JavaScript. Set a fake host and assert patches:
 
 ```ts
-globalThis.__tardis_flush = (json) => patches.push(JSON.parse(json))
+globalThis.__tardis_ts_flush = (json) => patches.push(JSON.parse(json))
 ```
 
 End to end, build the app and use the native CLI:
 
 ```sh
-tardis screenshot app.tsx -o shot.png --dump scene.json
+tardis-ts screenshot app.tsx -o shot.png --dump scene.json
 ```
 
 `scene.json` contains every node with its computed rect and text, which is

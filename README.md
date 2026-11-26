@@ -1,6 +1,6 @@
-# TardisJS
+# Tardis TS
 
-[![ci](https://github.com/devansharora18/tardisjs/actions/workflows/ci.yml/badge.svg)](https://github.com/devansharora18/tardisjs/actions/workflows/ci.yml)
+[![ci](https://github.com/devansharora18/tardis-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/devansharora18/tardis-ts/actions/workflows/ci.yml)
 
 **TSX-native UI framework for Linux, macOS, Windows, and the web.**
 
@@ -20,7 +20,7 @@ QuickJS) or in a browser (DOM host). Mobile is deferred.
 ## Quick start
 
 ```sh
-npx @devansharora18/tardisjs create
+npx @devansharora18/tardis-ts create
 ```
 
 The scaffolder asks for platforms (native, web, or both), styling (Tardis style
@@ -29,7 +29,7 @@ package manager, dependency install, and git initialization. Every prompt has
 a non-interactive flag:
 
 ```sh
-npx @devansharora18/tardisjs create my-app \
+npx @devansharora18/tardis-ts create my-app \
   --platform both --styling default --template sheet --pm npm --yes
 ```
 
@@ -42,11 +42,11 @@ npm run dev        # native, if selected
 npm run dev:web    # browser, if selected
 ```
 
-No Rust is needed for the web target. `tardis build --target web` writes
-`dist/web/app.js` plus a generated `index.html`; `tardis preview` serves it.
+No Rust is needed for the web target. `tardis-ts build --target web` writes
+`dist/web/app.js` plus a generated `index.html`; `tardis-ts preview` serves it.
 npm installs a prebuilt native runtime through optional platform packages; if
 your platform is missing, build from source with
-`cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml`.
+`cargo build --release --manifest-path node_modules/@devansharora18/tardis-ts/native/Cargo.toml`.
 See [docs/PACKAGING.md](docs/PACKAGING.md).
 
 ### From this repository
@@ -55,15 +55,15 @@ See [docs/PACKAGING.md](docs/PACKAGING.md).
 npm install
 npm run build
 cargo build --manifest-path native/Cargo.toml
-node dist/bin/tardis.js dev examples/native-counter/app.tsx
-node dist/bin/tardis.js dev examples/native-counter/app.tsx --target web
+node dist/bin/tardis-ts.js dev examples/native-counter/app.tsx
+node dist/bin/tardis-ts.js dev examples/native-counter/app.tsx --target web
 ```
 
 ## One app, two hosts
 
 ```tsx
-import '@devansharora18/tardisjs/web'
-import { createSignal, render } from '@devansharora18/tardisjs/scene'
+import '@devansharora18/tardis-ts/web'
+import { createSignal, render } from '@devansharora18/tardis-ts/scene'
 
 const [count, setCount] = createSignal(0)
 
@@ -82,7 +82,7 @@ function App() {
 render(() => <App />)
 ```
 
-`@devansharora18/tardisjs/web` boots the DOM host in a browser. In QuickJS there
+`@devansharora18/tardis-ts/web` boots the DOM host in a browser. In QuickJS there
 is no `document`, so the import is a no-op and the native host receives the
 same scene patches.
 
@@ -140,7 +140,7 @@ app.tsx ─ compiler ─ bundle
 - **Async data** — `createResource` (loading/error/refetch, `AbortSignal`,
   last-request-wins) and `createMutation` (mutate/loading/error/data, latest call
   wins, abort on dispose).
-- **wgpu backend** — `tardis run --backend wgpu` presents native frames through a
+- **wgpu backend** — `tardis-ts run --backend wgpu` presents native frames through a
   wgpu surface (vsync, resize, HiDPI) with automatic fallback to softbuffer.
   Rasterization is still CPU; a GPU geometry pipeline is not implemented.
 - **Native accessibility** — the scene maps to an AccessKit tree with roles,
@@ -151,10 +151,10 @@ app.tsx ─ compiler ─ bundle
 - **ScrollView** — wheel scrolling with a scrollbar for arbitrary content.
 - **Boundary** — render errors and effect errors from the subtree show a
   fallback with reset instead of a blank screen.
-- **Devtools** — `installDevtools()` from `tardisjs/devtools` overlays the live
+- **Devtools** — `installDevtools()` from `tardis-ts/devtools` overlays the live
   scene tree and the patch stream.
 - **HiDPI** — native layout stays logical; raster, text, surfaces, and input use
-  the window scale factor. `tardis-native --scale` covers headless images.
+  the window scale factor. `tardis-ts-native --scale` covers headless images.
 - **Semantic web output** — `button`, `h1`, `p`, `ul`, `li`, `label`, `strong`,
   and `em` render as real elements instead of generic divs.
 
@@ -204,7 +204,7 @@ if (typeof document !== 'undefined') render(() => <App />)
 On the server:
 
 ```ts
-import { renderToString, renderDocument } from '@devansharora18/tardisjs/ssr'
+import { renderToString, renderDocument } from '@devansharora18/tardis-ts/ssr'
 import { App } from './app'
 
 const body = renderToString(App)
@@ -214,7 +214,7 @@ const html = renderDocument(body, { title: 'My app', script: '/app.js' })
 On the client:
 
 ```ts
-import { hydrate } from '@devansharora18/tardisjs/ssr'
+import { hydrate } from '@devansharora18/tardis-ts/ssr'
 hydrate(App, document.getElementById('app')!)
 ```
 
@@ -227,12 +227,12 @@ streaming yet.
 
 | Command | What it does |
 |---|---|
-| `tardis init` | Create `app.tsx`, `package.json`, `tsconfig.json` |
-| `tardis build [entry]` | Bundle native (`dist/app.js`) or `--target web` (`dist/web/app.js` + shell) |
-| `tardis run [entry]` | Build and open the native window |
-| `tardis dev [entry]` | Native: restart on change. `--target web`: serve + reload |
-| `tardis screenshot [entry]` | Native headless PNG; `--dump` writes scene JSON |
-| `tardis preview` | Serve a built web app |
+| `tardis-ts init` | Create `app.tsx`, `package.json`, `tsconfig.json` |
+| `tardis-ts build [entry]` | Bundle native (`dist/app.js`) or `--target web` (`dist/web/app.js` + shell) |
+| `tardis-ts run [entry]` | Build and open the native window |
+| `tardis-ts dev [entry]` | Native: restart on change. `--target web`: serve + reload |
+| `tardis-ts screenshot [entry]` | Native headless PNG; `--dump` writes scene JSON |
+| `tardis-ts preview` | Serve a built web app |
 
 Options: `--target native|web`, `--out`, `--minify`, `--width`, `--height`,
 `--port`, `--dump`.

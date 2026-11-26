@@ -27,7 +27,7 @@ async function mount(entry: string): Promise<{ dom: JSDOM; app: HTMLElement }> {
 
 function leaf(dom: JSDOM, text: string): HTMLElement {
   const found = Array.from(
-    dom.window.document.querySelectorAll<HTMLElement>('[data-tardis]')
+    dom.window.document.querySelectorAll<HTMLElement>('[data-tardis-ts]')
   ).find((element) => element.textContent === text && element.children.length === 0)
   if (!found) throw new Error(`no leaf ${text}`)
   return found

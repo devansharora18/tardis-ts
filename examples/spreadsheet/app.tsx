@@ -1,4 +1,4 @@
-import '@devansharora18/tardisjs/web'
+import '@devansharora18/tardis-ts/web'
 import {
   createSignal,
   dynamic,
@@ -6,7 +6,7 @@ import {
   render,
   TextField,
   VirtualList,
-} from '@devansharora18/tardisjs/scene'
+} from '@devansharora18/tardis-ts/scene'
 import { cellRef, displayCell, type Cells } from './formula'
 
 const ROWS = 100_000

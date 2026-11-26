@@ -23,7 +23,7 @@ export function isInteractive(): boolean {
     process.stdin.isTTY === true &&
     process.stdout.isTTY === true &&
     process.env['CI'] !== 'true' &&
-    process.env['TARDIS_NO_PROMPT'] !== '1'
+    process.env['TARDIS_TS_NO_PROMPT'] !== '1'
   )
 }
 

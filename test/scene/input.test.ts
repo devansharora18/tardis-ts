@@ -45,7 +45,7 @@ function fieldElement(): HTMLElement {
 }
 
 function focusField(): void {
-  focusNode(Number(fieldElement().getAttribute('data-tardis')))
+  focusNode(Number(fieldElement().getAttribute('data-tardis-ts')))
 }
 
 function type(text: string): void {
@@ -229,7 +229,7 @@ describe('focus tree', () => {
       )
     )
     const fields = app().querySelectorAll<HTMLElement>('[role="textbox"]')
-    focusNode(Number(fields[0].getAttribute('data-tardis')))
+    focusNode(Number(fields[0].getAttribute('data-tardis-ts')))
     focusFirst.mockClear()
     key('Tab')
     expect(focusSecond).toHaveBeenCalledTimes(1)
@@ -295,7 +295,7 @@ describe('accessibility actions', () => {
       )
     )
     const element = app().querySelector('button')!
-    const id = Number(element.getAttribute('data-tardis'))
+    const id = Number(element.getAttribute('data-tardis-ts'))
     dispatchEvent({ type: 'a11y', action: 'focus', node: id })
     expect(onFocus).toHaveBeenCalledTimes(1)
     dispatchEvent({ type: 'a11y', action: 'default', node: id })
@@ -308,7 +308,7 @@ describe('accessibility actions', () => {
       jsx(TextField, { value: () => value(), onChange: setValue })
     )
     focusField()
-    const id = Number(fieldElement().getAttribute('data-tardis'))
+    const id = Number(fieldElement().getAttribute('data-tardis-ts'))
     dispatchEvent({ type: 'a11y', action: 'set-value', node: id, text: 'Ada' })
     expect(value()).toBe('Ada')
   })

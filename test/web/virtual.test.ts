@@ -45,7 +45,7 @@ function mount(): HTMLElement {
 }
 
 function rows(app: ParentNode): string[] {
-  return Array.from(app.querySelectorAll<HTMLElement>('[data-tardis]'))
+  return Array.from(app.querySelectorAll<HTMLElement>('[data-tardis-ts]'))
     .filter((element) => element.children.length === 0)
     .map((element) => element.textContent ?? '')
     .filter((text) => text.startsWith('Row '))
@@ -63,7 +63,7 @@ describe('VirtualList', () => {
 
   it('scrolls with wheel events and keeps the window small', () => {
     const app = mount()
-    const list = app.querySelector<HTMLElement>('[data-tardis][style*="overflow: hidden"]')
+    const list = app.querySelector<HTMLElement>('[data-tardis-ts][style*="overflow: hidden"]')
     expect(list).not.toBeNull()
     list!.dispatchEvent(
       new window.WheelEvent('wheel', {
@@ -82,7 +82,7 @@ describe('VirtualList', () => {
 
   it('clamps at the end of the list', () => {
     const app = mount()
-    const list = app.querySelector<HTMLElement>('[data-tardis][style*="overflow: hidden"]')
+    const list = app.querySelector<HTMLElement>('[data-tardis-ts][style*="overflow: hidden"]')
     list!.dispatchEvent(
       new window.WheelEvent('wheel', {
         bubbles: true,

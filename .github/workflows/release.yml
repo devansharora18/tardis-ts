@@ -52,7 +52,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev
-      - run: cargo build --release --manifest-path native/Cargo.toml -p tardis-native --features wgpu
+      - run: cargo build --release --manifest-path native/Cargo.toml -p tardis-ts-native --features wgpu
 
       - name: Import macOS certificate
         if: runner.os == 'macOS' && env.MACOS_CERTIFICATE != ''
@@ -63,13 +63,13 @@ jobs:
           security unlock-keychain -p actions tardis.keychain
           security import /tmp/tardis-cert.p12 -k tardis.keychain -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k actions tardis.keychain
-          codesign --force --options runtime --timestamp --sign "$MACOS_SIGN_IDENTITY" native/target/release/tardis-native
-          codesign --verify --verbose native/target/release/tardis-native
+          codesign --force --options runtime --timestamp --sign "$MACOS_SIGN_IDENTITY" native/target/release/tardis-ts-native
+          codesign --verify --verbose native/target/release/tardis-ts-native
       - name: Notarize macOS binary
         if: runner.os == 'macOS' && env.MACOS_CERTIFICATE != '' && env.APPLE_ID != ''
         run: |
-          ditto -c -k --keepParent native/target/release/tardis-native /tmp/tardis-native.zip
-          xcrun notarytool submit /tmp/tardis-native.zip \
+          ditto -c -k --keepParent native/target/release/tardis-ts-native /tmp/tardis-ts-native.zip
+          xcrun notarytool submit /tmp/tardis-ts-native.zip \
             --apple-id "$APPLE_ID" \
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_PASSWORD" \
@@ -82,7 +82,7 @@ jobs:
           [IO.File]::WriteAllBytes("cert.pfx", [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
           & signtool sign /f cert.pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD `
             /tr http://timestamp.digicert.com /td sha256 /fd sha256 `
-            native/target/release/tardis-native.exe
+            native/target/release/tardis-ts-native.exe
 
       - name: Assemble platform package
         shell: bash
@@ -91,7 +91,7 @@ jobs:
           if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
             VERSION="$(node -p "require('./package.json').version")"
           fi
-          BINARY="native/target/release/tardis-native"
+          BINARY="native/target/release/tardis-ts-native"
           if [ "${{ matrix.platform }}" = "win32" ]; then BINARY="$BINARY.exe"; fi
           node scripts/package-native.mjs \
             --platform "${{ matrix.platform }}" \
@@ -102,7 +102,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: tardis-native-${{ matrix.platform }}-${{ matrix.arch }}
+          name: tardis-ts-native-${{ matrix.platform }}-${{ matrix.arch }}
           path: platform-dist/
           if-no-files-found: error
 
@@ -128,7 +128,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: platform-dist
-          pattern: tardis-native-*
+          pattern: tardis-ts-native-*
           merge-multiple: true
       - name: Publish platform packages
         if: env.NODE_AUTH_TOKEN != ''

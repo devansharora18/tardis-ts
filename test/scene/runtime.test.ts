@@ -21,7 +21,7 @@ let handle: RenderHandle | null = null
 
 beforeEach(() => {
   patches = []
-  ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] = (
+  ;(globalThis as unknown as Record<string, unknown>)['__tardis_ts_flush'] = (
     json: string
   ): void => {
     patches.push(JSON.parse(json) as Patch)
@@ -81,7 +81,7 @@ async function build(source: string, name: string): Promise<Record<string, unkno
   const result = compileTsx(source, `${name}.tsx`)
   expect(result.diagnostics).toEqual([])
   const code = result.code.replace(
-    /from\s+['"](?:@devansharora18\/)?tardisjs\/scene['"]/g,
+    /from\s+['"](?:@devansharora18\/)?tardis-ts\/scene['"]/g,
     "from '../../../src/scene/index'"
   )
   const file = path.join(GEN, `${name}_${counter}.mjs`)
@@ -116,7 +116,7 @@ describe('scene runtime', () => {
 
   it('updates dynamic text without recreating the node', async () => {
     const mod = await build(
-      `import { createSignal } from '@devansharora18/tardisjs/scene'
+      `import { createSignal } from '@devansharora18/tardis-ts/scene'
        export const [count, setCount] = createSignal(0)
        export const App = () => <h1>Count: {count()}</h1>`,
       'Counter'
@@ -133,7 +133,7 @@ describe('scene runtime', () => {
 
   it('updates reactive style props in place', async () => {
     const mod = await build(
-      `import { createSignal } from '@devansharora18/tardisjs/scene'
+      `import { createSignal } from '@devansharora18/tardis-ts/scene'
        export const [hot, setHot] = createSignal(false)
        export const App = () => (
          <div style={{ backgroundColor: hot() ? '#ff0000' : '#000000' }}>x</div>
@@ -151,7 +151,7 @@ describe('scene runtime', () => {
 
   it('updates component props through getters', async () => {
     const mod = await build(
-      `import { createSignal } from '@devansharora18/tardisjs/scene'
+      `import { createSignal } from '@devansharora18/tardis-ts/scene'
        const Card = (props) => <h2>{props.title()}</h2>
        export const [title, setTitle] = createSignal('first')
        export const App = () => <div><Card title={title()} /></div>`,
@@ -166,7 +166,7 @@ describe('scene runtime', () => {
 
   it('clicks bubble from the text child to the button view', async () => {
     const mod = await build(
-      `import { createSignal } from '@devansharora18/tardisjs/scene'
+      `import { createSignal } from '@devansharora18/tardis-ts/scene'
        export const [clicks, setClicks] = createSignal(0)
        export const App = () => (
          <button onClick={() => setClicks(clicks() + 1)}>go</button>
@@ -183,7 +183,7 @@ describe('scene runtime', () => {
 
   it('swaps conditional branches', async () => {
     const mod = await build(
-      `import { createSignal } from '@devansharora18/tardisjs/scene'
+      `import { createSignal } from '@devansharora18/tardis-ts/scene'
        export const [on, setOn] = createSignal(true)
        export const App = () => <div>{on() ? <span>yes</span> : <span>no</span>}</div>`,
       'Conditional'
@@ -198,7 +198,7 @@ describe('scene runtime', () => {
 
   it('rebuilds dynamic arrays with new content', async () => {
     const mod = await build(
-      `import { createSignal } from '@devansharora18/tardisjs/scene'
+      `import { createSignal } from '@devansharora18/tardis-ts/scene'
        export const [items, setItems] = createSignal(['a', 'b'])
        export const App = () => (
          <div>{items().map((item) => <span key={item}>{item}</span>)}</div>
@@ -216,7 +216,7 @@ describe('scene runtime', () => {
 
   it('stops effects after dispose', async () => {
     const mod = await build(
-      `import { createSignal } from '@devansharora18/tardisjs/scene'
+      `import { createSignal } from '@devansharora18/tardis-ts/scene'
        export const [count, setCount] = createSignal(0)
        export const App = () => <h1>{count()}</h1>`,
       'Dispose'

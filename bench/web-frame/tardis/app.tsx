@@ -1,5 +1,5 @@
-import '@devansharora18/tardisjs/web'
-import { createSignal, dynamic, jsx, render } from '@devansharora18/tardisjs/scene'
+import '@devansharora18/tardis-ts/web'
+import { createSignal, dynamic, jsx, render } from '@devansharora18/tardis-ts/scene'
 
 const ROWS = 10_000
 const FRAMES = 120

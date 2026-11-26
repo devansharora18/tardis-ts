@@ -1,5 +1,5 @@
-import '@devansharora18/tardisjs/web'
-import { render, VirtualList } from '@devansharora18/tardisjs/scene'
+import '@devansharora18/tardis-ts/web'
+import { render, VirtualList } from '@devansharora18/tardis-ts/scene'
 
 const rows = Array.from({ length: 10_000 }, (_, index) => `Row ${index}`)
 

@@ -10,7 +10,7 @@ use std::sync::Arc;
 use raw_window_handle::{
     DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
 };
-use tardis_core::Engine;
+use tardis_ts_core::Engine;
 
 const ALIGN: u32 = 256;
 
@@ -84,7 +84,7 @@ impl GpuPresenter {
         surface.configure(&device, &config);
 
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("tardis present"),
+            label: Some("tardis-ts present"),
             source: wgpu::ShaderSource::Wgsl(include_str!("present.wgsl").into()),
         });
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -109,12 +109,12 @@ impl GpuPresenter {
             ],
         });
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("tardis present"),
+            label: Some("tardis-ts present"),
             bind_group_layouts: &[&layout],
             push_constant_ranges: &[],
         });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("tardis present"),
+            label: Some("tardis-ts present"),
             layout: Some(&pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
@@ -202,11 +202,11 @@ impl GpuPresenter {
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("tardis present"),
+                label: Some("tardis-ts present"),
             });
         {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("tardis present"),
+                label: Some("tardis-ts present"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
                     resolve_target: None,

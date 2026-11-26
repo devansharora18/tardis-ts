@@ -30,7 +30,7 @@ describe('web bundle', () => {
     const html = fs.readFileSync(result.shell!, 'utf8')
     expect(html).toContain('id="app"')
     expect(html).toContain('src="./app.js"')
-    expect(html).toContain('<title>Tardis app</title>')
+    expect(html).toContain('<title>Tardis TS app</title>')
 
     const code = fs.readFileSync(outfile, 'utf8')
     const dom = new JSDOM(html, {
@@ -44,7 +44,7 @@ describe('web bundle', () => {
     expect(app.textContent).toContain('Count: 0')
 
     const increment = Array.from(
-      app.querySelectorAll<HTMLElement>('[data-tardis]')
+      app.querySelectorAll<HTMLElement>('[data-tardis-ts]')
     ).find((element) => element.textContent === 'Increment' && element.children.length === 0)
     expect(increment).toBeDefined()
     increment!.dispatchEvent(

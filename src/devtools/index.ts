@@ -20,7 +20,7 @@ export interface DevtoolsHandle {
 }
 
 const MAX_FRAMES = 12
-const PANEL_ID = 'tardis-devtools'
+const PANEL_ID = 'tardis-ts-devtools'
 
 function label(node: SceneNode): string {
   const role = node.a11y['role']
@@ -46,7 +46,7 @@ function style(element: HTMLElement, values: Partial<CSSStyleDeclaration>): void
 
 export function installDevtools(options: DevtoolsOptions = {}): DevtoolsHandle {
   if (typeof document === 'undefined') {
-    throw new Error('tardis: devtools needs a DOM')
+    throw new Error('tardis-ts: devtools needs a DOM')
   }
   const host = options.container ?? document.body
   const toggle = document.createElement('button')

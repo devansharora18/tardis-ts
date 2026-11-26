@@ -14,16 +14,16 @@ type Factory = () => unknown
 export function renderToString(factory: Factory): string {
   const host = new StringHost()
   const g = globalThis as unknown as Record<string, unknown>
-  const previous = g['__tardis_flush']
-  g['__tardis_flush'] = host.flush
+  const previous = g['__tardis_ts_flush']
+  g['__tardis_ts_flush'] = host.flush
   let handle: RenderHandle | null = null
   try {
     handle = render(factory)
     return host.html()
   } finally {
     handle?.dispose()
-    if (previous === undefined) delete g['__tardis_flush']
-    else g['__tardis_flush'] = previous
+    if (previous === undefined) delete g['__tardis_ts_flush']
+    else g['__tardis_ts_flush'] = previous
   }
 }
 
@@ -49,7 +49,7 @@ export function renderDocument(
   bodyHtml: string,
   options: DocumentOptions = {}
 ): string {
-  const title = escapeText(options.title ?? 'Tardis app')
+  const title = escapeText(options.title ?? 'Tardis TS app')
   const head = options.head ?? ''
   const script = options.script
     ? `<script src="${escapeAttr(options.script)}"></script>`

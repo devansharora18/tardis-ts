@@ -8,8 +8,8 @@ use accesskit::{
     Action, DefaultActionVerb, Node as AccessNode, NodeBuilder, NodeClassSet, NodeId, Rect, Role,
     Tree, TreeUpdate,
 };
-use tardis_core::layout::ComputedLayout;
-use tardis_core::scene::{FlexDirection, Node, NodeKind, Scene};
+use tardis_ts_core::layout::ComputedLayout;
+use tardis_ts_core::scene::{FlexDirection, Node, NodeKind, Scene};
 
 const WINDOW_ID: NodeId = NodeId(0);
 
@@ -317,7 +317,7 @@ pub fn tree_update(
         tree: Some(Tree {
             root: WINDOW_ID,
             app_name: Some("Tardis".to_string()),
-            toolkit_name: Some("TardisJS".to_string()),
+            toolkit_name: Some("Tardis TS".to_string()),
             toolkit_version: Some(env!("CARGO_PKG_VERSION").to_string()),
         }),
         focus,
@@ -333,7 +333,7 @@ pub fn target_scene_id(id: NodeId) -> Option<u32> {
 mod tests {
     use super::*;
     use accesskit::Action;
-    use tardis_core::Engine;
+    use tardis_ts_core::Engine;
 
     fn engine_with(ops: &str) -> Engine {
         let mut engine = Engine::new(300.0, 200.0);

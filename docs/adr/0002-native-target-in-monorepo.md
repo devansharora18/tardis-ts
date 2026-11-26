@@ -1,4 +1,4 @@
-# 0002 — Native target ships inside the TardisJS repository
+# 0002 — Native target ships inside the Tardis TS repository
 
 Status: accepted    Date: 2026-11-26    Deciders: Devansh Arora
 Amends: ADR 0001 (repository location only)
@@ -9,12 +9,12 @@ ADR 0001 chose the native architecture: an embedded JS engine plus a small Rust
 renderer. It assumed a new repository because the native core needs Cargo and a
 different release pipeline.
 
-TardisJS already owns the parser, the blueprint syntax, expression rewriting,
+Tardis TS already owns the parser, the blueprint syntax, expression rewriting,
 signals, the test suite, the CLI, the npm package, the docs site, and 19
 examples. The native target needs all of that on day one. A second repository
 would vendor the compiler immediately, then drift from it.
 
-The npm package is also an asset: `tardisjs` is published and installable.
+The npm package is also an asset: `tardis-ts` is published and installable.
 Moving the work to a new name would break installs and churn every import,
 demo, test, and doc before a single native frame renders.
 
@@ -26,7 +26,7 @@ demo, test, and doc before a single native frame renders.
 2. **Same repository, rename the package first.** One brand, but it breaks
    existing installs and makes every diff during the native work a rename diff.
    No technical gain.
-3. **Same repository, additive native target** (chosen). The `tardisjs`
+3. **Same repository, additive native target** (chosen). The `tardis-ts`
    package and web backend stay. A `native/` Cargo workspace and a native
    codegen backend are added. The npm package continues to ship the compiler
    and web runtime; native binaries ship later as optional platform packages.
@@ -66,8 +66,8 @@ the native work.
 - The main package stays installable and the 756 existing tests keep protecting
   the shared layers.
 - ADR 0001's architecture stands. Its new-repository consequence is void.
-- The `basalt` working name is dropped. The umbrella stays TardisJS; the native
-  binary is `tardis-native` until a rename says otherwise.
+- The `basalt` working name is dropped. The umbrella stays Tardis TS; the native
+  binary is `tardis-ts-native` until a rename says otherwise.
 
 ## Revisit
 

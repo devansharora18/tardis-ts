@@ -2854,16 +2854,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "tardis-bench"
+name = "tardis-ts-bench"
 version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
- "tardis-core",
+ "tardis-ts-core",
 ]
 
 [[package]]
-name = "tardis-core"
+name = "tardis-ts-core"
 version = "0.1.0"
 dependencies = [
  "base64",
@@ -2876,16 +2876,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "tardis-js"
+name = "tardis-ts-js"
 version = "0.1.0"
 dependencies = [
  "arboard",
  "rquickjs",
- "tardis-core",
+ "tardis-ts-core",
 ]
 
 [[package]]
-name = "tardis-native"
+name = "tardis-ts-native"
 version = "0.1.0"
 dependencies = [
  "accesskit",
@@ -2894,8 +2894,8 @@ dependencies = [
  "raw-window-handle",
  "serde_json",
  "softbuffer",
- "tardis-core",
- "tardis-js",
+ "tardis-ts-core",
+ "tardis-ts-js",
  "wgpu",
  "winit",
 ]

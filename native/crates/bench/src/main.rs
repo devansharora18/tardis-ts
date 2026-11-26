@@ -7,16 +7,16 @@
 //   - layout only / paint only
 //
 // Run release for meaningful numbers:
-//   cargo run -p tardis-bench --release -- --rows 10000 --runs 5
+//   cargo run -p tardis-ts-bench --release -- --rows 10000 --runs 5
 
 use std::time::Instant;
 
 use serde::Serialize;
-use tardis_core::layout::ComputedLayout;
-use tardis_core::paint::{render, RenderOptions};
-use tardis_core::patch::{Op, Patch};
-use tardis_core::scene::{AlignItems, Color, FlexDirection, Node, NodeKind, Scene};
-use tardis_core::{Engine, TextEngine};
+use tardis_ts_core::layout::ComputedLayout;
+use tardis_ts_core::paint::{render, RenderOptions};
+use tardis_ts_core::patch::{Op, Patch};
+use tardis_ts_core::scene::{AlignItems, Color, FlexDirection, Node, NodeKind, Scene};
+use tardis_ts_core::{Engine, TextEngine};
 
 const WIDTH: f32 = 1200.0;
 const HEIGHT: f32 = 800.0;
@@ -63,7 +63,7 @@ fn main() {
                     .unwrap_or(runs);
             }
             "--help" | "-h" => {
-                println!("tardis-bench [--rows N] [--runs N]");
+                println!("tardis-ts-bench [--rows N] [--runs N]");
                 return;
             }
             other => {

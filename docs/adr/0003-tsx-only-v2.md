@@ -5,7 +5,7 @@ Supersedes: the "web backend stays" consequences of ADR 0001 and 0002
 
 ## Context
 
-TardisJS v1 ships a custom `.tardis` blueprint DSL: a lexer, a parser, and a
+Tardis TS v1 ships a custom `.tardis` blueprint DSL: a lexer, a parser, and a
 compiler that emits DOM operations. The v2 directive is:
 
 - the surface is TSX only; `.tardis` is removed,
@@ -29,8 +29,8 @@ users the editor, types, and ecosystem they already know.
 
 ## Decision
 
-Option 3. TardisJS 2.0 is a TSX framework with a native renderer. The package
-name stays `@devansharora18/tardisjs`; the version becomes `2.0.0-alpha.0`.
+Option 3. Tardis TS 2.0 is a TSX framework with a native renderer. The package
+name stays `@devansharora18/tardis-ts`; the version becomes `2.0.0-alpha.0`.
 No compatibility layer, no `.tardis` loader, no deprecation period.
 
 The native target is first. A web backend is deferred to M7 and will consume the

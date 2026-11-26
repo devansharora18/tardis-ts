@@ -25,13 +25,13 @@ if (!fs.existsSync(values.binary)) {
   process.exit(1)
 }
 
-const folder = `tardisjs-${values.platform}-${values.arch}`
+const folder = `tardis-ts-${values.platform}-${values.arch}`
 const root = path.resolve(values.out, folder)
 const bin = path.join(root, 'bin')
 fs.rmSync(root, { recursive: true, force: true })
 fs.mkdirSync(bin, { recursive: true })
 
-const name = values.platform === 'win32' ? 'tardis-native.exe' : 'tardis-native'
+const name = values.platform === 'win32' ? 'tardis-ts-native.exe' : 'tardis-ts-native'
 const target = path.join(bin, name)
 fs.copyFileSync(values.binary, target)
 if (values.platform !== 'win32') fs.chmodSync(target, 0o755)
@@ -42,7 +42,7 @@ fs.writeFileSync(
     {
       name: `@devansharora18/${folder}`,
       version: values.version,
-      description: `TardisJS native runtime for ${values.platform}-${values.arch}`,
+      description: `Tardis TS native runtime for ${values.platform}-${values.arch}`,
       license: 'MIT',
       os: [values.platform],
       cpu: [values.arch],

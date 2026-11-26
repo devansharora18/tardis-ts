@@ -28,7 +28,7 @@ export interface SceneEvent {
 export type EventHandler = (event: SceneEvent) => void
 
 export interface DynamicValue {
-  readonly __tardisDynamic: true
+  readonly __tardisTsDynamic: true
   readonly fn: () => unknown
 }
 

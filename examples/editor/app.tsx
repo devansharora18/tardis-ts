@@ -1,4 +1,4 @@
-import '@devansharora18/tardisjs/web'
+import '@devansharora18/tardis-ts/web'
 import {
   createSignal,
   dynamic,
@@ -9,7 +9,7 @@ import {
   TextField,
   writeClipboard,
   type SceneEvent,
-} from '@devansharora18/tardisjs/scene'
+} from '@devansharora18/tardis-ts/scene'
 import { tokenize, type Language } from './syntax'
 
 interface File {

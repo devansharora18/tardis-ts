@@ -12,7 +12,7 @@ function installEventHook(): void {
   if (installed) return
   installed = true
   const g = globalThis as unknown as Record<string, unknown>
-  g['__tardis_event'] = (json: string): void => {
+  g['__tardis_ts_event'] = (json: string): void => {
     try {
       dispatchEvent(JSON.parse(json) as SceneEvent)
     } catch (err) {

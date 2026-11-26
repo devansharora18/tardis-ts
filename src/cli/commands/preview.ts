@@ -16,12 +16,12 @@ export async function previewProject(
     await fs.access(path.join(dir, 'index.html'))
   } catch {
     throw new Error(
-      `No web build at ${dir}. Run "tardis build --target web" first.`
+      `No web build at ${dir}. Run "tardis-ts build --target web" first.`
     )
   }
   const server = await serveDirectory({ dir, port: options.port ?? 4173 })
   console.log(
-    `tardis: serving ${path.relative(cwd, dir) || dir} at ${server.url}`
+    `tardis-ts: serving ${path.relative(cwd, dir) || dir} at ${server.url}`
   )
   return server
 }

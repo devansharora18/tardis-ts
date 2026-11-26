@@ -1,4 +1,4 @@
-use tardis_core::Engine;
+use tardis_ts_core::Engine;
 
 fn main() {
     let mut engine = Engine::new(400.0, 300.0);

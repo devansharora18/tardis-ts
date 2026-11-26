@@ -6,7 +6,7 @@ Status: accepted    Date: 2026-11-26    Deciders: Devansh Arora
 
 V0 embeds QuickJS through rquickjs. It was chosen for size and simplicity: a
 small C engine, no JIT, no per-platform V8 build, and a narrow host boundary
-(`__tardis_flush`, `__tardis_event`). It proved the TSX → scene → Rust pipeline.
+(`__tardis_ts_flush`, `__tardis_ts_event`). It proved the TSX → scene → Rust pipeline.
 
 The goal is a TSX framework that is competitive with Rust UI frameworks such as
 Dioxus. The honest performance facts:

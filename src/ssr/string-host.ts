@@ -59,7 +59,7 @@ export class StringHost {
     const children = this.root.children
       .map((id) => this.serialize(id))
       .join('')
-    return `<div data-tardis="0" style="${escapeAttr(style)}">${children}</div>`
+    return `<div data-tardis-ts="0" style="${escapeAttr(style)}">${children}</div>`
   }
 
   private apply(op: HostOp): void {
@@ -176,7 +176,7 @@ export class StringHost {
   }
 
   private attributes(node: StringNode, style: string): string {
-    let out = ` data-tardis="${node.id}"`
+    let out = ` data-tardis-ts="${node.id}"`
     if (style) out += ` style="${escapeAttr(style)}"`
     for (const [key, value] of Object.entries(node.a11y)) {
       if (value === null || value === undefined) continue

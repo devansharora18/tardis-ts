@@ -1,6 +1,6 @@
 use std::fs;
 
-use tardis_core::Engine;
+use tardis_ts_core::Engine;
 use tiny_skia::Pixmap;
 
 fn apply(engine: &mut Engine, ops: &str) {
@@ -201,7 +201,7 @@ fn clips_overflow_hidden_children_to_the_parent() {
 
 #[test]
 fn renders_png_images() {
-    use tardis_core::scene::{Node, NodeKind};
+    use tardis_ts_core::scene::{Node, NodeKind};
 
     let dir = tempfile::tempdir().unwrap();
     let image_path = dir.path().join("red.png");
@@ -274,7 +274,7 @@ fn stores_accessibility_attributes() {
 
 #[test]
 fn renders_at_hidpi_scale() {
-    use tardis_core::scene::{Node, NodeKind};
+    use tardis_ts_core::scene::{Node, NodeKind};
 
     let mut engine = Engine::new(20.0, 20.0);
     engine.set_scale(2.0);
@@ -282,7 +282,7 @@ fn renders_at_hidpi_scale() {
     node.parent = Some(0);
     node.style.width = Some(10.0);
     node.style.height = Some(10.0);
-    node.style.background = Some(tardis_core::Color::rgb(0xff, 0, 0));
+    node.style.background = Some(tardis_ts_core::Color::rgb(0xff, 0, 0));
     engine.scene.nodes.insert(1, node);
     engine.scene.nodes.get_mut(&0).unwrap().children.push(1);
     engine.relayout().unwrap();
@@ -349,7 +349,7 @@ fn focus_op_tracks_and_validates_the_focused_node() {
 
 #[test]
 fn ellipsis_truncates_to_the_available_width() {
-    let mut text = tardis_core::TextEngine::new();
+    let mut text = tardis_ts_core::TextEngine::new();
     let short = text.ellipsize("Hi", 16.0, 400, None, 100.0);
     assert_eq!(short, "Hi");
 
@@ -399,6 +399,6 @@ fn render_rgba_returns_opaque_rgba_bytes() {
 
 #[test]
 fn parses_transparent_colors() {
-    let color = tardis_core::Color::parse("transparent").unwrap();
+    let color = tardis_ts_core::Color::parse("transparent").unwrap();
     assert_eq!(color.a, 0);
 }

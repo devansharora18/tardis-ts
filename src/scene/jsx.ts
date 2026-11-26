@@ -22,10 +22,10 @@ import type {
   Style,
 } from './types'
 
-export const Fragment: unique symbol = Symbol.for('tardisjs.fragment')
+export const Fragment: unique symbol = Symbol.for('tardis-ts.fragment')
 
 export function dynamic(fn: () => unknown): DynamicValue {
-  return { __tardisDynamic: true, fn }
+  return { __tardisTsDynamic: true, fn }
 }
 
 interface TagSpec {
@@ -167,7 +167,7 @@ export function jsx(
     if (key !== null) node.key = key
     return node
   }
-  throw new Error(`tardis: unsupported JSX element type: ${String(type)}`)
+  throw new Error(`tardis-ts: unsupported JSX element type: ${String(type)}`)
 }
 
 function normalizeResult(value: unknown): SceneNode {
@@ -186,7 +186,7 @@ function normalizeResult(value: unknown): SceneNode {
   if (value === null || value === undefined || typeof value === 'boolean') {
     return fragment([])
   }
-  throw new Error(`tardis: component returned an unsupported value (${typeof value})`)
+  throw new Error(`tardis-ts: component returned an unsupported value (${typeof value})`)
 }
 
 function fragment(children: readonly unknown[]): SceneNode {
@@ -199,7 +199,7 @@ function host(tag: string, props: Record<string, unknown>, children: unknown[]):
   const spec = TAGS[tag]
   if (!spec) {
     throw new Error(
-      `tardis: unknown element <${tag}>. Supported: ${Object.keys(TAGS).sort().join(', ')}`
+      `tardis-ts: unknown element <${tag}>. Supported: ${Object.keys(TAGS).sort().join(', ')}`
     )
   }
 

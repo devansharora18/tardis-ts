@@ -34,15 +34,15 @@ Option 1. `src/web/` implements `WebHost`, which applies the same patch ops:
 - `image` → `<img>`,
 - `fragment` → `<div>` with `display: contents`,
 - styles → CSS properties (`box-sizing: border-box` to match taffy),
-- pointerdown/pointerup delegated to `closest('[data-tardis]')` and forwarded to
+- pointerdown/pointerup delegated to `closest('[data-tardis-ts]')` and forwarded to
   the runtime's `dispatchEvent`.
 
-The app imports `@devansharora18/tardisjs/web` for its side effect. In QuickJS
+The app imports `@devansharora18/tardis-ts/web` for its side effect. In QuickJS
 `typeof document === 'undefined'`, so the import is a no-op and the native host
-keeps `__tardis_flush`.
+keeps `__tardis_ts_flush`.
 
-`tardis build --target web` emits a browser IIFE plus a generated `index.html`.
-`tardis dev --target web` serves it and reloads after rebuilds.
+`tardis-ts build --target web` emits a browser IIFE plus a generated `index.html`.
+`tardis-ts dev --target web` serves it and reloads after rebuilds.
 
 ## Consequences
 

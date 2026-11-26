@@ -22,7 +22,7 @@ export function findEntry(cwd: string, explicit?: string): string {
     if (fs.existsSync(entry)) return entry
   }
   throw new Error(
-    `No app entry found. Create app.tsx, or pass a path: tardis build src/main.tsx`
+    `No app entry found. Create app.tsx, or pass a path: tardis-ts build src/main.tsx`
   )
 }
 
@@ -34,28 +34,28 @@ export function nativeBinaryCandidates(
 ): string[] {
   const exe = platform === 'win32' ? '.exe' : ''
   const target = `${platform}-${arch}`
-  // Installed layout: .../@devansharora18/tardisjs/dist/bin -> ../../../ is
+  // Installed layout: .../@devansharora18/tardis-ts/dist/bin -> ../../../ is
   // the @devansharora18 scope directory.
   return [
     path.resolve(
       cwd,
-      `node_modules/@devansharora18/tardisjs-${target}/bin/tardis-native${exe}`
+      `node_modules/@devansharora18/tardis-ts-${target}/bin/tardis-ts-native${exe}`
     ),
-    path.resolve(here, `../../../tardisjs-${target}/bin/tardis-native${exe}`),
-    path.resolve(cwd, `native/target/release/tardis-native${exe}`),
-    path.resolve(cwd, `native/target/debug/tardis-native${exe}`),
-    path.resolve(here, `../../native/target/release/tardis-native${exe}`),
-    path.resolve(here, `../../native/target/debug/tardis-native${exe}`),
-    path.resolve(here, `../../../native/target/release/tardis-native${exe}`),
-    path.resolve(here, `../../../native/target/debug/tardis-native${exe}`),
-    path.resolve(cwd, `node_modules/.bin/tardis-native${exe}`),
-    path.resolve(here, `../bin/tardis-native${exe}`),
+    path.resolve(here, `../../../tardis-ts-${target}/bin/tardis-ts-native${exe}`),
+    path.resolve(cwd, `native/target/release/tardis-ts-native${exe}`),
+    path.resolve(cwd, `native/target/debug/tardis-ts-native${exe}`),
+    path.resolve(here, `../../native/target/release/tardis-ts-native${exe}`),
+    path.resolve(here, `../../native/target/debug/tardis-ts-native${exe}`),
+    path.resolve(here, `../../../native/target/release/tardis-ts-native${exe}`),
+    path.resolve(here, `../../../native/target/debug/tardis-ts-native${exe}`),
+    path.resolve(cwd, `node_modules/.bin/tardis-ts-native${exe}`),
+    path.resolve(here, `../bin/tardis-ts-native${exe}`),
   ]
 }
 
 export function findNativeBinary(cwd: string): string {
-  if (process.env['TARDIS_NATIVE_BIN']) {
-    return process.env['TARDIS_NATIVE_BIN']
+  if (process.env['TARDIS_TS_NATIVE_BIN']) {
+    return process.env['TARDIS_TS_NATIVE_BIN']
   }
   const here = path.dirname(fileURLToPath(import.meta.url))
   const platform = `${process.platform}-${process.arch}`
@@ -65,11 +65,11 @@ export function findNativeBinary(cwd: string): string {
   }
   throw new Error(
     'Native runtime not found.\n' +
-      `  Platform package: @devansharora18/tardisjs-${platform}\n` +
+      `  Platform package: @devansharora18/tardis-ts-${platform}\n` +
       '  In an installed app:\n' +
-      '    cargo build --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml\n' +
-      '  In the TardisJS repo:\n' +
+      '    cargo build --manifest-path node_modules/@devansharora18/tardis-ts/native/Cargo.toml\n' +
+      '  In the Tardis TS repo:\n' +
       '    cargo build --manifest-path native/Cargo.toml\n' +
-      '  Or set TARDIS_NATIVE_BIN to the binary path.'
+      '  Or set TARDIS_TS_NATIVE_BIN to the binary path.'
   )
 }

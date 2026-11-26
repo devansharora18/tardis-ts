@@ -33,7 +33,7 @@ const MIME: Record<string, string> = {
   '.ttf': 'font/ttf',
 }
 
-const RELOAD_SCRIPT = `<script>(()=>{let v=null;setInterval(async()=>{try{const r=await fetch('/__tardis_version',{cache:'no-store'});const n=await r.text();if(v!==null&&n!==v)location.reload();v=n}catch{}},700)})()</script>`
+const RELOAD_SCRIPT = `<script>(()=>{let v=null;setInterval(async()=>{try{const r=await fetch('/__tardis_ts_version',{cache:'no-store'});const n=await r.text();if(v!==null&&n!==v)location.reload();v=n}catch{}},700)})()</script>`
 
 export async function serveDirectory(
   options: ServeOptions
@@ -44,7 +44,7 @@ export async function serveDirectory(
   const server = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url ?? '/', 'http://localhost')
-      if (url.pathname === '/__tardis_version') {
+      if (url.pathname === '/__tardis_ts_version') {
         res.writeHead(200, {
           'content-type': 'text/plain; charset=utf-8',
           'cache-control': 'no-store',

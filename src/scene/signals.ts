@@ -25,7 +25,7 @@ export interface Owner {
   disposed: boolean
 }
 
-const IS_SIGNAL = Symbol('tardisjs:isSignal')
+const IS_SIGNAL = Symbol('tardis-ts:isSignal')
 
 function brand<T extends object>(obj: T): T {
   ;(obj as Record<symbol, unknown>)[IS_SIGNAL] = true

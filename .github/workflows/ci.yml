@@ -48,6 +48,6 @@ jobs:
       - run: cargo build --release
         working-directory: native
       - name: Native screenshot smoke
-        run: node dist/bin/tardis.js screenshot examples/forms/app.tsx -o forms.png
+        run: node dist/bin/tardis-ts.js screenshot examples/forms/app.tsx -o forms.png
       - name: Verify screenshot
         run: node -e "if (!require('node:fs').existsSync('forms.png')) process.exit(1)"

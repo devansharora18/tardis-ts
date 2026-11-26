@@ -5,7 +5,7 @@ Note: re-homed from the discarded `basalt` scaffold; architecture unchanged.
 
 ## Context
 
-TardisJS is a compiled TypeScript blueprint framework for the web. It has a
+Tardis TS is a compiled TypeScript blueprint framework for the web. It has a
 parser, a code generator that emits direct DOM operations, fine-grained
 reactivity, SSR, and hydration. Its performance ceiling is the DOM plus
 JavaScript execution, which is the correct ceiling for web apps and the wrong
@@ -21,7 +21,7 @@ and how small that surface can be kept.
 
 ## Options
 
-1. **Stay pure TypeScript on the DOM** (TardisJS today).
+1. **Stay pure TypeScript on the DOM** (Tardis TS today).
    Best DX, zero native maintenance, but the DOM is the ceiling. Cannot hold a
    10k-row table at 60fps without virtualization, and cannot leave the web.
 
@@ -71,7 +71,7 @@ must be maintained in Rust small and stable, while the part that changes daily
   first vertical slice.
 - npm packages that touch the DOM will not work in native builds. Pure-JS
   packages do.
-- The existing TardisJS parser and compiler are reused at commit `6117586`.
+- The existing Tardis TS parser and compiler are reused at commit `6117586`.
   The web backend stays and remains the reference implementation.
 
 ## Revisit
