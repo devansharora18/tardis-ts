@@ -386,3 +386,13 @@ fn draws_view_borders_inside_the_box() {
     let center = frame.pixel(10, 10).unwrap();
     assert!(center.red() < 60, "center not black: {center:?}");
 }
+
+#[test]
+fn render_rgba_returns_opaque_rgba_bytes() {
+    let mut engine = Engine::new(2.0, 2.0);
+    engine.relayout().unwrap();
+    let (pixels, width, height) = engine.render_rgba().unwrap();
+    assert_eq!((width, height), (2, 2));
+    assert_eq!(pixels.len(), 2 * 2 * 4);
+    assert_eq!(&pixels[0..4], &[0x0a, 0x0a, 0x0a, 0xff]);
+}

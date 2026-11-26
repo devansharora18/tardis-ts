@@ -9,12 +9,15 @@ use tardis_js::JsHost;
 
 #[cfg(feature = "window")]
 mod a11y;
+#[cfg(all(feature = "window", feature = "wgpu"))]
+mod gpu;
 
 struct Args {
     bundle: PathBuf,
     width: u32,
     height: u32,
     scale: f32,
+    backend: String,
     headless: bool,
     out: Option<PathBuf>,
     dump: Option<PathBuf>,
@@ -86,7 +89,7 @@ fn run() -> Result<(), String> {
 
     #[cfg(feature = "window")]
     {
-        window::run(host, args.width, args.height)?;
+        window::run(host, args.width, args.height, &args.backend)?;
         Ok(())
     }
     #[cfg(not(feature = "window"))]
@@ -102,6 +105,7 @@ fn parse_args() -> Result<Args, String> {
         width: 800,
         height: 600,
         scale: 1.0,
+        backend: "softbuffer".to_string(),
         headless: false,
         out: None,
         dump: None,
@@ -130,6 +134,21 @@ fn parse_args() -> Result<Args, String> {
                     .ok_or_else(|| "--height needs a value".to_string())?
                     .parse()
                     .map_err(|_| "--height must be a number".to_string())?;
+            }
+            "--backend" => {
+                let value = iter
+                    .next()
+                    .ok_or_else(|| "--backend needs a value".to_string())?;
+                if value != "softbuffer" && value != "wgpu" {
+                    return Err(format!("unknown backend: {value}"));
+                }
+                #[cfg(not(feature = "wgpu"))]
+                if value == "wgpu" {
+                    return Err(
+                        "this build has no wgpu backend; rebuild with --features wgpu".to_string(),
+                    );
+                }
+                args.backend = value;
             }
             "--scale" => {
                 args.scale = iter
@@ -206,6 +225,7 @@ fn print_help() {
          --width <px>      viewport width (default: 800)\n\
          --height <px>     viewport height (default: 600)\n\
          --scale <factor>  device pixel ratio (default: 1)\n\
+         --backend <name>  softbuffer or wgpu (default: softbuffer)\n\
          --headless        render one frame and exit\n\
          --out <path>      PNG output in headless mode (default: frame.png)\n\
          --dump <path>     write the laid-out scene as JSON\n\
@@ -218,7 +238,7 @@ fn print_help() {
 #[cfg(feature = "window")]
 mod window {
     use std::num::NonZeroU32;
-    use std::rc::Rc;
+    use std::sync::Arc;
 
     use raw_window_handle::{
         DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
@@ -307,7 +327,7 @@ mod window {
         }
     }
 
-    struct SharedWindow(Rc<winit::window::Window>);
+    struct SharedWindow(Arc<winit::window::Window>);
 
     impl HasDisplayHandle for SharedWindow {
         fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
@@ -321,11 +341,11 @@ mod window {
         }
     }
 
-    pub fn run(host: JsHost, width: u32, height: u32) -> Result<(), String> {
+    pub fn run(host: JsHost, width: u32, height: u32, backend: &str) -> Result<(), String> {
         let event_loop = EventLoopBuilder::<UserEvent>::with_user_event()
             .build()
             .map_err(|err| format!("event loop: {err}"))?;
-        let window = Rc::new(
+        let window = Arc::new(
             WindowBuilder::new()
                 .with_title("Tardis")
                 .with_inner_size(winit::dpi::LogicalSize::new(width, height))
@@ -342,6 +362,26 @@ mod window {
             .map_err(|err| format!("softbuffer context: {err}"))?;
         let mut surface = softbuffer::Surface::new(&context, SharedWindow(window.clone()))
             .map_err(|err| format!("softbuffer surface: {err}"))?;
+        #[cfg(feature = "wgpu")]
+        let mut presenter = if backend == "wgpu" {
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                crate::gpu::GpuPresenter::new(window.clone())
+            })) {
+                Ok(Ok(presenter)) => Some(presenter),
+                Ok(Err(err)) => {
+                    eprintln!("tardis: wgpu unavailable ({err}); using softbuffer");
+                    None
+                }
+                Err(_) => {
+                    eprintln!("tardis: wgpu init failed; using softbuffer");
+                    None
+                }
+            }
+        } else {
+            None
+        };
+        #[cfg(not(feature = "wgpu"))]
+        let mut presenter: Option<()> = None;
 
         let mut cursor = (0.0_f32, 0.0_f32);
         let mut mouse_down = false;
@@ -375,6 +415,10 @@ mod window {
                                     logical.height.max(1.0),
                                 );
                             }
+                            #[cfg(feature = "wgpu")]
+                            if let Some(presenter) = presenter.as_mut() {
+                                presenter.resize(size.width.max(1), size.height.max(1));
+                            }
                             dirty = true;
                         }
                         WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
@@ -386,6 +430,11 @@ mod window {
                                     logical.width.max(1.0),
                                     logical.height.max(1.0),
                                 );
+                            }
+                            #[cfg(feature = "wgpu")]
+                            if let Some(presenter) = presenter.as_mut() {
+                                let size = window.inner_size();
+                                presenter.resize(size.width.max(1), size.height.max(1));
                             }
                             dirty = true;
                         }
@@ -548,6 +597,18 @@ mod window {
                         }
                         WindowEvent::RedrawRequested => {
                             dirty = false;
+                            #[cfg(feature = "wgpu")]
+                            if let Some(presenter) = presenter.as_mut() {
+                                let result = {
+                                    let engine = host.engine();
+                                    let mut engine = engine.borrow_mut();
+                                    presenter.present(&mut engine)
+                                };
+                                if let Err(err) = result {
+                                    eprintln!("tardis: wgpu present: {err}");
+                                }
+                                return;
+                            }
                             let rendered = {
                                 let engine = host.engine();
                                 let mut engine = engine.borrow_mut();

@@ -41,6 +41,8 @@ jobs:
         working-directory: native
       - run: cargo clippy --workspace --all-targets -- -D warnings
         working-directory: native
+      - run: cargo check --features wgpu
+        working-directory: native
       - run: cargo test --workspace
         working-directory: native
       - run: cargo build --release

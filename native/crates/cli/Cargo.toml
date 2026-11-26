@@ -18,6 +18,8 @@ softbuffer = { version = "0.4", optional = true }
 raw-window-handle = { version = "0.6", optional = true }
 accesskit = { version = "0.13", optional = true }
 accesskit_winit = { version = "0.19", optional = true }
+wgpu = { version = "0.20", optional = true }
+pollster = { version = "0.3", optional = true }
 
 [features]
 default = ["window"]
@@ -28,3 +30,4 @@ window = [
   "dep:accesskit",
   "dep:accesskit_winit",
 ]
+wgpu = ["dep:wgpu", "dep:pollster"]

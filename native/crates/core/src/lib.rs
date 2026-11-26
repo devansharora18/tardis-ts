@@ -170,6 +170,19 @@ impl Engine {
         Ok((pixels, pixmap.width(), pixmap.height()))
     }
 
+    /// RGBA8 raster for GPU presentation.
+    pub fn render_rgba(&mut self) -> Result<(Vec<u8>, u32, u32), String> {
+        let (words, width, height) = self.render_argb()?;
+        let mut pixels = Vec::with_capacity(words.len() * 4);
+        for word in words {
+            pixels.push(((word >> 16) & 0xff) as u8);
+            pixels.push(((word >> 8) & 0xff) as u8);
+            pixels.push((word & 0xff) as u8);
+            pixels.push(255);
+        }
+        Ok((pixels, width, height))
+    }
+
     pub fn hit_test(&self, x: f32, y: f32) -> Option<u32> {
         let layout = self.layout.as_ref()?;
         hit_node(&self.scene, layout, self.scene.root, x, y)
