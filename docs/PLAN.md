@@ -152,3 +152,13 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - 88 JS / 11 Rust tests.
 - Deferred: selection/multiline/IME, nested form arrays, abortable fetches,
   native accesskit.
+
+## SSR/hydration result (2026-11-27)
+
+- `renderToString` / `renderDocument` via a DOM-free StringHost.
+- `hydrate` verified remount: staging render, text comparison, warning/onMismatch,
+  listener/root move to the real container.
+- Shared `web/style.ts` and `web/tags.ts` keep server and client markup aligned.
+- `tardisjs/ssr` subpath export and bundle.
+- 93 JS / 11 Rust tests.
+- Deferred: streaming, node adoption, data prefetch, server-bundle CLI.

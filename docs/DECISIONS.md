@@ -58,3 +58,7 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 52 | `createResource` ignores stale responses instead of cancelling | No AbortSignal plumbing yet; correctness is preserved, cancellation is TODO |
 | 53 | Form errors surface after touch or submit | Avoids showing errors while a user is first typing |
 | 54 | `TextField` exposes `onBlur` for form integration | Touched/error state needs a blur boundary |
+| 55 | SSR uses a StringHost over the same patch stream | No second renderer or compiler; inline styles and semantic tags match the client |
+| 56 | Hydration is a verified remount, not node adoption | The scene runtime emits direct DOM ops; comparing text and replacing nodes is deterministic, adoption is future work |
+| 57 | Web and SSR share style/tag/default tables | Server and client markup must not drift |
+| 58 | No streaming SSR or data prefetch yet | The API is synchronous and factory-based; streaming needs a different host |

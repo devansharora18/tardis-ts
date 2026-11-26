@@ -49,6 +49,18 @@ The embedded QuickJS host installs two globals:
 The protocol is documented in [protocol.md](protocol.md). v0 uses JSON; the op
 set is stable so a binary encoding is a transport change, not a redesign.
 
+### 4c. Server rendering (`src/ssr/`)
+
+`renderToString` installs a StringHost that consumes the same patch stream and
+serializes semantic HTML with inline styles, role/aria, and the shared
+`defaultStyle`/`rootStyle` tables. No DOM is needed. `renderDocument` wraps the
+fragment with base CSS.
+
+`hydrate` renders into a staging WebHost, compares text content, warns on
+mismatch, then moves the live root and listeners to the real container. This is
+a verified remount, not server-node adoption; there is no streaming or data
+prefetch.
+
 ### 4b. Web host (`src/web/`)
 
 The same patch stream is applied to DOM elements:
@@ -130,7 +142,8 @@ tardisjs/
   src/
     compiler/        tsx transformer + esbuild bundler (native + web)
     scene/           signals, jsx, tree, mount, render
-    web/             DOM patch host
+    web/             DOM patch host + shared style/tag tables
+    ssr/             string host, document shell, hydration
     cli/             build/run/screenshot/dev/preview/init
   native/
     crates/core/     scene, patch, layout, text, paint

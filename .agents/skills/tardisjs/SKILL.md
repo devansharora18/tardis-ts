@@ -66,6 +66,8 @@ render(() => <App />)
   submitting/submitted, submit/reset, `field(key)`
 - `FormField({ label, error?, hint?, children })`
 - `createResource(fetcher, { initial? })` → data/error/loading/refetch/dispose
+- `renderToString(App)`, `renderDocument(body, { title?, head?, script? })`,
+  `hydrate(App, container, { onMismatch? })` from `tardisjs/ssr`
 
 ## JSX rules
 
@@ -128,6 +130,17 @@ No selection, multiline, or IME yet.
 Intrinsic tags render as real web elements (`button`, `h1`, `p`, `ul`, ...).
 `role`, `tabIndex`, and `aria-*` become an `a11y` op. Native stores them; the
 accesskit tree is not wired.
+
+## Server rendering
+
+Export the component and guard the client render with
+`typeof document !== 'undefined'` (or `|| typeof __tardis_flush === 'function'`
+for native). Server: `renderToString(App)`, then `renderDocument(body, {...})`.
+Client: `hydrate(App, document.getElementById('app')!)`.
+
+Hydration is a verified remount: staging render, text compare, warning on
+mismatch, then replace server nodes and move listeners. No node adoption,
+streaming, or data prefetch. Base CSS comes from `renderDocument`.
 
 ## Large lists, routing, images
 

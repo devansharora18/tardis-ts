@@ -28,8 +28,9 @@ npm publish --tag alpha
   touch/IME, safe areas, and platform packaging.
 - **macOS/Windows native** — CI compiles/tests; GUI smoke is a host check above.
 - **Web** — Chrome and jsdom verified. Add Safari/Firefox to a browser matrix.
-- **Web SSR/hydration** — render the scene tree to HTML, hydrate with the DOM
-  host. No SSR exists today.
+- **Web SSR/hydration** — basic `renderToString`/`renderDocument`/`hydrate`
+  exist. Add streaming, true node adoption, data prefetch, and a server-bundle
+  CLI (`tardis render`).
 
 ## Packaging
 
@@ -85,6 +86,8 @@ npm publish --tag alpha
 - A Dioxus frame-time head-to-head on the same workloads; only startup/binary
   size is scoped so far.
 - Client-side routing for the web target.
+- A server-bundle/prerender command that imports an exported App and writes
+  HTML.
 - Abortable resources (`AbortSignal`) instead of ignoring stale responses.
 
 ## Docs

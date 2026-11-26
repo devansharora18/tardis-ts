@@ -110,6 +110,8 @@ app.tsx ─ compiler ─ bundle
   reset) and `FormField` for labels/errors.
 - **Async resources** — `createResource` with loading, error, refetch, and
   last-request-wins semantics.
+- **SSR + hydration** — `renderToString`/`renderDocument` serialize the same
+  scene tree without a DOM; `hydrate` takes over server markup on the client.
 - **Semantic web output** — `button`, `h1`, `p`, `ul`, `li`, `label`, `strong`,
   and `em` render as real elements instead of generic divs.
 
@@ -133,6 +135,41 @@ Xvfb, release): **Tardis 451 ms / 7.3 MB vs Dioxus 625 ms / 8.7 MB**. That is a
 measured startup/size win only. There is no frame-time head-to-head, and Dioxus
 web is blocked without a wasm toolchain. See
 [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+
+## Server rendering
+
+Export the component and guard the client render:
+
+```tsx
+export function App() {
+  const [name] = createSignal('Ada')
+  return <h1>Hello {name()}</h1>
+}
+
+if (typeof document !== 'undefined') render(() => <App />)
+```
+
+On the server:
+
+```ts
+import { renderToString, renderDocument } from '@devansharora18/tardisjs/ssr'
+import { App } from './app'
+
+const body = renderToString(App)
+const html = renderDocument(body, { title: 'My app', script: '/app.js' })
+```
+
+On the client:
+
+```ts
+import { hydrate } from '@devansharora18/tardisjs/ssr'
+hydrate(App, document.getElementById('app')!)
+```
+
+`renderToString` restores the host global and needs no DOM. `hydrate` renders
+into a staging host, compares text content, warns on mismatch, then replaces the
+server nodes with the live client tree. It is not node adoption and there is no
+streaming yet.
 
 ## Commands
 
@@ -161,7 +198,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Native text clipping is rectangle clipping; no ellipsis.
 - Native accessibility attributes are stored but accesskit is not wired yet.
 - Native HiDPI is not handled (1x).
-- No web SSR/hydration yet.
+- Hydration is a verified remount (content compared), not server-node adoption.
+- No streaming SSR or data prefetch; no server bundle CLI yet.
 - Mobile is not started.
 - Dioxus frame timing has not been measured on the same workloads.
 

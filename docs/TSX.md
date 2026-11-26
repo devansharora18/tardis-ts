@@ -351,6 +351,50 @@ Native loads PNGs from the path (relative to the process working directory) and
 caches the raster. Web uses the browser's `<img>`. Give images explicit width and
 height; intrinsic sizing is not implemented.
 
+## Server rendering
+
+Export the component and guard the client render:
+
+```tsx
+export function App() {
+  const [name] = createSignal('Ada')
+  return <h1>Hello {name()}</h1>
+}
+
+if (typeof document !== 'undefined') render(() => <App />)
+```
+
+For an app that also targets native, use
+`typeof document !== 'undefined' || typeof __tardis_flush === 'function'` so the
+QuickJS host still boots it.
+
+Server:
+
+```ts
+import { renderToString, renderDocument } from '@devansharora18/tardisjs/ssr'
+import { App } from './app'
+
+const body = renderToString(App)
+const html = renderDocument(body, { title: 'My app', script: '/app.js' })
+```
+
+Client:
+
+```ts
+import { hydrate } from '@devansharora18/tardisjs/ssr'
+hydrate(App, document.getElementById('app')!)
+```
+
+`renderDocument` includes the base CSS (`box-sizing`, semantic button/list
+resets) and the dark page defaults. `renderToString` needs no DOM and restores
+the previous `__tardis_flush`.
+
+Hydration is a **verified remount**: the app renders into a detached staging
+host, text content is compared, a mismatch warns (or calls `onMismatch`), and the
+client tree replaces the server nodes. Bindings stay live. It does not adopt the
+server nodes, stream, or prefetch data. There is no server-bundle CLI yet; call
+the API from your Node server.
+
 ## Testing
 
 The scene runtime is pure JavaScript. Set a fake host and assert patches:
