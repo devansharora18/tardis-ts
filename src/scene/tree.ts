@@ -53,6 +53,15 @@ function hostFlush(): ((json: string) => void) | null {
   return typeof fn === 'function' ? (fn as (json: string) => void) : null
 }
 
+type PatchListener = (patch: Patch) => void
+const patchListeners = new Set<PatchListener>()
+
+/** Observe each flushed patch. Returns an unsubscribe function. */
+export function subscribePatches(listener: PatchListener): () => void {
+  patchListeners.add(listener)
+  return () => patchListeners.delete(listener)
+}
+
 export function flushNow(): void {
   scheduled = false
   if (ops.length === 0) return
@@ -60,6 +69,13 @@ export function flushNow(): void {
   if (!flush) return
   const payload: Patch = { v: 0, frame: ++frame, ops }
   ops = []
+  for (const listener of patchListeners) {
+    try {
+      listener(payload)
+    } catch (err) {
+      console.error('tardis: patch listener failed', err)
+    }
+  }
   flush(JSON.stringify(payload))
 }
 

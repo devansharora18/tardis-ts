@@ -29,6 +29,10 @@
     "./ssr": {
       "types": "./dist/src/ssr/index.d.ts",
       "import": "./dist/ssr/index.mjs"
+    },
+    "./devtools": {
+      "types": "./dist/src/devtools/index.d.ts",
+      "import": "./dist/devtools/index.mjs"
     }
   },
   "files": [

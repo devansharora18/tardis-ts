@@ -27,6 +27,12 @@ export default [
     output: { file: 'dist/ssr/index.mjs', format: 'esm', sourcemap: true },
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
   },
+  // devtools overlay — DOM-only patch/scene inspector
+  {
+    input: 'src/devtools/index.ts',
+    output: { file: 'dist/devtools/index.mjs', format: 'esm', sourcemap: true },
+    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+  },
   // compiler subpath — tsx transform + bundler
   {
     input: 'src/compiler/index.ts',
