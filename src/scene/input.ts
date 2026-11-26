@@ -9,7 +9,6 @@ import { pasteClipboard, writeClipboard } from './clipboard'
 import { dynamic, jsx } from './jsx'
 import { createSignal } from './signals'
 import type { SceneEvent, SceneNode } from './types'
-
 type MaybeGetter<T> = T | (() => T)
 
 function read<T>(value: MaybeGetter<T> | undefined, fallback: T): T {
@@ -91,6 +90,7 @@ export function TextField(props: TextFieldProps): SceneNode {
   const [caret, setCaret] = createSignal(0)
   const [anchor, setAnchor] = createSignal(0)
   const [focused, setFocused] = createSignal(false)
+  const [preedit, setPreedit] = createSignal('')
 
   // Column to keep when moving vertically through lines of different lengths.
   let goalColumn: number | null = null
@@ -194,8 +194,23 @@ export function TextField(props: TextFieldProps): SceneNode {
     goalColumn = column
   }
 
-  const onKeyDown = (event: SceneEvent): void => {
+  const onText = (event: SceneEvent): void => {
     if (disabled()) return
+    const text = event.text ?? ''
+    if (event.composition === 'update') {
+      setPreedit(text)
+      return
+    }
+    if (event.composition === 'end') {
+      setPreedit('')
+      insert(text)
+      return
+    }
+    insert(text)
+  }
+
+  const onKeyDown = (event: SceneEvent): void => {
+    if (disabled() || event.composing) return
     const key = event.key ?? ''
     const mods = event.mods ?? { ctrl: false, shift: false, alt: false, meta: false }
     const command = mods.ctrl || mods.meta
@@ -306,6 +321,22 @@ export function TextField(props: TextFieldProps): SceneNode {
       },
     })
 
+  const preeditView = (): SceneNode[] =>
+    preedit() === ''
+      ? []
+      : [
+          jsx(
+            'span',
+            {
+              style: {
+                color: CARET_COLOR,
+                backgroundColor: '#14321c',
+              },
+            },
+            preedit()
+          ),
+        ]
+
   const renderLine = (line: Line, index: number): SceneNode => {
     const start = selectionStart()
     const end = selectionEnd()
@@ -329,15 +360,16 @@ export function TextField(props: TextFieldProps): SceneNode {
       )
     }
 
-    if (localCaret !== null && localCaret <= localStart) {
+    text(0, localStart, false)
+    if (localCaret === localStart) {
       runs.push(caretView())
-      text(0, localStart, false)
-    } else {
-      text(0, localStart, false)
-      if (localCaret === localStart) runs.push(caretView())
+      runs.push(...preeditView())
     }
     text(localStart, localEnd, true)
-    if (localCaret === localEnd) runs.push(caretView())
+    if (localCaret === localEnd && localEnd !== localStart) {
+      runs.push(caretView())
+      runs.push(...preeditView())
+    }
     text(localEnd, line.text.length, false)
 
     return jsx(
@@ -370,6 +402,7 @@ export function TextField(props: TextFieldProps): SceneNode {
         opacity: disabled() ? 0.5 : 1,
       }),
       onKeyDown,
+      onText,
       onFocus: () => {
         setFocused(true)
         props.onFocus?.()
@@ -389,7 +422,10 @@ export function TextField(props: TextFieldProps): SceneNode {
       const current = value()
       if (current === '') {
         const nodes: SceneNode[] = []
-        if (focused()) nodes.push(caretView())
+        if (focused()) {
+          nodes.push(caretView())
+          nodes.push(...preeditView())
+        }
         nodes.push(
           jsx('span', { style: { color: '#666666' } }, read(props.placeholder, ''))
         )

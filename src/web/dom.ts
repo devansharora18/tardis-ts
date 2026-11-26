@@ -3,7 +3,7 @@
 // Native uses taffy/text raster; the web uses CSS flex and the browser's text
 // engine. The patch op set is identical — only this adapter differs.
 
-import { dispatchEvent, focusNode } from '../scene/render'
+import { dispatchEvent, focusNode, getFocusedNode } from '../scene/render'
 import type { HostOp, Patch } from '../scene/types'
 
 export interface WebHostOptions {
@@ -36,6 +36,8 @@ export class WebHost {
     fn: (event: Event) => void
   }> = []
   private readonly flushFn: (json: string) => void
+  private ime: HTMLTextAreaElement | null = null
+  private composing = false
   private disposed = false
 
   constructor(options: WebHostOptions = {}) {
@@ -75,6 +77,7 @@ export class WebHost {
         y: pointer.clientY ?? 0,
         button: pointer.button ?? 0,
       })
+      this.syncIme()
     }
     for (const [type, phase] of [
       ['pointerdown', 'down'],
@@ -106,6 +109,7 @@ export class WebHost {
       const element = target?.closest?.('[data-tardis]') as HTMLElement | null
       if (element) {
         focusNode(Number(element.getAttribute('data-tardis')))
+        this.syncIme()
       }
     }
     this.container.addEventListener('focusin', focusin)
@@ -122,6 +126,7 @@ export class WebHost {
           phase,
           key: keyboard.key,
           repeat: keyboard.repeat,
+          composing: keyboard.isComposing,
           mods: {
             ctrl: keyboard.ctrlKey,
             shift: keyboard.shiftKey,
@@ -129,9 +134,94 @@ export class WebHost {
             meta: keyboard.metaKey,
           },
         })
+        if (keyboard.key === 'Tab' && this.imeActive()) keyboard.preventDefault()
+        this.syncIme()
       }
       window.addEventListener(type, key)
       this.listeners.push({ target: window, type, fn: key })
+    }
+  }
+
+  private imeActive(): boolean {
+    return this.ime !== null && document.activeElement === this.ime
+  }
+
+  private ensureIme(): HTMLTextAreaElement {
+    if (this.ime) return this.ime
+    const textarea = document.createElement('textarea')
+    textarea.setAttribute('aria-hidden', 'true')
+    textarea.setAttribute('autocapitalize', 'off')
+    textarea.setAttribute('autocomplete', 'off')
+    textarea.setAttribute('autocorrect', 'off')
+    textarea.spellcheck = false
+    textarea.tabIndex = -1
+    textarea.style.position = 'fixed'
+    textarea.style.width = '1px'
+    textarea.style.height = '1px'
+    textarea.style.padding = '0'
+    textarea.style.margin = '0'
+    textarea.style.border = '0'
+    textarea.style.opacity = '0'
+    textarea.style.pointerEvents = 'none'
+    textarea.style.fontSize = '16px'
+    textarea.style.zIndex = '-1'
+    textarea.addEventListener('compositionstart', (event) => {
+      this.composing = true
+      this.positionIme()
+      dispatchEvent({
+        type: 'text',
+        composition: 'start',
+        text: (event as CompositionEvent).data ?? '',
+      })
+    })
+    textarea.addEventListener('compositionupdate', (event) => {
+      dispatchEvent({
+        type: 'text',
+        composition: 'update',
+        text: (event as CompositionEvent).data ?? '',
+      })
+    })
+    textarea.addEventListener('compositionend', (event) => {
+      this.composing = false
+      textarea.value = ''
+      dispatchEvent({
+        type: 'text',
+        composition: 'end',
+        text: (event as CompositionEvent).data ?? '',
+      })
+    })
+    textarea.addEventListener('input', () => {
+      if (!this.composing) textarea.value = ''
+    })
+    document.body.appendChild(textarea)
+    this.ime = textarea
+    return textarea
+  }
+
+  private positionIme(): void {
+    if (!this.ime) return
+    const id = getFocusedNode()
+    const element = id === null ? null : this.elements.get(id)
+    const field = element?.closest?.('[role="textbox"]') as HTMLElement | null
+    if (!field) return
+    const rect = field.getBoundingClientRect()
+    this.ime.style.left = `${rect.left}px`
+    this.ime.style.top = `${rect.top + Math.max(0, rect.height / 2 - 8)}px`
+  }
+
+  /** Focus the hidden editable only while a scene text field is focused. */
+  private syncIme(): void {
+    const id = getFocusedNode()
+    const element = id === null ? null : this.elements.get(id)
+    const field = element?.closest?.('[role="textbox"]') as HTMLElement | null
+    if (!field) {
+      if (this.ime && document.activeElement === this.ime) this.ime.blur()
+      return
+    }
+    const textarea = this.ensureIme()
+    this.positionIme()
+    if (document.activeElement !== textarea) {
+      textarea.focus({ preventScroll: true })
     }
   }
 
@@ -273,6 +363,8 @@ export class WebHost {
     if (g['__tardis_flush'] === this.flushFn) delete g['__tardis_flush']
     if (currentHost === this) currentHost = null
     this.root.remove()
+    this.ime?.remove()
+    this.ime = null
     this.elements.clear()
   }
 }

@@ -11,6 +11,9 @@ export interface SceneEvent {
   button?: number
   key?: string
   value?: string
+  text?: string
+  composition?: 'start' | 'update' | 'end'
+  composing?: boolean
   dx?: number
   dy?: number
   repeat?: boolean

@@ -221,7 +221,7 @@ mod window {
         DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
     };
     use tardis_js::JsHost;
-    use winit::event::{ElementState, Event, MouseButton, MouseScrollDelta, WindowEvent};
+    use winit::event::{ElementState, Event, Ime, MouseButton, MouseScrollDelta, WindowEvent};
     use winit::event_loop::{ControlFlow, EventLoop};
     use winit::keyboard::{Key, NamedKey};
     use winit::window::WindowBuilder;
@@ -249,6 +249,7 @@ mod window {
                 .build(&event_loop)
                 .map_err(|err| format!("window: {err}"))?,
         );
+        window.set_ime_allowed(true);
         let context = softbuffer::Context::new(SharedWindow(window.clone()))
             .map_err(|err| format!("softbuffer context: {err}"))?;
         let mut surface = softbuffer::Surface::new(&context, SharedWindow(window.clone()))
@@ -332,6 +333,35 @@ mod window {
                             })
                             .to_string();
                             if let Err(err) = host.dispatch(&event_json) {
+                                eprintln!("tardis: {err}");
+                            }
+                            dirty = true;
+                        }
+                        WindowEvent::Ime(ime) => {
+                            let event = match ime {
+                                Ime::Commit(text) => serde_json::json!({
+                                    "type": "text",
+                                    "composition": "end",
+                                    "text": text,
+                                }),
+                                Ime::Preedit(text, _) => serde_json::json!({
+                                    "type": "text",
+                                    "composition": "update",
+                                    "text": text,
+                                }),
+                                Ime::Enabled => serde_json::json!({
+                                    "type": "text",
+                                    "composition": "start",
+                                    "text": "",
+                                }),
+                                Ime::Disabled => serde_json::json!({
+                                    "type": "text",
+                                    "composition": "update",
+                                    "text": "",
+                                }),
+                            }
+                            .to_string();
+                            if let Err(err) = host.dispatch(&event) {
                                 eprintln!("tardis: {err}");
                             }
                             dirty = true;
