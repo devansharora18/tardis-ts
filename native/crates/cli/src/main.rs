@@ -208,8 +208,8 @@ mod window {
     };
     use tardis_js::JsHost;
     use winit::event::{ElementState, Event, MouseButton, MouseScrollDelta, WindowEvent};
-    use winit::keyboard::{Key, NamedKey};
     use winit::event_loop::{ControlFlow, EventLoop};
+    use winit::keyboard::{Key, NamedKey};
     use winit::window::WindowBuilder;
 
     struct SharedWindow(Rc<winit::window::Window>);

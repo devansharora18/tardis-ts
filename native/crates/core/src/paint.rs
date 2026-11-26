@@ -10,8 +10,8 @@ use std::collections::HashMap;
 
 use cosmic_text::{SwashContent, SwashImage};
 use tiny_skia::{
-    FillRule, Paint, Path, PathBuilder, Pixmap, PixmapPaint, PremultipliedColorU8,
-    Rect as SkRect, Transform,
+    FillRule, Paint, Path, PathBuilder, Pixmap, PixmapPaint, PremultipliedColorU8, Rect as SkRect,
+    Transform,
 };
 
 use crate::layout::{ComputedLayout, Rect};
