@@ -282,3 +282,34 @@ describe('IME composition', () => {
     expect(value()).toBe('日本')
   })
 })
+
+describe('accessibility actions', () => {
+  it('focuses and activates nodes from host actions', () => {
+    const onFocus = vi.fn()
+    const onClick = vi.fn()
+    handle = render(() =>
+      jsx(
+        'button',
+        { onClick, onFocus, ariaLabel: 'Save' },
+        'Save'
+      )
+    )
+    const element = app().querySelector('button')!
+    const id = Number(element.getAttribute('data-tardis'))
+    dispatchEvent({ type: 'a11y', action: 'focus', node: id })
+    expect(onFocus).toHaveBeenCalledTimes(1)
+    dispatchEvent({ type: 'a11y', action: 'default', node: id })
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('replaces text field content from a set-value action', () => {
+    const [value, setValue] = createSignal('old')
+    handle = render(() =>
+      jsx(TextField, { value: () => value(), onChange: setValue })
+    )
+    focusField()
+    const id = Number(fieldElement().getAttribute('data-tardis'))
+    dispatchEvent({ type: 'a11y', action: 'set-value', node: id, text: 'Ada' })
+    expect(value()).toBe('Ada')
+  })
+})

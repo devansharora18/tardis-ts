@@ -326,3 +326,23 @@ fn paints_text_background_behind_glyphs() {
         (pixel.red(), pixel.green(), pixel.blue())
     );
 }
+
+#[test]
+fn focus_op_tracks_and_validates_the_focused_node() {
+    let mut engine = Engine::new(100.0, 100.0);
+    apply(
+        &mut engine,
+        r##"[
+          {"op":"create","id":1,"kind":"view","tag":"button","parent":0,"index":0},
+          {"op":"focus","id":1}
+        ]"##,
+    );
+    assert_eq!(engine.scene.focused, Some(1));
+
+    let before = engine.scene.focused;
+    let err = engine
+        .apply_json(r##"{"v":0,"frame":2,"ops":[{"op":"focus","id":99}]}"##)
+        .unwrap_err();
+    assert!(err.contains("does not exist"));
+    assert_eq!(engine.scene.focused, before);
+}
