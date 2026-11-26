@@ -16,3 +16,9 @@ bench/web-frame/tardis/app.js
 bench/web-frame/tardis/index.html
 platform-dist/
 forms.png
+bench/web-frame/dioxus-sheet/target/
+bench/web-frame/dioxus-sheet/*.js
+bench/web-frame/dioxus-sheet/*.wasm
+bench/web-frame/dioxus-sheet/*.ts
+bench/sheet-frame/tardis/app.js
+bench/sheet-frame/tardis/index.html
