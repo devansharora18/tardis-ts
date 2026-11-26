@@ -1,0 +1,37 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: tardis-native-linux-x64
+            binary: native/target/release/tardis-native
+          - os: macos-latest
+            artifact: tardis-native-darwin-arm64
+            binary: native/target/release/tardis-native
+          - os: windows-latest
+            artifact: tardis-native-win32-x64
+            binary: native/target/release/tardis-native.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Linux window dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev
+      - run: cargo build --release --manifest-path native/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.binary }}

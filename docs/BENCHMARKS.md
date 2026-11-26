@@ -96,3 +96,54 @@ benchmarks.
 - `bench/tardis/`: the same UI in TSX, native + web.
 - `npm run bench` with `--runs 5 --json out.json`.
 - CI job on a quiet runner; publish results per release.
+
+## Results — 2026-11-27
+
+Machine: AMD Ryzen AI 7 350, 16 threads, 30 GB RAM, Linux (X11/Mesa), release
+builds. Core harness only: patch decode/apply, taffy layout, tiny-skia paint.
+QuickJS startup and app logic are not part of these numbers.
+
+Raw JSON: `bench/results/2026-11-27-{baseline,final}-{40,1k,10k}.json`.
+
+| Workload | Baseline | Current | Change |
+|---|---:|---:|---:|
+| 1k mount (layout + paint) | 53.3 ms | 43.0 ms | 1.24× |
+| 1k text update (total) | 50.1 ms | 1.97 ms | 25.4× |
+| 1k paint | 14.0 ms | 0.65 ms | 21.5× |
+| 10k mount (layout + paint) | 575.0 ms | 423.6 ms | 1.36× |
+| 10k text update (total) | 594.6 ms | 23.0 ms | 25.8× |
+| 10k paint | 150.0 ms | 1.87 ms | 80× |
+| 40-row window (virtual list shape) | — | 0.55 ms update / 3.1 ms mount | — |
+
+What changed:
+
+1. Style/text-only patches no longer clone the scene; patch apply is ~0.003 ms.
+2. The taffy tree is reused; style/text updates dirty nodes instead of rebuilding
+   the tree.
+3. Paint culls fully offscreen subtrees and clips `overflow: hidden` views.
+4. Glyphs blend directly into the target pixmap; no per-glyph pixmap allocation.
+5. `VirtualList` mounts ~40 scene nodes for 10,000 rows. Native e2e confirms the
+   dump has fewer than 100 nodes and wheel scrolling moves the window (Row 0 →
+   Row 8).
+
+Honest reading:
+
+- A **fully mounted 10k-row scene** still takes ~23 ms for one text update,
+  above the 16.6 ms gate. Taffy lays out the 10k-sibling column; this is a stress
+  case, not the production shape.
+- The **virtualized 10k app** updates in ~0.55 ms and mounts in ~3.1 ms. This is
+  the path a real application uses, and it passes the 60 fps gate with headroom.
+- Mount at 10k fully mounted is 424 ms, dominated by text measurement and layout.
+  Virtualized mount is 3 ms.
+- These are Tardis-vs-Tardis improvements. They are not a Dioxus comparison.
+
+## Dioxus baseline status
+
+A minimal Dioxus 0.6.3 desktop app lives in `bench/dioxus-desktop/`. Desktop
+startup and binary size can be measured on this machine (webkit2gtk-4.1 is
+present). Web needs wasm32 + wasm-bindgen/dx, which are not installed; that arm
+is blocked and must not be claimed.
+
+No frame-time head-to-head exists yet. The only honest statement today:
+Tardis's virtualized native path is fast in its own harness; Dioxus has not been
+measured on the same workloads.

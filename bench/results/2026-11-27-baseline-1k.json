@@ -1,0 +1,39 @@
+{
+  "rows": 1000,
+  "mount_layout": {
+    "median_ms": 39.68,
+    "p95_ms": 44.815
+  },
+  "mount_paint": {
+    "median_ms": 13.988,
+    "p95_ms": 19.004
+  },
+  "mount_total": {
+    "median_ms": 53.319,
+    "p95_ms": 59.241
+  },
+  "update_text_apply": {
+    "median_ms": 36.889,
+    "p95_ms": 39.355
+  },
+  "update_text_paint": {
+    "median_ms": 13.348,
+    "p95_ms": 15.377
+  },
+  "update_text_total": {
+    "median_ms": 50.1,
+    "p95_ms": 54.732
+  },
+  "update_style_apply": {
+    "median_ms": 37.509,
+    "p95_ms": 38.337
+  },
+  "update_style_paint": {
+    "median_ms": 13.21,
+    "p95_ms": 13.608
+  },
+  "update_style_total": {
+    "median_ms": 50.8,
+    "p95_ms": 51.546
+  }
+}
