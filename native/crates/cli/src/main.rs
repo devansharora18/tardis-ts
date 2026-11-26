@@ -11,6 +11,7 @@ struct Args {
     bundle: PathBuf,
     width: u32,
     height: u32,
+    scale: f32,
     headless: bool,
     out: Option<PathBuf>,
     dump: Option<PathBuf>,
@@ -60,6 +61,7 @@ fn run() -> Result<(), String> {
         }
         let engine = host.engine();
         let mut engine = engine.borrow_mut();
+        engine.set_scale(args.scale);
         if let Some(dump_path) = &args.dump {
             let dump = engine.dump()?;
             let json =
@@ -96,6 +98,7 @@ fn parse_args() -> Result<Args, String> {
         bundle: PathBuf::from("dist/app.js"),
         width: 800,
         height: 600,
+        scale: 1.0,
         headless: false,
         out: None,
         dump: None,
@@ -124,6 +127,16 @@ fn parse_args() -> Result<Args, String> {
                     .ok_or_else(|| "--height needs a value".to_string())?
                     .parse()
                     .map_err(|_| "--height must be a number".to_string())?;
+            }
+            "--scale" => {
+                args.scale = iter
+                    .next()
+                    .ok_or_else(|| "--scale needs a value".to_string())?
+                    .parse()
+                    .map_err(|_| "--scale must be a number".to_string())?;
+                if args.scale <= 0.0 {
+                    return Err("--scale must be positive".to_string());
+                }
             }
             "--headless" => args.headless = true,
             "--out" => {
@@ -189,6 +202,7 @@ fn print_help() {
          --bundle <path>   bundled app (default: dist/app.js)\n\
          --width <px>      viewport width (default: 800)\n\
          --height <px>     viewport height (default: 600)\n\
+         --scale <factor>  device pixel ratio (default: 1)\n\
          --headless        render one frame and exit\n\
          --out <path>      PNG output in headless mode (default: frame.png)\n\
          --dump <path>     write the laid-out scene as JSON\n\
@@ -243,6 +257,15 @@ mod window {
         let mut cursor = (0.0_f32, 0.0_f32);
         let mut dirty = true;
         let mut modifiers = winit::keyboard::ModifiersState::empty();
+        let mut scale = window.scale_factor();
+        {
+            let engine = host.engine();
+            let mut engine = engine.borrow_mut();
+            engine.set_scale(scale as f32);
+            let inner = window.inner_size();
+            let logical = inner.to_logical::<f32>(scale);
+            let _ = engine.resize(logical.width, logical.height);
+        }
 
         event_loop
             .run(move |event, elwt| {
@@ -251,16 +274,34 @@ mod window {
                     Event::WindowEvent { event, .. } => match event {
                         WindowEvent::CloseRequested => elwt.exit(),
                         WindowEvent::Resized(size) => {
+                            scale = window.scale_factor();
+                            let logical = size.to_logical::<f32>(scale);
                             if let Ok(mut engine) = host.engine().try_borrow_mut() {
+                                engine.set_scale(scale as f32);
                                 let _ = engine.resize(
-                                    size.width.max(1) as f32,
-                                    size.height.max(1) as f32,
+                                    logical.width.max(1.0),
+                                    logical.height.max(1.0),
+                                );
+                            }
+                            dirty = true;
+                        }
+                        WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                            scale = scale_factor;
+                            let logical = window.inner_size().to_logical::<f32>(scale);
+                            if let Ok(mut engine) = host.engine().try_borrow_mut() {
+                                engine.set_scale(scale as f32);
+                                let _ = engine.resize(
+                                    logical.width.max(1.0),
+                                    logical.height.max(1.0),
                                 );
                             }
                             dirty = true;
                         }
                         WindowEvent::CursorMoved { position, .. } => {
-                            cursor = (position.x as f32, position.y as f32);
+                            cursor = (
+                                (position.x as f64 / scale) as f32,
+                                (position.y as f64 / scale) as f32,
+                            );
                         }
                         WindowEvent::ModifiersChanged(next) => {
                             modifiers = next.state();

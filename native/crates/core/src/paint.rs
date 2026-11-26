@@ -19,8 +19,12 @@ use crate::scene::{Color, NodeKind, Scene, TextAlign};
 use crate::text::TextEngine;
 
 pub struct RenderOptions {
+    /// Logical viewport width.
     pub width: u32,
+    /// Logical viewport height.
     pub height: u32,
+    /// Device pixel ratio. Layout stays logical; raster and clipping scale.
+    pub scale: f32,
     pub background: Color,
 }
 
@@ -84,9 +88,16 @@ pub fn render(
     text: &mut TextEngine,
     options: &RenderOptions,
 ) -> Result<Pixmap, String> {
-    let mut pixmap = Pixmap::new(options.width, options.height)
+    let scale = if options.scale > 0.0 {
+        options.scale
+    } else {
+        1.0
+    };
+    let pixel_width = (options.width as f32 * scale).round().max(1.0) as u32;
+    let pixel_height = (options.height as f32 * scale).round().max(1.0) as u32;
+    let mut pixmap = Pixmap::new(pixel_width, pixel_height)
         .ok_or_else(|| "paint: invalid pixmap size".to_string())?;
-    let background = SkRect::from_xywh(0.0, 0.0, options.width as f32, options.height as f32)
+    let background = SkRect::from_xywh(0.0, 0.0, pixel_width as f32, pixel_height as f32)
         .ok_or_else(|| "paint: invalid background rect".to_string())?;
     let mut paint = Paint::default();
     paint.set_color_rgba8(
@@ -97,13 +108,13 @@ pub fn render(
     );
     pixmap.fill_rect(background, &paint, Transform::identity(), None);
 
-    let clip = Clip::viewport(options.width as f32, options.height as f32);
+    let clip = Clip::viewport(pixel_width as f32, pixel_height as f32);
     let root = scene
         .nodes
         .get(&scene.root)
         .ok_or_else(|| "paint: root node missing".to_string())?;
     for child in &root.children {
-        draw_node(scene, layout, text, &mut pixmap, *child, 1.0, clip);
+        draw_node(scene, layout, text, &mut pixmap, *child, 1.0, clip, scale);
     }
     Ok(pixmap)
 }
@@ -127,6 +138,7 @@ fn draw_node(
     id: u32,
     inherited_opacity: f32,
     clip: Clip,
+    scale: f32,
 ) {
     if clip.is_empty() {
         return;
@@ -134,7 +146,7 @@ fn draw_node(
     let Some(node) = scene.nodes.get(&id) else {
         return;
     };
-    let rect = layout.rects.get(&id).copied().unwrap_or_default();
+    let rect = scale_rect(layout.rects.get(&id).copied().unwrap_or_default(), scale);
 
     // Fragments have a zero rect at the origin; they must always recurse.
     if node.kind != NodeKind::Fragment && !clip.intersects(rect) {
@@ -146,7 +158,16 @@ fn draw_node(
     match node.kind {
         NodeKind::Fragment => {
             for child in &node.children {
-                draw_node(scene, layout, text, pixmap, *child, inherited_opacity, clip);
+                draw_node(
+                    scene,
+                    layout,
+                    text,
+                    pixmap,
+                    *child,
+                    inherited_opacity,
+                    clip,
+                    scale,
+                );
             }
         }
         NodeKind::View | NodeKind::Scroll => {
@@ -155,7 +176,7 @@ fn draw_node(
                     pixmap,
                     rect,
                     background.with_opacity(opacity),
-                    node.style.border_radius,
+                    node.style.border_radius * scale,
                     clip,
                 );
             }
@@ -165,17 +186,28 @@ fn draw_node(
                 clip
             };
             for child in &node.children {
-                draw_node(scene, layout, text, pixmap, *child, opacity, child_clip);
+                draw_node(
+                    scene, layout, text, pixmap, *child, opacity, child_clip, scale,
+                );
             }
         }
         NodeKind::Text => {
             draw_text(
-                scene, pixmap, text, node.id, &node.text, rect, opacity, clip,
+                scene, pixmap, text, node.id, &node.text, rect, opacity, clip, scale,
             );
         }
         NodeKind::Image => {
             draw_image(pixmap, rect, node.src.as_deref(), clip);
         }
+    }
+}
+
+fn scale_rect(rect: Rect, scale: f32) -> Rect {
+    Rect {
+        x: rect.x * scale,
+        y: rect.y * scale,
+        width: rect.width * scale,
+        height: rect.height * scale,
     }
 }
 
@@ -283,6 +315,7 @@ fn rounded_path(rect: Rect, radius: f32) -> Option<Path> {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 fn draw_text(
     scene: &Scene,
     pixmap: &mut Pixmap,
@@ -292,6 +325,7 @@ fn draw_text(
     rect: Rect,
     opacity: f32,
     clip: Clip,
+    scale: f32,
 ) {
     if content.is_empty() || rect.width <= 0.0 || rect.height <= 0.0 || !clip.intersects(rect) {
         return;
@@ -300,8 +334,8 @@ fn draw_text(
     let color = style.color.with_opacity(opacity);
     let buffer = text_engine.buffer(
         content,
-        style.size,
-        style.line_height,
+        style.size * scale,
+        style.line_height * scale,
         style.weight,
         rect.width,
     );

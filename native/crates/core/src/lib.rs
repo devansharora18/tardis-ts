@@ -27,6 +27,8 @@ pub struct Engine {
     pub layout: Option<ComputedLayout>,
     pub width: f32,
     pub height: f32,
+    /// Device pixel ratio. Layout remains in logical pixels.
+    pub scale: f32,
     layout_engine: LayoutEngine,
 }
 
@@ -38,6 +40,7 @@ impl Engine {
             layout: None,
             width,
             height,
+            scale: 1.0,
             layout_engine: LayoutEngine::new(),
         }
     }
@@ -96,6 +99,7 @@ impl Engine {
             layout,
             width,
             height,
+            scale,
             ..
         } = self;
         let layout = layout
@@ -109,6 +113,7 @@ impl Engine {
             &RenderOptions {
                 width: *width as u32,
                 height: *height as u32,
+                scale: *scale,
                 background: Color::rgb(0x0a, 0x0a, 0x0a),
             },
         )
@@ -120,6 +125,10 @@ impl Engine {
         self.relayout()
     }
 
+    pub fn set_scale(&mut self, scale: f32) {
+        self.scale = if scale > 0.0 { scale } else { 1.0 };
+    }
+
     pub fn render_argb(&mut self) -> Result<(Vec<u32>, u32, u32), String> {
         let Self {
             scene,
@@ -127,6 +136,7 @@ impl Engine {
             layout,
             width,
             height,
+            scale,
             ..
         } = self;
         let layout = layout
@@ -139,6 +149,7 @@ impl Engine {
             &RenderOptions {
                 width: *width as u32,
                 height: *height as u32,
+                scale: *scale,
                 background: Color::rgb(0x0a, 0x0a, 0x0a),
             },
         )?;

@@ -225,6 +225,7 @@ fn paint(scene: &Scene, layout: &ComputedLayout, text: &mut TextEngine) {
         &RenderOptions {
             width: WIDTH as u32,
             height: HEIGHT as u32,
+            scale: 1.0,
             background: Color::rgb(0x0a, 0x0a, 0x0a),
         },
     )
