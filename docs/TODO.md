@@ -60,8 +60,8 @@ npm publish --tag alpha
   wrapping against the same scene dump.
 - Text clipping (`overflow: hidden`) and ellipsis.
 - Image sizing (`fit: cover|contain|fill`) and formats beyond PNG.
-- Draggable scrollbars and measured content height (basic `ScrollView` exists).
-- Ellipsis for clipped text (rectangular clipping exists).
+- Measured content height for ScrollView (dragging and clipping exist).
+- Ellipsis is single-line only; multiline line clamping is missing.
 - HiDPI is wired through native layout/raster/input; verify Retina and Windows
   scaling on host hardware.
 - Pointer-based caret placement and a spatial focus tree (tab traversal,

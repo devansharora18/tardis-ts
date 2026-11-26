@@ -272,8 +272,8 @@ IME, and clipboard are not implemented.
 ```
 
 Wheel events scroll the inner view; the parent clips. `contentHeight` is explicit
-because layout measurement does not flow back to JS yet. The scrollbar is an
-indicator only (not draggable). Controlled use:
+because layout measurement does not flow back to JS yet. Drag the scrollbar thumb
+to scroll; it exposes `role="scrollbar"` and `aria-valuenow`. Controlled use:
 `scrollTop={() => offset()}` plus `onScroll`.
 
 ## Error boundaries

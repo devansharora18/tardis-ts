@@ -198,10 +198,11 @@ Do not claim one.
 
 ## Gotchas
 
-- `overflow: hidden` is rectangular clipping; no ellipsis.
+- `overflow: hidden` clips rectangles; `textOverflow: 'ellipsis'` truncates one line.
 - Native images are PNG only; ScrollView clips and offsets, no native scroll node.
 - TextField has selection/multiline/IME; pointer caret placement is missing.
 - Devtools shows the scene and patch stream; no time travel or owner view.
+- ScrollView thumb is draggable; content height is still explicit.
 - Native AccessKit tree exists; verify screen readers on each host.
 - Clipboard is system-backed when available; otherwise memory.
 - Hydration is a remount, not node adoption; no streaming SSR.

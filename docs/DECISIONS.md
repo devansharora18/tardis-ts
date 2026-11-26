@@ -78,3 +78,5 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 72 | Devtools subscribes to flushed patches instead of polling | Zero work when not installed; shows exactly what the host received |
 | 73 | Error boundaries capture the error context of effects created during content | Scopes failures to the subtree without a global error sink |
 | 74 | Effect context is re-established while effects run | Nested effects created later still report to the same boundary |
+| 75 | Scrollbar dragging uses scene pointer move events with the pressed node as target | The thumb id stays stable; pointer capture works when the cursor leaves the thumb |
+| 76 | Ellipsis truncates at paint time with a binary search over character prefixes | No layout API change; correct glyph widths from cosmic-text |

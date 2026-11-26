@@ -209,3 +209,12 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - Boundary now routes effect errors from its subtree via an error context
   captured at effect creation and restored while effects run.
 - 2 devtools tests, 5 boundary tests. Still open: time travel, ownership view.
+
+## Scrollbar/ellipsis slice result (2026-11-27)
+
+- Draggable scrollbar thumb with `role=scrollbar` and aria values; pointer move
+  plumbing on web and native while the button is held.
+- Native `textOverflow: 'ellipsis'` truncates the first line using measured glyph
+  widths; web maps `text-overflow`.
+- 117 JS / 15 Rust core tests. Still open: measured content height, multiline
+  clamping, touch.

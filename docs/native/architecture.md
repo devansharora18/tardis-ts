@@ -35,7 +35,10 @@ There is no second grammar.
   DOM attributes and semantic tags; native stores them for accesskit.
 - **VirtualList** — visible-window windowing with wheel scrolling; ~40 nodes for
   10,000 rows.
-- **ScrollView** — absolute inner offset + parent clipping + scrollbar indicator.
+- **ScrollView** — absolute inner offset, parent clipping, and a draggable
+  scrollbar with pointer capture.
+- **Ellipsis** — `textOverflow: 'ellipsis'` binary-searches the fitting prefix
+  and appends `…` at paint time.
 - **Boundary** — render-time try/catch with fallback/reset.
 - **AccessKit** — scene nodes map to roles/names/values/bounds; scene focus is
   exported, and focus/click/set-value actions dispatch back into the scene.

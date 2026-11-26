@@ -207,7 +207,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Text input has selection, multiline, and IME commit/preview; pointer caret
   placement is not implemented.
 - Clipboard is system-backed on web and native when a display is available.
-- Native text clipping is rectangle clipping; no ellipsis.
+- Native text clipping clips rectangles; `textOverflow: 'ellipsis'` truncates
+  the first line and appends an ellipsis.
 - Native accessibility trees use AccessKit; screen-reader behavior still needs
   host testing on macOS/Windows/Linux.
 - Native HiDPI is handled with the window scale factor; verify on Retina hosts.
@@ -215,7 +216,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - No streaming SSR or data prefetch; no server bundle CLI yet.
 - Boundary catches render and subtree effect errors; native core panics still
   keep the last frame.
-- ScrollView needs an explicit content height; no draggable scrollbar or ellipsis.
+- ScrollView needs an explicit content height; its scrollbar is draggable.
+- Ellipsis is opt-in with `textOverflow: 'ellipsis'` (single line).
 - Mobile is not started.
 - Dioxus frame timing has not been measured on the same workloads.
 
