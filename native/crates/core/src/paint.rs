@@ -130,6 +130,7 @@ pub fn render_to_png(
     pixmap.save_png(path).map_err(|err| err.to_string())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn draw_node(
     scene: &Scene,
     layout: &ComputedLayout,
@@ -314,7 +315,6 @@ fn rounded_path(rect: Rect, radius: f32) -> Option<Path> {
     builder.finish()
 }
 
-#[allow(clippy::too_many_arguments)]
 #[allow(clippy::too_many_arguments)]
 fn draw_text(
     scene: &Scene,

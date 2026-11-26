@@ -299,8 +299,8 @@ mod window {
                         }
                         WindowEvent::CursorMoved { position, .. } => {
                             cursor = (
-                                (position.x as f64 / scale) as f32,
-                                (position.y as f64 / scale) as f32,
+                                (position.x / scale) as f32,
+                                (position.y / scale) as f32,
                             );
                         }
                         WindowEvent::ModifiersChanged(next) => {
