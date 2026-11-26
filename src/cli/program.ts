@@ -1,15 +1,18 @@
 import path from 'node:path'
 import { Command } from 'commander'
-import { buildApp } from './commands/build'
+import { buildApp, type BuildTarget } from './commands/build'
 import { devApp } from './commands/dev'
 import { initProject } from './commands/init'
+import { previewProject } from './commands/preview'
 import { runApp } from './commands/run'
 import { screenshotApp } from './commands/screenshot'
 import { formatBytes } from './lib/fs'
 
 export function createProgram(): Command {
 	const program = new Command()
-	program.name('tardis').description('TSX-native UI framework with a Rust renderer')
+	program
+		.name('tardis')
+		.description('TSX-native UI framework for desktop and web')
 
 	program
 		.command('init')
@@ -20,19 +23,30 @@ export function createProgram(): Command {
 
 	program
 		.command('build [entry]')
-		.description('Bundle a TSX app for the native runtime')
-		.option('--out <path>', 'output bundle', 'dist/app.js')
+		.description('Bundle a TSX app for a target')
+		.option('--target <target>', 'native or web', 'native')
+		.option('--out <path>', 'output bundle')
 		.option('--minify', 'minify the bundle')
-		.action(async (entry: string | undefined, options: { out: string; minify?: boolean }) => {
-			const result = await buildApp(process.cwd(), {
-				entry,
-				out: options.out,
-				minify: options.minify,
-			})
-			console.log(
-				`built ${path.relative(process.cwd(), result.outfile)} (${formatBytes(result.bytes)})`
-			)
-		})
+		.action(
+			async (
+				entry: string | undefined,
+				options: { target: string; out?: string; minify?: boolean }
+			) => {
+				const target = parseTarget(options.target)
+				const result = await buildApp(process.cwd(), {
+					entry,
+					out: options.out,
+					minify: options.minify,
+					target,
+				})
+				console.log(
+					`built ${displayPath(process.cwd(), result.outfile)} (${formatBytes(result.bytes)})`
+				)
+				if (result.shell) {
+					console.log(`wrote ${displayPath(process.cwd(), result.shell)}`)
+				}
+			}
+		)
 
 	program
 		.command('run [entry]')
@@ -55,7 +69,7 @@ export function createProgram(): Command {
 
 	program
 		.command('screenshot [entry]')
-		.description('Render one frame headlessly to a PNG')
+		.description('Render one native frame headlessly to a PNG')
 		.option('-o, --out <path>', 'PNG output', 'screenshot.png')
 		.option('--dump <path>', 'write the laid-out scene as JSON')
 		.option('--width <px>', 'viewport width', '800')
@@ -77,32 +91,58 @@ export function createProgram(): Command {
 					width: parseSize(options.width, 'width'),
 					height: parseSize(options.height, 'height'),
 				})
-				console.log(`wrote ${path.relative(process.cwd(), result.png)}`)
+				console.log(`wrote ${displayPath(process.cwd(), result.png)}`)
 				if (result.dump) {
-					console.log(`wrote ${path.relative(process.cwd(), result.dump)}`)
+					console.log(`wrote ${displayPath(process.cwd(), result.dump)}`)
 				}
 			}
 		)
 
 	program
 		.command('dev [entry]')
-		.description('Build, run, and restart on file changes')
-		.option('--width <px>', 'window width', '800')
-		.option('--height <px>', 'window height', '600')
+		.description('Build and run, restarting on file changes')
+		.option('--target <target>', 'native or web', 'native')
+		.option('--width <px>', 'native window width', '800')
+		.option('--height <px>', 'native window height', '600')
+		.option('--port <port>', 'web dev port', '4173')
 		.action(
 			async (
 				entry: string | undefined,
-				options: { width: string; height: string }
+				options: {
+					target: string
+					width: string
+					height: string
+					port: string
+				}
 			) => {
 				await devApp(process.cwd(), {
 					entry,
+					target: parseTarget(options.target),
 					width: parseSize(options.width, 'width'),
 					height: parseSize(options.height, 'height'),
+					port: parseSize(options.port, 'port'),
 				})
 			}
 		)
 
+	program
+		.command('preview')
+		.description('Serve a built web app')
+		.option('--dir <path>', 'directory to serve', 'dist/web')
+		.option('--port <port>', 'port', '4173')
+		.action(async (options: { dir: string; port: string }) => {
+			await previewProject(process.cwd(), {
+				dir: options.dir,
+				port: parseSize(options.port, 'port'),
+			})
+		})
+
 	return program
+}
+
+function parseTarget(value: string): BuildTarget {
+	if (value === 'native' || value === 'web') return value
+	throw new Error(`--target must be native or web, got ${value}`)
 }
 
 function parseSize(value: string, name: string): number {
@@ -111,6 +151,11 @@ function parseSize(value: string, name: string): number {
 		throw new Error(`--${name} must be a positive number`)
 	}
 	return Math.round(parsed)
+}
+
+function displayPath(cwd: string, file: string): string {
+	const relative = path.relative(cwd, file)
+	return relative && !relative.startsWith('..') ? relative : file
 }
 
 export async function runCLI(argv = process.argv): Promise<void> {

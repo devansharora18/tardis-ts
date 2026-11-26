@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-const APP = `import { createSignal, render } from '@devansharora18/tardisjs/scene'
+const APP = `import '@devansharora18/tardisjs/web'
+import { createSignal, render } from '@devansharora18/tardisjs/scene'
 
 const [count, setCount] = createSignal(0)
 
@@ -36,22 +37,29 @@ const TSCONFIG = `{
 
 const README = `# My Tardis app
 
+The same \`app.tsx\` runs natively and in the browser.
+
+## Web
+
 \`\`\`sh
 npm install
-npx tardis dev
+npx tardis dev --target web
 \`\`\`
 
-- \`tardis dev\` rebuilds the bundle and restarts the native window on change.
-- \`tardis build\` writes \`dist/app.js\`.
-- \`tardis screenshot -o shot.png\` renders one frame headlessly.
+\`npx tardis build --target web\` writes \`dist/web/app.js\` and \`index.html\`.
+Serve it with \`npx tardis preview\`.
+
+## Native
 
 Build the native runtime once:
 
 \`\`\`sh
 cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml
+npx tardis dev
 \`\`\`
 
-Then \`npx tardis dev\`. Set \`TARDIS_NATIVE_BIN\` to use a binary elsewhere.
+\`tardis screenshot -o shot.png\` renders one native frame headlessly.
+Set \`TARDIS_NATIVE_BIN\` to use a binary elsewhere.
 `
 
 export async function initProject(cwd = process.cwd()): Promise<void> {
@@ -72,31 +80,34 @@ export async function initProject(cwd = process.cwd()): Promise<void> {
   if (!packageExists) {
     await fs.writeFile(
       packagePath,
-    `${JSON.stringify(
-      {
-        name,
-        version: '0.1.0',
-        private: true,
-        type: 'module',
-        scripts: {
-          dev: 'tardis dev',
-          build: 'tardis build',
-          screenshot: 'tardis screenshot',
+      `${JSON.stringify(
+        {
+          name,
+          version: '0.1.0',
+          private: true,
+          type: 'module',
+          scripts: {
+            dev: 'tardis dev',
+            'dev:web': 'tardis dev --target web',
+            build: 'tardis build',
+            'build:web': 'tardis build --target web',
+            preview: 'tardis preview',
+            screenshot: 'tardis screenshot',
+          },
+          dependencies: {
+            '@devansharora18/tardisjs': '^2.0.0-alpha.0',
+          },
         },
-        dependencies: {
-          '@devansharora18/tardisjs': '^2.0.0-alpha.0',
-        },
-      },
-      null,
-      2
-    )}\n`,
+        null,
+        2
+      )}\n`,
       'utf8'
     )
   }
   await fs.writeFile(path.join(cwd, 'tsconfig.json'), TSCONFIG, 'utf8')
-  await fs.writeFile(path.join(cwd, '.gitignore'), 'node_modules/\ndist/\n*.png\n', 'utf8')
+  await fs.writeFile(path.join(cwd, '.gitignore'), 'node_modules\ndist\n*.png\n', 'utf8')
   await fs.writeFile(path.join(cwd, 'README.md'), README, 'utf8')
 
   console.log('Created app.tsx, package.json, tsconfig.json, README.md')
-  console.log('Next: npm install && npx tardis dev')
+  console.log('Next: npm install && npx tardis dev --target web')
 }
