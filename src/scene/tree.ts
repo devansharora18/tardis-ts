@@ -65,8 +65,10 @@ export function subscribePatches(listener: PatchListener): () => void {
 export function flushNow(): void {
   scheduled = false
   if (ops.length === 0) return
+  const g = globalThis as unknown as Record<string, unknown>
   const flush = hostFlush()
-  if (!flush) return
+  const fast = g['__tardis_flush_patch']
+  if (!flush && typeof fast !== 'function') return
   const payload: Patch = { v: 0, frame: ++frame, ops }
   ops = []
   for (const listener of patchListeners) {
@@ -76,7 +78,11 @@ export function flushNow(): void {
       console.error('tardis: patch listener failed', err)
     }
   }
-  flush(JSON.stringify(payload))
+  if (typeof fast === 'function') {
+    ;(fast as (patch: Patch) => void)(payload)
+    return
+  }
+  flush?.(JSON.stringify(payload))
 }
 
 export function emitFocus(id: number | null): void {

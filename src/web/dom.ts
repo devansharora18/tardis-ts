@@ -76,6 +76,8 @@ export class WebHost {
     this.flushFn = (json: string): void => this.flush(json)
     ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush'] =
       this.flushFn
+    ;(globalThis as unknown as Record<string, unknown>)['__tardis_flush_patch'] =
+      (patch: Patch): void => this.flushPatch(patch)
     this.installEvents()
   }
 
@@ -261,7 +263,11 @@ export class WebHost {
 
   flush(json: string): void {
     if (this.disposed) return
-    const patch = JSON.parse(json) as Patch
+    this.flushPatch(JSON.parse(json) as Patch)
+  }
+
+  flushPatch(patch: Patch): void {
+    if (this.disposed) return
     for (const op of patch.ops) this.apply(op)
     if (this.adopting) {
       this.adopting = false
@@ -432,6 +438,7 @@ export class WebHost {
     this.detachEvents()
     const g = globalThis as unknown as Record<string, unknown>
     if (g['__tardis_flush'] === this.flushFn) delete g['__tardis_flush']
+    delete g['__tardis_flush_patch']
     if (currentHost === this) currentHost = null
     this.root.remove()
     this.ime?.remove()
