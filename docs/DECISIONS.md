@@ -62,3 +62,7 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 56 | Hydration is a verified remount, not node adoption | The scene runtime emits direct DOM ops; comparing text and replacing nodes is deterministic, adoption is future work |
 | 57 | Web and SSR share style/tag/default tables | Server and client markup must not drift |
 | 58 | No streaming SSR or data prefetch yet | The API is synchronous and factory-based; streaming needs a different host |
+| 59 | ScrollView uses an absolute inner offset plus parent clipping | No native scroll node; works identically on web and native; content height is explicit |
+| 60 | Boundary catches render-time errors, not effect errors | Effect errors are caught/logged by the signal graph; routing them needs an error sink |
+| 61 | HiDPI keeps layout logical and scales raster/text/bounds | One layout model; crisp text; input divides physical coordinates by scale |
+| 62 | Headless `--scale` produces physical PNG dimensions | Lets CI verify HiDPI raster without a Retina display |

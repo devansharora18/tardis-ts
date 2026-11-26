@@ -34,6 +34,8 @@ There is no second grammar.
   DOM attributes and semantic tags; native stores them for accesskit.
 - **VirtualList** — visible-window windowing with wheel scrolling; ~40 nodes for
   10,000 rows.
+- **ScrollView** — absolute inner offset + parent clipping + scrollbar indicator.
+- **Boundary** — render-time try/catch with fallback/reset.
 - **Form state** — `createForm` values/touched/errors/submitting; `FormField`.
 - **Resources** — `createResource` loading/error/refetch with last-request-wins.
 - **Router** — path signal, `:param` matching, memory or browser history.
@@ -82,7 +84,8 @@ in QuickJS there is no `document`, so it is a no-op.
 - `cosmic-text` — shaping, wrapping, and measurement with bundled Liberation
   Sans regular/bold.
 - `tiny-skia` — rounded rectangles, direct glyph-mask blending, PNG images and
-  output. Paint culls offscreen subtrees and clips `overflow: hidden` views.
+  output. Paint culls offscreen subtrees, clips `overflow: hidden` views, and
+  scales raster/text/bounds by the device pixel ratio while layout stays logical.
 - Patches apply atomically to a clone; invalid ops leave the scene untouched.
 - Hit testing walks the laid-out tree in reverse paint order.
 

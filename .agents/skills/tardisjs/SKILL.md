@@ -68,6 +68,9 @@ render(() => <App />)
 - `createResource(fetcher, { initial? })` → data/error/loading/refetch/dispose
 - `renderToString(App)`, `renderDocument(body, { title?, head?, script? })`,
   `hydrate(App, container, { onMismatch? })` from `tardisjs/ssr`
+- `ScrollView({ height, contentHeight, scrollTop?, onScroll?, children })`
+- `Boundary({ content, fallback?, onError?, onReset? })`
+- native `--scale` (headless) and window scale-factor support
 
 ## JSX rules
 
@@ -141,6 +144,13 @@ Client: `hydrate(App, document.getElementById('app')!)`.
 Hydration is a verified remount: staging render, text compare, warning on
 mismatch, then replace server nodes and move listeners. No node adoption,
 streaming, or data prefetch. Base CSS comes from `renderDocument`.
+
+## Scroll, boundaries, HiDPI
+
+`ScrollView` clips content, scrolls on wheel, and draws an indicator; pass
+`contentHeight` explicitly. `Boundary` catches render-time errors only; effect
+errors are logged. Native HiDPI keeps layout logical and scales raster/text/
+bounds; `tardis-native --scale 2` renders physical screenshots.
 
 ## Large lists, routing, images
 

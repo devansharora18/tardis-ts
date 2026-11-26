@@ -162,3 +162,13 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - `tardisjs/ssr` subpath export and bundle.
 - 93 JS / 11 Rust tests.
 - Deferred: streaming, node adoption, data prefetch, server-bundle CLI.
+
+## Renderer/tooling slice result (2026-11-27)
+
+- `ScrollView`: wheel scrolling, clipping, indicator bar, controlled offsets.
+- `Boundary`: render-time error fallback with reset; effect errors remain logged.
+- HiDPI: logical layout + scaled raster/text/bounds; window scale/input handling;
+  headless `--scale` (200×100 logical → 400×200 PNG verified).
+- 12 Rust / 97 JS tests (full suite re-run below).
+- Still open: wgpu, accesskit, draggable scrollbars, ellipsis, platform binaries,
+  Dioxus frame benchmark, IME/selection.

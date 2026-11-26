@@ -112,6 +112,10 @@ app.tsx ─ compiler ─ bundle
   last-request-wins semantics.
 - **SSR + hydration** — `renderToString`/`renderDocument` serialize the same
   scene tree without a DOM; `hydrate` takes over server markup on the client.
+- **ScrollView** — wheel scrolling with a scrollbar for arbitrary content.
+- **Boundary** — render-time errors show a fallback with reset instead of a blank screen.
+- **HiDPI** — native layout stays logical; raster, text, surfaces, and input use
+  the window scale factor. `tardis-native --scale` covers headless images.
 - **Semantic web output** — `button`, `h1`, `p`, `ul`, `li`, `label`, `strong`,
   and `em` render as real elements instead of generic divs.
 
@@ -200,6 +204,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Native HiDPI is not handled (1x).
 - Hydration is a verified remount (content compared), not server-node adoption.
 - No streaming SSR or data prefetch; no server bundle CLI yet.
+- Boundary catches render-time errors; child effect errors are logged, not routed.
+- ScrollView needs an explicit content height; no draggable scrollbar or ellipsis.
 - Mobile is not started.
 - Dioxus frame timing has not been measured on the same workloads.
 

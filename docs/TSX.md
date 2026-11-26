@@ -263,6 +263,41 @@ events bubble to the nearest handler. Enter and Space activate the nearest
 Web listens on `window`; native listens for winit keyboard input. Text input,
 IME, and clipboard are not implemented.
 
+## Scroll containers
+
+```tsx
+<ScrollView height={300} contentHeight={1200}>
+  <p>Long content…</p>
+</ScrollView>
+```
+
+Wheel events scroll the inner view; the parent clips. `contentHeight` is explicit
+because layout measurement does not flow back to JS yet. The scrollbar is an
+indicator only (not draggable). Controlled use:
+`scrollTop={() => offset()}` plus `onScroll`.
+
+## Error boundaries
+
+```tsx
+<Boundary
+  content={() => <App />}
+  fallback={(error, reset) => (
+    <button onClick={reset}>Retry: {error.message}</button>
+  )}
+/>
+```
+
+The content factory runs inside the boundary and render-time throws are caught.
+Errors thrown later inside child effects are caught and logged by the signal
+graph, not routed to the boundary yet.
+
+## HiDPI
+
+Native windows read the winit scale factor: layout stays in logical pixels while
+raster, text, the surface, and pointer coordinates scale. Headless screenshots
+accept `--scale 2` (logical 800×600 becomes a 1600×1200 PNG). Web scaling is the
+browser's CSS pixel handling.
+
 ## Forms
 
 ```tsx
