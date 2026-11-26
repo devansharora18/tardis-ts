@@ -82,6 +82,8 @@ export function ScrollView(props: ScrollViewProps): SceneNode {
     {
       style: () => ({
         height: height(),
+        flexGrow: 1,
+        minWidth: 0,
         overflow: 'hidden',
         position: 'relative',
       }),
