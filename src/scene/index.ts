@@ -8,6 +8,8 @@ export { TextField } from './input'
 export { Select } from './select'
 export type { SelectOption, SelectProps } from './select'
 export { RadioGroup } from './radio'
+export { Dialog } from './dialog'
+export type { DialogProps } from './dialog'
 export type { RadioOption, RadioGroupProps } from './radio'
 export { Checkbox } from './checkbox'
 export type { CheckboxProps } from './checkbox'
@@ -42,7 +44,14 @@ export type {
   LinkProps,
 } from './router'
 export type { VirtualListProps } from './virtual'
-export { render, dispatchEvent, focusNode, focusNext, getFocusedNode } from './render'
+export {
+  render,
+  dispatchEvent,
+  focusNode,
+  focusNext,
+  getFocusedNode,
+  setFocusTrap,
+} from './render'
 export { flushNow } from './tree'
 export {
   createSignal,

@@ -204,6 +204,9 @@ function host(tag: string, props: Record<string, unknown>, children: unknown[]):
   const node = createNode(spec.kind, tag)
   applyEvents(node, props)
   applyA11y(node, props)
+  if ((tag === 'button' || tag === 'a') && !('tabIndex' in props)) {
+    setA11y(node, 'tabIndex', 0)
+  }
   bindStyle(node, props['style'], spec.style)
   if (node.kind === 'image') {
     bindImage(node, props)

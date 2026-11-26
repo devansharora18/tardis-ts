@@ -6,6 +6,7 @@ import type { EventHandler, SceneEvent, SceneNode } from './types'
 let installed = false
 let pressed: number | null = null
 let focused: number | null = null
+let trapped: number | null = null
 
 function installEventHook(): void {
   if (installed) return
@@ -68,6 +69,11 @@ export function getFocusedNode(): number | null {
   return focused
 }
 
+/** Confine Tab traversal to a subtree (modal dialogs). */
+export function setFocusTrap(id: number | null): void {
+  trapped = id
+}
+
 interface Tabbable {
   id: number
   index: number
@@ -91,14 +97,22 @@ function collectTabbables(): Tabbable[] {
     order += 1
     for (const child of node.children) walk(child)
   }
-  for (const child of rootNode.children) walk(child)
+  if (trapped !== null) {
+    const container = getNode(trapped)
+    if (container) walk(container)
+  } else {
+    for (const child of rootNode.children) walk(child)
+  }
   return found.sort((a, b) => a.order - b.order || a.index - b.index)
 }
 
 /** Move focus to the next (`direction` 1) or previous tabbable node. */
 export function focusNext(direction: 1 | -1): void {
   const tabbables = collectTabbables()
-  if (tabbables.length === 0) return
+  if (tabbables.length === 0) {
+    if (trapped !== null) setFocus(trapped)
+    return
+  }
   const current = focused === null ? -1 : tabbables.findIndex((entry) => entry.id === focused)
   const next =
     current === -1
