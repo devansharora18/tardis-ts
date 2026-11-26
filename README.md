@@ -116,6 +116,8 @@ app.tsx ─ compiler ─ bundle
   submitting, submit errors, reset) and `FormField` for labels/errors.
 - **Inputs** — `Select` (combobox/listbox) and `RadioGroup` (roving focus) in
   addition to `TextField` and `Checkbox`.
+- **Dialog** — modal overlay with `aria-modal`, a Tab focus trap, Escape close,
+  and focus restoration.
 - **Async resources** — `createResource` with loading, error, refetch,
   `AbortSignal` cancellation, and last-request-wins semantics.
 - **wgpu backend** — `tardis run --backend wgpu` presents native frames through a

@@ -76,6 +76,7 @@ render(() => <App />)
 - `ScrollView({ height, contentHeight, scrollTop?, onScroll?, children })`
 - `Boundary({ content, fallback?, onError?, onReset? })` — catches render and
   subtree effect errors
+- `Dialog({ open, onClose, title?, width?, children })` — modal + focus trap
 - `installDevtools({ container?, startOpen? })` from `tardisjs/devtools`
 - native `--scale` (headless) and window scale-factor support
 

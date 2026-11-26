@@ -367,6 +367,18 @@ const options = [
 <RadioGroup value={() => fruit()} options={options} onChange={setFruit} />
 ```
 
+`Dialog` keeps the panel mounted and traps Tab while open:
+
+```tsx
+<Dialog open={() => open()} onClose={() => setOpen(false)} title="Settings">
+  <TextField ... />
+  <button onClick={() => setOpen(false)}>Done</button>
+</Dialog>
+```
+
+Opening focuses the first tabbable control; Tab/Shift+Tab wrap inside the panel;
+Escape calls `onClose`; closing restores the previous focus.
+
 `Select` opens with click/Enter/Space, moves with arrows/Home/End, and closes on
 Escape or selection. `RadioGroup` keeps one tab stop and moves selection with
 arrows, skipping disabled options.

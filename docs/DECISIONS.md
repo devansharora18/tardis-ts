@@ -91,3 +91,5 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 85 | Borders are inset, not centered on the layout box | Prevents clipping at parent edges and keeps hit/layout bounds stable |
 | 86 | wgpu is a presentation backend first | Surface/vsync/resize infrastructure without claiming GPU rasterization; a geometry pipeline is a separate project |
 | 87 | wgpu init panics are caught and fall back to softbuffer | A bad adapter must not take down the window |
+| 88 | Buttons and anchors get a default `tabIndex` of 0 | Native Tab traversal needs an explicit scene tab order; web also gets the attribute |
+| 89 | Dialogs stay mounted and toggle `display` | Keeps the panel id stable for the focus trap and restores focus reliably |

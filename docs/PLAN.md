@@ -260,3 +260,9 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   softbuffer instead of terminating.
 - Release binaries build with `--features wgpu`; CI type-checks the feature.
 - Still CPU rasterization: no GPU geometry/text pipeline.
+
+## Dialog slice result (2026-11-27)
+
+- `Dialog` with `role=dialog`, `aria-modal`, focus trap, Escape close, and focus
+  restore. Buttons/anchors are tabbable by default in the scene order.
+- 134 JS tests. Screen-reader modal verification still needs host testing.
