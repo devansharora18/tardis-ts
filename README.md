@@ -104,8 +104,9 @@ app.tsx ─ compiler ─ bundle
 - **Clipping** — `overflow: hidden` clips children in the native renderer, so
   virtual lists and nested content do not bleed.
 - **Accessible forms** — `TextField` and `Checkbox` with caret editing,
-  focus/blur, `role`/`aria-*`, tab focus, copy/cut/paste, and native
-  `arboard`/web `navigator.clipboard` bridges.
+  selection, multiline, word/vertical navigation, focus/blur, `role`/`aria-*`,
+  tab focus, copy/cut/paste, and native `arboard`/web `navigator.clipboard`
+  bridges.
 - **Form state** — `createForm` (values, touched, errors, submitting, submit,
   reset) and `FormField` for labels/errors.
 - **Async resources** — `createResource` with loading, error, refetch, and
@@ -197,11 +198,11 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - Styles are objects, not CSS. Web maps them to CSS; native maps them to taffy.
 - Web layout is DOM/CSS, native is taffy; font metrics and line breaks can differ.
 - Dynamic arrays rebuild; keyed reuse is not implemented.
-- Text input is single-line and caret-only; no selection, multiline, or IME.
+- Text input has selection and multiline; IME composition is not implemented.
 - Clipboard is system-backed on web and native when a display is available.
 - Native text clipping is rectangle clipping; no ellipsis.
 - Native accessibility attributes are stored but accesskit is not wired yet.
-- Native HiDPI is not handled (1x).
+- Native HiDPI is handled with the window scale factor; verify on Retina hosts.
 - Hydration is a verified remount (content compared), not server-node adoption.
 - No streaming SSR or data prefetch; no server bundle CLI yet.
 - Boundary catches render-time errors; child effect errors are logged, not routed.

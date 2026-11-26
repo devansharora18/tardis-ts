@@ -59,7 +59,7 @@ render(() => <App />)
 - `createRouter({ initial?, history? })`, `Router({ router, routes, fallback? })`,
   `Link({ router, to, children })`, `matchPath(pattern, path)`
 - `focusNode(id)`; keyboard handlers `onKeyDown`/`onKeyUp`; wheel `onWheel`
-- `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?, onSubmit? })`
+- `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?, multiline?, rows?, onSubmit?, onBlur?, onFocus? })`
 - `Checkbox({ checked, onChange?, label?, ariaLabel? })`
 - accessibility props: `role`, `tabIndex`, `aria-*` (web attributes, native stored)
 - `createForm({ initial, validate?, onSubmit? })` → values/touched/errors,
@@ -103,20 +103,8 @@ nearest clickable ancestor.
 
 Pointer down focuses a node; `onKeyDown`/`onKeyUp` bubble to the nearest handler.
 Enter/Space activate the nearest clickable ancestor. Web listens on `window`;
-native maps winit keyboard input. Wheel events reach `onWheel`. Text input, IME,
-and clipboard are not implemented.
-
-## Forms and accessibility
-
-`TextField` is single-line and controlled/uncontrolled; Home/End/arrows,
-Backspace/Delete, Enter (`onSubmit`), Ctrl/Cmd+C/X/V. Clipboard uses memory +
-`navigator.clipboard` on web, `arboard` natively when a display exists.
-`Checkbox` toggles on click/Enter/Space with `role="checkbox"`/`aria-checked`.
-No selection, multiline, or IME yet.
-
-Intrinsic tags render as real web elements (`button`, `h1`, `p`, `ul`, ...).
-`role`, `tabIndex`, and `aria-*` become an `a11y` op. Native stores them; the
-accesskit tree is not wired.
+native maps winit keyboard input. Wheel events reach `onWheel`. IME composition
+is not implemented.
 
 ## Forms, resources, accessibility
 
@@ -124,11 +112,13 @@ accesskit tree is not wired.
 label/error/hint; errors show after touch or submit. `createResource` starts a
 request immediately and ignores stale responses (no AbortSignal yet).
 
-`TextField` is single-line and controlled/uncontrolled; Home/End/arrows,
-Backspace/Delete, Enter (`onSubmit`), Ctrl/Cmd+C/X/V. Clipboard uses memory +
-`navigator.clipboard` on web, `arboard` natively when a display exists.
-`Checkbox` toggles on click/Enter/Space with `role="checkbox"`/`aria-checked`.
-No selection, multiline, or IME yet.
+`TextField` is controlled/uncontrolled with caret, selection, and optional
+multiline. Shortcuts: arrows/Home/End, Shift+movement selection, Ctrl/Cmd+A,
+Ctrl/Cmd+C/X/V, Alt+arrows by word, Ctrl/Cmd+Home/End document ends; Enter
+submits single-line, ctrl+enter submits multiline. No IME composition yet.
+Clipboard uses memory + `navigator.clipboard` on web, `arboard` natively when a
+display exists. `Checkbox` toggles on click/Enter/Space with
+`role="checkbox"`/`aria-checked`.
 
 Intrinsic tags render as real web elements (`button`, `h1`, `p`, `ul`, ...).
 `role`, `tabIndex`, and `aria-*` become an `a11y` op. Native stores them; the
@@ -204,12 +194,11 @@ Do not claim one.
 
 ## Gotchas
 
-- Native window is 1x scale; no HiDPI.
 - `overflow: hidden` is rectangular clipping; no ellipsis.
-- Native images are PNG only; scroll is VirtualList windowing, not a scroll node.
-- TextField is single-line/caret-only; no selection, multiline, or IME.
+- Native images are PNG only; ScrollView clips and offsets, no native scroll node.
+- TextField has selection/multiline; IME composition is missing.
 - Clipboard is system-backed when available; otherwise memory.
-- No web SSR/hydration.
+- Hydration is a remount, not node adoption; no streaming SSR.
 - No Dioxus frame-time benchmark.
 - Sending a native bundle through a headless-only build? Keep the window build
   in `native/target/debug`; tests use `native/target/headless`.

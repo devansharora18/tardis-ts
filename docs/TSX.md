@@ -320,10 +320,14 @@ const [subscribe, setSubscribe] = createSignal(false)
 />
 ```
 
-`TextField` is single-line and controlled (`value` + `onChange`) or uncontrolled.
-It supports Home/End/arrows/Backspace/Delete, Enter (`onSubmit`), and
-Ctrl/Cmd+C/X/V. The caret is visible while focused. `Checkbox` toggles on click,
-Enter, or Space and exposes `role="checkbox"`/`aria-checked`.
+`TextField` is controlled (`value` + `onChange`) or uncontrolled. It supports
+Home/End/arrows/Backspace/Delete, Shift+movement selection, Ctrl/Cmd+A/C/X/V,
+Alt+arrows by word, and Ctrl/Cmd+Home/End for document ends. Pass
+`multiline` and optional `rows` (minimum visible rows) for a growing text area:
+Enter inserts a newline, Ctrl/Cmd+Enter calls `onSubmit`, and Up/Down keep the
+column. Selection is painted as a highlighted run on both hosts. IME
+composition is not implemented. `Checkbox` toggles on click, Enter, or Space and
+exposes `role="checkbox"`/`aria-checked`.
 
 For validation, `createForm` owns values, touched fields, errors, submitting,
 submit, and reset:

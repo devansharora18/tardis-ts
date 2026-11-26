@@ -64,7 +64,8 @@ npm publish --tag alpha
 - Ellipsis for clipped text (rectangular clipping exists).
 - HiDPI is wired through native layout/raster/input; verify Retina and Windows
   scaling on host hardware.
-- Text selection, multiline fields, IME composition, and a spatial focus tree.
+- IME composition, pointer-based caret placement, and a spatial focus tree
+  (selection/multiline shipped).
   Basic single-line TextField and clipboard exist.
 - Mouse hover/press visual states; web currently has no cursor affordance.
 - Window close lifecycle and multiple windows.

@@ -29,7 +29,8 @@ There is no second grammar.
   each evaluation gets a fresh owner.
 - **Events** — pointer down/up, wheel, keyboard, focus/blur; pointer down
   focuses and fires `onPointerDown`/`onFocus`; the previous node gets `onBlur`.
-- **Forms** — `TextField` (caret, editing, clipboard) and `Checkbox`.
+- **Forms** — `TextField` (caret, selection, multiline, clipboard) and
+  `Checkbox`. Selection runs paint as text-node backgrounds.
 - **A11y** — `role`/`tabIndex`/`aria-*` travel in an `a11y` patch op; web applies
   DOM attributes and semantic tags; native stores them for accesskit.
 - **VirtualList** — visible-window windowing with wheel scrolling; ~40 nodes for

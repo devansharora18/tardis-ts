@@ -66,3 +66,6 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 60 | Boundary catches render-time errors, not effect errors | Effect errors are caught/logged by the signal graph; routing them needs an error sink |
 | 61 | HiDPI keeps layout logical and scales raster/text/bounds | One layout model; crisp text; input divides physical coordinates by scale |
 | 62 | Headless `--scale` produces physical PNG dimensions | Lets CI verify HiDPI raster without a Retina display |
+| 63 | Text selection is an anchor + active caret pair | Shift+movement extends from the anchor; plain movement collapses; one model for mouse and keyboard |
+| 64 | Multiline fields render one scene row per line | Avoids relying on host newline layout; selection and caret split per line |
+| 65 | Vertical caret movement keeps a goal column | Matches editor behavior through short/long lines; reset on horizontal movement and edits |

@@ -172,3 +172,13 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - 12 Rust / 97 JS tests (full suite re-run below).
 - Still open: wgpu, accesskit, draggable scrollbars, ellipsis, platform binaries,
   Dioxus frame benchmark, IME/selection.
+
+## Input slice result (2026-11-27)
+
+- Selection: shift+arrows/Home/End, Ctrl/Cmd+A, copy/cut selection, delete/replace
+  selection, collapse on plain movement.
+- Multiline: `multiline`/`rows`, per-line rendering, Enter newline,
+  Ctrl/Cmd+Enter submit, vertical movement with goal column, per-line Home/End.
+- Navigation: Alt+arrows by word, Ctrl/Cmd+Home/End document ends.
+- Native: text-node backgrounds paint behind glyphs so selection is visible.
+- 107 JS / 13 Rust tests. Still open: IME, pointer caret placement, focus tree.
