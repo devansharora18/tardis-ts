@@ -22,6 +22,8 @@ export type {
   FormOptions,
 } from './form'
 export { createResource } from './resource'
+export { createMutation } from './mutation'
+export type { Mutation, MutationOptions } from './mutation'
 export type { Resource } from './resource'
 export {
   writeClipboard,

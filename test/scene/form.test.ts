@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createWebHost, type WebHost } from '../../src/web/index'
 import {
   createForm,
+  createMutation,
   createResource,
   createRoot,
   FormField,
@@ -195,6 +196,54 @@ describe('createResource cancellation', () => {
     expect(signals[1].aborted).toBe(false)
 
     resource.dispose()
+    expect(signals[1].aborted).toBe(true)
+  })
+})
+
+describe('createMutation', () => {
+  it('tracks success, error, and latest call wins', async () => {
+    let resolveFirst: ((value: string) => void) | null = null
+    const run = vi.fn((input: string) => {
+      if (input === 'slow') {
+        return new Promise<string>((resolve) => {
+          resolveFirst = resolve
+        })
+      }
+      return Promise.resolve(`ok:${input}`)
+    })
+    const onSuccess = vi.fn()
+    const mutation = createMutation(run, { onSuccess })
+
+    const slow = mutation.mutate('slow')
+    expect(mutation.loading()).toBe(true)
+    const fast = mutation.mutate('fast')
+    await fast
+    expect(mutation.data()).toBe('ok:fast')
+    expect(mutation.loading()).toBe(false)
+
+    resolveFirst!('ok:slow')
+    await slow
+    expect(mutation.data()).toBe('ok:fast')
+    expect(onSuccess).toHaveBeenCalledTimes(1)
+
+    run.mockRejectedValueOnce(new Error('nope'))
+    await mutation.mutate('fail')
+    expect(mutation.error()?.message).toBe('nope')
+    mutation.reset()
+    expect(mutation.error()).toBeUndefined()
+  })
+
+  it('aborts the previous request on a new mutation and dispose', () => {
+    const signals: AbortSignal[] = []
+    const mutation = createMutation((_input: string, signal) => {
+      signals.push(signal)
+      return new Promise<string>(() => {})
+    })
+    void mutation.mutate('a')
+    void mutation.mutate('b')
+    expect(signals[0].aborted).toBe(true)
+    expect(signals[1].aborted).toBe(false)
+    mutation.dispose()
     expect(signals[1].aborted).toBe(true)
   })
 })

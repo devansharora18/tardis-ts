@@ -31,7 +31,7 @@ export function createResource<T>(
     const current = ++token
     setLoading(true)
     setError(undefined)
-    fetcher(controller?.signal).then(
+    fetcher(controller?.signal ?? undefined).then(
       (value) => {
         if (disposed || current !== token) return
         setData(value)
