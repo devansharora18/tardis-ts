@@ -1,7 +1,10 @@
-# Native target architecture
+# Cross-platform architecture
 
-Status: v0 implemented on Linux. TSX surface, embedded QuickJS, CPU raster
-renderer. wgpu and platform packaging are next.
+Targets: Linux, macOS, Windows, and web. Mobile is deferred.
+
+Status: native v0 verified on Linux (window + headless), web DOM backend
+verified in Chrome and jsdom, macOS/Windows compile and test in CI. wgpu and
+platform packaging are next.
 
 ## Layers
 
@@ -37,6 +40,21 @@ The embedded QuickJS host installs two globals:
 The protocol is documented in [protocol.md](protocol.md). v0 uses JSON; the op
 set is stable so a binary encoding is a transport change, not a redesign.
 
+### 4b. Web host (`src/web/`)
+
+The same patch stream is applied to DOM elements:
+
+- `view`/`scroll` → `<div>` with `display: flex`,
+- `text` → `<div>` with `white-space: pre-wrap`,
+- `image` → `<img>`,
+- `fragment` → `<div>` with `display: contents`,
+- styles → CSS properties; `box-sizing: border-box` matches taffy sizing.
+
+Pointer events are delegated from the container: `closest('[data-tardis]')` gives
+the scene node id, then the runtime's `dispatchEvent` handles bubbling to the
+nearest clickable ancestor. The app imports the web module for its side effect;
+in QuickJS there is no `document`, so it is a no-op.
+
 ### 5. Rust core (`native/crates/core`)
 
 - `taffy` — flexbox layout; fragments are flattened into the nearest parent.
@@ -54,8 +72,9 @@ set is stable so a binary encoding is a transport change, not a redesign.
 - `native/crates/cli` — `tardis-native`:
   - `--headless --out frame.png --dump scene.json [--click x,y]`
   - window mode: winit + softbuffer, resize, pointer events.
-- `src/cli` (Node) — builds the bundle, locates the binary, spawns it, watches
-  files for `tardis dev`.
+- `src/cli` (Node) — builds native/web bundles, locates the binary, spawns it,
+  serves web previews, and watches files for `tardis dev`.
+- `src/web` — DOM host for the web target.
 
 ## Frame loop
 
@@ -66,11 +85,14 @@ native input ──▶ JS handlers ──▶ signal writes
                                       │
                           scene diff → patch JSON
                                       │
-                     taffy layout → tiny-skia → present/PNG
+              ┌───────────────────────┴───────────────────────┐
+              │                                               │
+   taffy layout → tiny-skia → present/PNG        DOM host → CSS layout → paint
 ```
 
 Input is dispatched synchronously; the runtime flushes patches before the host
-returns from `__tardis_event`. The renderer never sees a half-updated tree.
+returns. The renderer never sees a half-updated tree. Web pointer events call
+the same `dispatchEvent` path, so handler semantics match.
 
 ## Threading
 
@@ -96,17 +118,19 @@ No benchmark suite exists yet. M5 is a 10k-row virtualized list gate.
 ```
 tardisjs/
   src/
-    compiler/        tsx transformer + esbuild bundler
+    compiler/        tsx transformer + esbuild bundler (native + web)
     scene/           signals, jsx, tree, mount, render
-    cli/             build/run/screenshot/dev/init
+    web/             DOM patch host
+    cli/             build/run/screenshot/dev/preview/init
   native/
     crates/core/     scene, patch, layout, text, paint
     crates/js/       QuickJS host
     crates/cli/      tardis-native binary
   test/
-    compiler/        transformer + bundler
+    compiler/        transformer + bundler + web bundle
     scene/           signals + runtime patches
-    cli/             native end-to-end
+    web/             DOM host
+    cli/             native end-to-end + static server
   examples/native-counter/
   docs/
 ```
@@ -120,8 +144,9 @@ tardisjs/
 - **M4 — TSX compiler** ✅
 - M5 — virtualized 10k-row list at 60fps + benchmark
 - M6 — packaging (Linux/macOS, then Windows), npm platform binaries
+- **M8 — web DOM backend** ✅ (Chrome + jsdom, dev/preview)
 - M7 — wgpu renderer behind the same interface
-- M8 — optional web backend via a scene-to-DOM adapter
+- Mobile — deferred
 
 ## Risks
 
@@ -132,4 +157,6 @@ tardisjs/
 | Rust maintenance | Hard 10k-line budget, no app semantics |
 | CPU raster cost | wgpu backend behind the renderer boundary |
 | Two toolchains | `native/` isolated; CI splits JS and Rust jobs |
-| Scope creep | M5 benchmark is the gate |
+| Native/web layout drift | Shared styles; explicit line heights; box-sizing; jsdom structure tests |
+| macOS/Windows GUI untested here | CI compiles/tests; GUI smoke commands in TODO |
+| Scope creep | M5 benchmark is the gate; mobile deferred |

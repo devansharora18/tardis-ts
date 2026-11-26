@@ -6,8 +6,9 @@ in-process; no sockets, no serialization across processes.
 - **Patch** — JS → Rust, once per frame, atomic.
 - **Events** — Rust → JS, drained at frame start.
 
-The op set below is the contract. v0 encodes it as JSON for debuggability; v1
-switches to the binary layout at the end of this document. The op set does not
+The op set below is the contract. It drives both the native Rust core and the
+web DOM host; only the consumer differs. v0 encodes it as JSON for debuggability;
+v1 switches to the binary layout at the end of this document. The op set does not
 change between versions.
 
 ## Scene model

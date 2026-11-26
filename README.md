@@ -1,58 +1,56 @@
 # TardisJS
 
-**TSX-native desktop UI framework. TypeScript surface, Rust renderer.**
+**TSX-native UI framework for Linux, macOS, Windows, and the web.**
 
-Pre-alpha. The `.tardis` blueprint DSL is gone; v2 is TSX only.
+Pre-alpha. One TSX entry runs in a native window (Rust renderer, embedded
+QuickJS) or in a browser (DOM host). Mobile is deferred.
 
-## What it is
+## Targets
 
-- Write TSX with signals. No virtual DOM, no hooks rules, no re-render pass.
-- The compiler turns JSX into a retained scene tree; a small Rust core owns
-  flexbox layout, text shaping, and rasterization.
-- The app runs in an embedded QuickJS engine inside one native binary.
-- `tardis screenshot` renders headlessly to PNG for CI and visual checks.
-- The current renderer is CPU-based (tiny-skia). A wgpu backend is next.
-
-## Status
-
-Alpha, desktop-first. Linux/X11 verified end to end, including the window and
-headless click tests. macOS/Windows have not been packaged. There is no web
-target.
-
-The npm tarball ships the Rust sources, not prebuilt binaries yet. Build the
-runtime once (in an app: `cargo build --release --manifest-path
-node_modules/@devansharora18/tardisjs/native/Cargo.toml`), or point
-`TARDIS_NATIVE_BIN` at a binary. See [docs/TODO.md](docs/TODO.md).
-
-## Requirements
-
-- Node 20+
-- Rust 1.87+ (edition 2021, QuickJS bundled)
-- Linux window builds need X11 or Wayland development libraries
+| Target | Status |
+|---|---|
+| Linux (X11/Wayland) | Verified here: window, headless PNG, click e2e |
+| macOS | CI build/test path; GUI smoke is a host check |
+| Windows | CI build/test path; GUI smoke is a host check |
+| Web | Verified in Chrome and jsdom; `dev`/`build`/`preview` |
+| Mobile | Deferred |
 
 ## Quick start
 
-From this repository:
+### Web
+
+```sh
+npx @devansharora18/tardisjs init
+npm install
+npx tardis dev --target web
+```
+
+No Rust needed for the web target. `tardis build --target web` writes
+`dist/web/app.js` plus a generated `index.html`; `tardis preview` serves it.
+
+### Native
+
+Build the runtime once (the npm tarball ships the Rust sources):
+
+```sh
+cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml
+npx tardis dev
+```
+
+### From this repository
 
 ```sh
 npm install
 npm run build
 cargo build --manifest-path native/Cargo.toml
 node dist/bin/tardis.js dev examples/native-counter/app.tsx
+node dist/bin/tardis.js dev examples/native-counter/app.tsx --target web
 ```
 
-From an empty app directory:
-
-```sh
-npx @devansharora18/tardisjs init
-npm install
-cargo build --release --manifest-path node_modules/@devansharora18/tardisjs/native/Cargo.toml
-npx tardis dev
-```
-
-## A complete app
+## One app, two hosts
 
 ```tsx
+import '@devansharora18/tardisjs/web'
 import { createSignal, render } from '@devansharora18/tardisjs/scene'
 
 const [count, setCount] = createSignal(0)
@@ -60,7 +58,7 @@ const [count, setCount] = createSignal(0)
 function App() {
   return (
     <div style={{ padding: 32, gap: 12 }}>
-      <h1>Tardis Native</h1>
+      <h1>Tardis</h1>
       <p>Count: {count()}</p>
       <button style={{ width: 200 }} onClick={() => setCount((n) => n + 1)}>
         Increment
@@ -72,46 +70,52 @@ function App() {
 render(() => <App />)
 ```
 
+`@devansharora18/tardisjs/web` boots the DOM host in a browser. In QuickJS there
+is no `document`, so the import is a no-op and the native host receives the
+same scene patches.
+
 ## How it works
 
 ```
-app.tsx ── compiler ──▶ dist/app.js ── QuickJS ──▶ scene patches
-                                                       │
-                                              taffy layout
-                                                       │
-                                         cosmic-text + tiny-skia
-                                                       │
-                                                  one frame
+                         ┌─ native: QuickJS ─ taffy ─ cosmic-text ─ tiny-skia
+app.tsx ─ compiler ─ bundle
+                         └─ web: DOM host ─ CSS flex ─ browser text
 ```
 
-The JS runtime owns state, components, and events. Rust owns pixels. The
-boundary is one JSON patch per frame (protocol v0), not a call per property.
-See [docs/native/architecture.md](docs/native/architecture.md) and
-[docs/native/protocol.md](docs/native/protocol.md).
+- The compiler turns TSX into a retained scene tree; signals update nodes in
+  place. There is no virtual DOM.
+- Native: a small Rust core owns flexbox, text, and raster; the app runs in
+  embedded QuickJS.
+- Web: the same patch stream is applied to DOM elements; CSS flex replaces
+  taffy, and the browser text engine replaces cosmic-text.
+- The patch protocol is identical; only the host differs.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `tardis init` | Create `app.tsx`, `package.json`, `tsconfig.json` |
-| `tardis build [entry]` | Bundle TSX to `dist/app.js` |
+| `tardis build [entry]` | Bundle native (`dist/app.js`) or `--target web` (`dist/web/app.js` + shell) |
 | `tardis run [entry]` | Build and open the native window |
-| `tardis dev [entry]` | Build, run, and restart on `.ts`/`.tsx` changes |
-| `tardis screenshot [entry]` | Render one frame to PNG; `--dump` writes the scene JSON |
+| `tardis dev [entry]` | Native: restart on change. `--target web`: serve + reload |
+| `tardis screenshot [entry]` | Native headless PNG; `--dump` writes scene JSON |
+| `tardis preview` | Serve a built web app |
 
-Options: `--out`, `--minify`, `--width`, `--height`, `--dump`.
+Options: `--target native|web`, `--out`, `--minify`, `--width`, `--height`,
+`--port`, `--dump`.
 
 Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 
 ## Limits (v0)
 
-- Props are reactive getters. Use `props.title()` in JSX and memos.
-- Styles are objects, not CSS. Supported keys are listed in
-  [docs/TSX.md](docs/TSX.md#styles).
-- Dynamic arrays rebuild when they change; keyed reuse is not implemented.
-- No keyboard, focus, IME, clipboard, images, scrolling, or text clipping yet.
-- The window is 1x scale; HiDPI is not handled.
-- Only the bundled Liberation Sans family is guaranteed.
+- Native props are reactive getters: use `props.title()`.
+- Styles are objects, not CSS. Web maps them to CSS; native maps them to taffy.
+- Web layout is DOM/CSS, native is taffy; font metrics and line breaks can differ.
+- Dynamic arrays rebuild; keyed reuse is not implemented.
+- No keyboard, focus, IME, clipboard, scrolling, images, or text clipping yet.
+- Native HiDPI is not handled (1x).
+- No web SSR/hydration yet.
+- Mobile is not started.
 
 ## Docs
 
@@ -121,3 +125,4 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - [Decisions](docs/DECISIONS.md)
 - [TODO](docs/TODO.md)
 - [ADR 0003 — TSX-only v2](docs/adr/0003-tsx-only-v2.md)
+- [ADR 0004 — web DOM adapter](docs/adr/0004-web-dom-adapter.md)

@@ -3,6 +3,31 @@
 TardisJS v2 is TSX only. There is no `.tardis` file, no custom grammar, and no
 directive syntax. If you know React and signals, you know the surface.
 
+## Targets
+
+The same entry runs on Linux, macOS, Windows, and the web. Mobile is deferred.
+
+```tsx
+import '@devansharora18/tardisjs/web' // no-op outside a browser
+import { createSignal, render } from '@devansharora18/tardisjs/scene'
+```
+
+The web import boots the DOM host when `document` exists. In QuickJS it is a
+no-op and the native host handles the same scene patches.
+
+```sh
+tardis dev --target web            # browser, with reload
+tardis build --target web          # dist/web/app.js + index.html
+tardis preview                     # serve dist/web
+tardis dev                         # native window
+tardis screenshot -o shot.png      # native headless PNG
+```
+
+Layout differs by host: native uses taffy and cosmic-text; web uses CSS flex
+and the browser's text engine. Styles, line heights, and `box-sizing` are kept
+aligned, but font metrics and line breaks can differ.
+
+
 ## Signals
 
 Components run once. State is a signal; reading it inside JSX creates a binding.
@@ -149,13 +174,15 @@ Pointer moves, keyboard, focus, IME, and text input are not wired yet.
 Call `render` once at the entry point:
 
 ```tsx
+import '@devansharora18/tardisjs/web'
 import { render } from '@devansharora18/tardisjs/scene'
 
 render(() => <App />)
 ```
 
 `render` returns `{ root, dispose }`. `dispose` unmounts the tree and stops its
-effects.
+effects. On native the QuickJS host must be present; on web the import above
+installs the DOM host.
 
 ## Text
 
@@ -196,11 +223,22 @@ stable enough for assertions. The window mode can be exercised under Xvfb:
 xvfb-run -a cargo run --manifest-path native/Cargo.toml -- --bundle dist/app.js
 ```
 
+The web host is pure DOM and testable with jsdom. The end-to-end suite builds a
+web bundle, executes it in jsdom, and clicks the rendered button. Chrome is used
+for a real-browser smoke check during development.
+
+```sh
+npx vitest run test/web test/compiler/web-bundle.test.ts
+```
+
 ## Known boundaries
 
 - Dynamic arrays are rebuilt, not keyed-diffed.
 - Text is not clipped to its box; `overflow` affects layout only.
-- Images are placeholders.
+- Images are placeholders on native; the web host sets `<img src>`.
 - Scroll offsets exist in the protocol but are not painted.
 - No keyboard/focus/IME/clipboard.
-- Window scaling is 1x.
+- Native window scaling is 1x.
+- Web has no SSR/hydration; it is client-rendered.
+- Web layout is CSS; native layout is taffy. Pixel parity is not guaranteed.
+- Mobile is not started.

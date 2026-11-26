@@ -7,7 +7,7 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 1 | Package name stays `@devansharora18/tardisjs`; version `2.0.0-alpha.0` | The npm identity is the asset |
 | 2 | `.tardis` and every v1 artifact are removed, not deprecated | Explicit directive; a dual surface doubles the compiler and docs |
 | 3 | App imports use `@devansharora18/tardisjs/scene`; the bundler also aliases `tardisjs/scene` | Imports match the published package; short alias stays for generated/legacy code |
-| 4 | Native desktop is the only target in v2 | Web needs a DOM adapter; native proves the architecture first |
+| 4 | Native desktop is the first target; web follows through a DOM patch adapter | Native proves the renderer; web reuses the same scene runtime |
 | 5 | TSX compiles to a retained scene tree, not a VDOM | One operation per change, no virtual tree diff |
 | 6 | Non-event JSX props compile to getters | Fine-grained updates without re-running components |
 | 7 | Event props (`on[A-Z]`), `key`, `ref`, function props stay unwrapped | Wrapping callbacks would turn them into getters of functions |
@@ -28,3 +28,14 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 22 | End-to-end proof uses `--click x,y` plus `--dump` | Hit testing and signal updates verified without a GUI driver |
 | 23 | Window mode is compiled in by default; headless builds use `--no-default-features` | CI needs no X11/Wayland |
 | 24 | The old v1 signals implementation is gone; scene/signals is the only graph | No dual runtime |
+| 25 | Web uses a DOM patch adapter, not a canvas/WASM renderer | Keeps text selection, accessibility, and browser layout; no WASM payload (ADR 0004) |
+| 26 | Mobile is explicitly deferred | Desktop and web must be solid first |
+| 27 | The same TSX entry imports `@devansharora18/tardisjs/web` for its side effect | In QuickJS `typeof document === 'undefined'`, so the import is a no-op |
+| 28 | Web maps scene styles to CSS flex with `box-sizing: border-box` | Matches taffy sizing; line heights are explicit to reduce drift |
+| 29 | `build --target web` writes `dist/web/app.js` plus a generated `index.html` | One command produces a servable app |
+| 30 | Web dev reload polls `/__tardis_version` every 700ms | No WebSocket or extra dependency; works with any static server |
+| 31 | CI runs a Linux/macOS/Windows matrix | Compile/test coverage; GUI smoke remains a host check |
+| 32 | npm scripts use Node for clean/chmod instead of `rm`/`chmod` | Windows compatibility |
+| 33 | The native e2e builds into `native/target/headless` | Tests must not overwrite the window-enabled binary |
+| 34 | The native e2e appends `.exe` on Windows | Cross-platform binary lookup |
+| 35 | The default build target stays native; web is `--target web` | The native renderer is the differentiator; web is explicit |

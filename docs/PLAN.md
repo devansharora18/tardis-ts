@@ -57,3 +57,20 @@ Targets: Linux, macOS, Windows, web. Mobile deferred.
    dev-server tests; native e2e keeps working with the web import.
 6. **CI** — Linux/macOS/Windows matrix: typecheck, tests, build, cargo tests.
 7. **Docs** — target matrix, web quick start, ADR 0004, TODO host checks.
+
+## Cross-platform result
+
+Delivered after the follow-up plan:
+
+- Web DOM host (`src/web`), auto-installed on `#app`; no-op in QuickJS.
+- `bundleApp({ target: 'web' })` with a generated `index.html` shell.
+- CLI: `build --target web`, `dev --target web` (watch + rebuild + reload),
+  `preview`; cross-platform npm scripts.
+- `./web` package export and Rollup entry.
+- jsdom host tests, web bundle end-to-end (render + click), static server tests.
+- Chrome smoke check rendered the web build with the counter.
+- CI matrix for Linux, macOS, and Windows.
+- Docs: target matrix, TSX web notes, ADR 0004.
+
+Deviations: web layout is CSS, so pixel parity with native is not guaranteed;
+web SSR/hydration remains future work; mobile is deferred.

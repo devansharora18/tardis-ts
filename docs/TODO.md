@@ -2,40 +2,51 @@
 
 ## RUN ON HOST
 
-These need a real desktop session or credentials this environment does not have.
-On the host:
+These need a real desktop session, a second browser, or credentials this
+environment does not have.
 
 ```sh
-# macOS / Windows window smoke test (Linux is verified under Xvfb)
+# macOS / Windows native window smoke (Linux is verified under Xvfb)
 npm install
 npm run build
 cargo build --manifest-path native/Cargo.toml
 node dist/bin/tardis.js run examples/native-counter/app.tsx
+# verify: window opens, button increments, resize relayouts
 
-# verify the window opens, the button responds, and resize relayouts
-```
+# Web in Safari and Firefox (Chrome and jsdom are verified here)
+node dist/bin/tardis.js build examples/native-counter/app.tsx --target web
+node dist/bin/tardis.js preview --dir examples/native-counter/dist/web
+# open the URL, click Increment, check the layout
 
-Publish the alpha once the native binaries exist:
-
-```sh
+# Native binary package smoke, once platform packages exist
 npm publish --tag alpha
 ```
+
+## Platforms
+
+- **Mobile (iOS/Android)** — explicitly deferred. Requires a native view host,
+  touch/IME, safe areas, and platform packaging.
+- **macOS/Windows native** — CI compiles/tests; GUI smoke is a host check above.
+- **Web** — Chrome and jsdom verified. Add Safari/Firefox to a browser matrix.
+- **Web SSR/hydration** — render the scene tree to HTML, hydrate with the DOM
+  host. No SSR exists today.
 
 ## Packaging
 
 - Build npm platform packages (`tardis-native-linux-x64`, `-darwin-arm64`,
   `-win32-x64`) as optional dependencies, the esbuild/swc pattern. Until then the
   tarball ships the Rust sources and the user builds once with cargo.
-- Add a GitHub Actions matrix: Node typecheck/tests + cargo test on Linux,
-  macOS, Windows; cache cargo; build release binaries.
 - Include the license for the bundled Liberation fonts in release artifacts
   (already in `native/crates/core/assets/LICENSE-Liberation.txt`).
-- Add `tardis doctor` to report missing binary, Rust, display, and fonts.
+- Add `tardis doctor` to report missing binary, Rust, display, fonts, and target.
+- Add release binaries to the CI matrix (the matrix exists; upload artifacts and
+  attach them to releases).
 
 ## Performance
 
-- M5 benchmark: 10k-row virtualized list, mount/update/scroll frame times,
-  compared with a DOM baseline.
+- M5 benchmark: native 10k-row virtualized list, mount/update/scroll frame
+  times, compared with a DOM baseline.
+- Web virtualization for large lists; the DOM host is not virtualized.
 - Keyed reconciliation for dynamic arrays (reuse nodes by `key`, emit moves).
 - Incremental layout instead of rebuilding the taffy tree per patch.
 - Glyph atlas: cache shaped buffers and glyph pixmaps across frames.
@@ -44,23 +55,30 @@ npm publish --tag alpha
 
 ## Correctness
 
+- Native/web layout parity: audit box sizing, line heights, font metrics, and
+  wrapping against the same scene dump.
 - Text clipping (`overflow: hidden`) and ellipsis.
-- Image decode and sizing (`fit: cover|contain|fill`).
+- Image decode and sizing (`fit: cover|contain|fill`); the web host sets `src`,
+  the native renderer draws a placeholder.
 - Scroll containers: painting offsets, wheel events, scrollbars.
-- HiDPI: pass `scale_factor` through layout, text, and pointer coordinates.
+- HiDPI: pass `scale_factor` through layout, text, and pointer coordinates
+  (native windows are 1x today).
 - Keyboard events, focus tree, IME, clipboard.
-- Mouse hover/press visual states.
+- Mouse hover/press visual states; web currently has no cursor affordance.
 - Window close lifecycle and multiple windows.
 - Error boundary for panics in the Rust core (reject patch, keep last frame).
+- Web accessibility audit (the DOM host keeps native elements; verify roles and
+  keyboard navigation once focus lands).
 
 ## Developer experience
 
-- Hot re-evaluation of the bundle without restarting the window.
-- Source maps from TSX to the bundled app.
+- Hot re-evaluation of the native bundle without restarting the window.
+- Source maps from TSX to both bundles.
 - TypeScript JSX namespace declarations for editors (`JSX.IntrinsicElements`).
 - `tardis inspect` to print the scene tree from a running app.
-- A web backend via a scene-to-DOM adapter (M8) so the same TSX runs in a
-  browser.
+- Playwright end-to-end tests for the web target (jsdom covers logic; a real
+  browser covers layout and events).
+- Client-side routing for the web target.
 
 ## Docs
 
@@ -68,4 +86,5 @@ npm publish --tag alpha
   removed.
 - Add a migration note from `.tardis` blueprints to TSX signals (v1 is in git
   history).
-- Record a short screen capture of the window and the headless screenshot flow.
+- Record short captures of the native window, the web app, and the headless
+  screenshot flow.
