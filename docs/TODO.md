@@ -2,120 +2,98 @@
 
 ## RUN ON HOST
 
-These need a real desktop session, a second browser, or credentials this
-environment does not have.
+These need a real desktop session, credentials, or hardware this environment
+does not have.
 
 ```sh
 # macOS / Windows native window smoke (Linux is verified under Xvfb)
-npm install
+npm ci
 npm run build
-cargo build --manifest-path native/Cargo.toml
+cargo build --release --manifest-path native/Cargo.toml
 node dist/bin/tardis.js run examples/native-counter/app.tsx
-# verify: window opens, button increments, resize relayouts
+# verify: window opens, clicks/keys/IME work, resize/scale relayouts,
+# and a screen reader reads the AccessKit tree
 
-# Web in Safari and Firefox (Chrome and jsdom are verified here)
+# Web in Safari and Firefox (Chrome 155 and jsdom are verified here)
 node dist/bin/tardis.js build examples/native-counter/app.tsx --target web
-node dist/bin/tardis.js preview --dir examples/native-counter/dist/web
-# open the URL, click Increment, check the layout
+node dist/bin/tardis.js preview
+# open the URL, click Increment, Tab through controls, open a Dialog
 
-# Native binary package smoke, once platform packages exist
-npm publish --tag alpha
+# Platform binary smoke after the first publish
+npm i @devansharora18/tardisjs@alpha
+npx tardis screenshot examples/native-counter/app.tsx -o check.png
+# must not require Rust or cargo
 ```
+
+- Add `NPM_TOKEN` to repository secrets, configure macOS/Windows signing
+  secrets (see [PACKAGING.md](PACKAGING.md)), tag `v*`, and verify the release
+  workflow publishes all platform packages.
+- Verify Gatekeeper/SmartScreen behavior on signed artifacts.
+- Verify Retina and Windows display scaling (125/150/200%).
+- Run axe and a screen-reader pass on the web host.
 
 ## Platforms
 
-- **Mobile (iOS/Android)** — explicitly deferred. Requires a native view host,
-  touch/IME, safe areas, and platform packaging.
-- **macOS/Windows native** — CI compiles/tests; GUI smoke is a host check above.
-- **Web** — Chrome and jsdom verified. Add Safari/Firefox to a browser matrix.
-- **Web SSR/hydration** — basic `renderToString`/`renderDocument`/`hydrate`
-  exist. Add streaming, true node adoption, data prefetch, and a server-bundle
-  CLI (`tardis render`).
+- **Mobile (iOS/Android)** — explicitly deferred. Needs a native view host,
+  touch/IME, safe areas, and app packaging.
+- **Windows arm64** — no platform package yet; x64 only.
+- **Web** — Chrome and jsdom verified; add Safari/Firefox to a browser matrix.
+- **Streaming SSR / data prefetch** — hydration adopts nodes, but there is no
+  streaming renderer or server-bundle/prerender command.
 
-## Packaging
+## Renderer
 
-- Build npm platform packages (`tardis-native-linux-x64`, `-darwin-arm64`,
-  `-win32-x64`) as optional dependencies, the esbuild/swc pattern. Until then the
-  tarball ships the Rust sources and the user builds once with cargo.
-- Include the license for the bundled Liberation fonts in release artifacts
-  (already in `native/crates/core/assets/LICENSE-Liberation.txt`).
-- Add `tardis doctor` to report missing binary, Rust, display, fonts, and target.
-- Add release binaries to the CI matrix (the matrix exists; upload artifacts and
-  attach them to releases).
+- **GPU geometry/text** — the wgpu backend presents CPU-rasterized frames. A
+  real GPU pipeline for rectangles, glyphs, and images is the next large step.
+- **Pointer caret placement** — selection is keyboard-driven in `TextField`.
+- **Touch scrolling** — touch maps to pointer events, but drag-to-scroll is not
+  implemented.
+- **Multiline ellipsis / measured ScrollView height** — single-line ellipsis and
+  explicit content height exist.
+- **Image formats** — native decodes PNG only; add JPEG/WebP/SVG and verify
+  `fit: cover|contain|fill`.
+- **Animations** — no transition/animation scheduler.
+- **Portals** — dialogs are absolute overlays inside the root, not true portals.
+- **Z-index/transforms/shadows** — not implemented.
+- **Multiple windows** — one window per process.
+- **Core panic boundary** — a Rust panic is not yet converted into a rejected
+  patch + last-frame fallback.
 
 ## Performance
 
-- M5 benchmark: native 10k-row virtualized list, mount/update/scroll frame
-  times, compared with a DOM baseline.
-- Web virtualization for large lists; the DOM host is not virtualized.
-- Keyed reconciliation for dynamic arrays (reuse nodes by `key`, emit moves).
-- Incremental layout instead of rebuilding the taffy tree per patch.
-- Glyph atlas: cache shaped buffers and glyph pixmaps across frames.
-- Move layout/raster to a render thread after the patch format is frozen.
-- wgpu backend behind the `paint.rs` boundary.
+- **Web full-list update** — Dioxus is ~1.54x faster on 10k mounted rows. Add a
+  raw-text-node fast path and effect batching, then re-run
+  `bench/web-frame/run.mjs`.
+- **Virtualized browser head-to-head** — not run yet.
+- **Native frame comparison with Dioxus** — desktop paint timing is not exposed
+  by Dioxus' webview.
+- **Glyph atlas / shaped-buffer cache** — re-measure after the text fast path.
 
 ## Correctness
 
-- Native/web layout parity: audit box sizing, line heights, font metrics, and
-  wrapping against the same scene dump.
-- Text clipping (`overflow: hidden`) and ellipsis.
-- Image sizing (`fit: cover|contain|fill`) and formats beyond PNG.
-- Measured content height for ScrollView (dragging and clipping exist).
-- Ellipsis is single-line only; multiline line clamping is missing.
-- HiDPI is wired through native layout/raster/input; verify Retina and Windows
-  scaling on host hardware.
-- Pointer-based caret placement and a spatial focus tree (tab traversal,
-  selection/multiline, and IME shipped).
-  Basic single-line TextField and clipboard exist.
-- Mouse hover/press visual states; web currently has no cursor affordance.
-- Window close lifecycle and multiple windows.
-- Error boundary for panics in the Rust core (reject patch, keep last frame);
-  route child effect errors to the JS `Boundary`.
-- Web accessibility audit (semantic tags and role/aria exist; run axe and a
-  screen-reader pass).
-- Native accesskit tree wired from the stored a11y attributes.
-- Form arrays/nested fields and async/schema validation (basic `createForm` and
-  `FormField` exist).
+- **Web accessibility audit** — roles/ARIA exist for built-ins; run axe and fix
+  custom-widget gaps.
+- **Native screen-reader pass** — the AccessKit tree exists; verify VoiceOver,
+  Narrator, and Orca output.
+- **Layout parity** — audit box sizing, line heights, font metrics, and wrapping
+  against a shared scene dump.
+- **Form arrays/nested fields and schema adapters** — flat fields, async
+  validation, and submit errors are implemented.
 
 ## Developer experience
 
-- Hot re-evaluation of the native bundle without restarting the window.
-- Source maps from TSX to both bundles.
-- TypeScript JSX namespace declarations for editors (`JSX.IntrinsicElements`).
-- `tardis inspect` to print the scene tree from a running app.
-- Playwright end-to-end tests for the web target (jsdom covers logic; a real
-  browser covers layout and events).
-- A Dioxus frame-time head-to-head on the same workloads; only startup/binary
-  size is scoped so far.
-- Client-side routing for the web target.
-- A server-bundle/prerender command that imports an exported App and writes
-  HTML.
-- Abortable resources (`AbortSignal`) instead of ignoring stale responses.
+- Hot reload with state preservation (current `dev` restarts the app).
+- TSX source maps for browser and native bundles.
+- `tardis inspect` to print the running scene tree.
+- Playwright end-to-end tests for the web app in CI (the benchmark runner uses
+  Playwright but is not a UI regression suite).
+- Devtools time travel, owner/component view, and a network/resource panel.
+- Documentation site rebuilt on TSX and API reference generation.
+- Migration note from `.tardis` blueprints to TSX (v1 remains in git history).
 
-## Docs
+## Known honest gaps in claims
 
-- Rebuild the documentation site on the TSX stack; the v1 `.tardis` site was
-  removed.
-- Add a migration note from `.tardis` blueprints to TSX signals (v1 is in git
-  history).
-- Record short captures of the native window, the web app, and the headless
-  screenshot flow.
-
-## RUN ON HOST
-
-- Configure npm publishing: add the `NPM_TOKEN` repository secret, then run the
-  `release` workflow with a `v*` tag.
-- Configure macOS signing/notarization secrets (`MACOS_CERTIFICATE`,
-  `MACOS_CERTIFICATE_PASSWORD`, `MACOS_SIGN_IDENTITY`, `APPLE_ID`,
-  `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD`).
-- Configure Windows signing secrets (`WINDOWS_CERTIFICATE`,
-  `WINDOWS_CERTIFICATE_PASSWORD`).
-- Run the GUI smoke on real hardware:
-  `npx tardis dev` on macOS and Windows, and verify a screen reader reads the
-  AccessKit tree.
-
-- Web full-list frame time: add a raw-text-node fast path and effect batching;
-  Dioxus is currently ~1.54x faster on 10k mounted rows (see BENCHMARKS).
-- Run a virtualized browser head-to-head once the text fast path lands.
-
-- Windows arm64 native package (no runner/package yet; x64 only).
+- Line count is ~14k framework/tests/docs, not 40k. No padding is added.
+- "Production-grade" is not claimed while the items above are open.
+- The Dioxus web frame benchmark is a measured loss, published in
+  [BENCHMARKS.md](BENCHMARKS.md).
