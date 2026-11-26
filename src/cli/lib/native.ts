@@ -26,22 +26,22 @@ export function findEntry(cwd: string, explicit?: string): string {
   )
 }
 
-export function findNativeBinary(cwd: string): string {
-  if (process.env['TARDIS_NATIVE_BIN']) {
-    return process.env['TARDIS_NATIVE_BIN']
-  }
-  const exe = process.platform === 'win32' ? '.exe' : ''
-  const here = path.dirname(fileURLToPath(import.meta.url))
-  const platform = `${process.platform}-${process.arch}`
-  const candidates = [
+export function nativeBinaryCandidates(
+  cwd: string,
+  here: string,
+  platform = process.platform,
+  arch = process.arch
+): string[] {
+  const exe = platform === 'win32' ? '.exe' : ''
+  const target = `${platform}-${arch}`
+  // Installed layout: .../@devansharora18/tardisjs/dist/bin -> ../../../ is
+  // the @devansharora18 scope directory.
+  return [
     path.resolve(
       cwd,
-      `node_modules/@devansharora18/tardisjs-${platform}/bin/tardis-native${exe}`
+      `node_modules/@devansharora18/tardisjs-${target}/bin/tardis-native${exe}`
     ),
-    path.resolve(
-      here,
-      `../../../@devansharora18/tardisjs-${platform}/bin/tardis-native${exe}`
-    ),
+    path.resolve(here, `../../../tardisjs-${target}/bin/tardis-native${exe}`),
     path.resolve(cwd, `native/target/release/tardis-native${exe}`),
     path.resolve(cwd, `native/target/debug/tardis-native${exe}`),
     path.resolve(here, `../../native/target/release/tardis-native${exe}`),
@@ -51,6 +51,15 @@ export function findNativeBinary(cwd: string): string {
     path.resolve(cwd, `node_modules/.bin/tardis-native${exe}`),
     path.resolve(here, `../bin/tardis-native${exe}`),
   ]
+}
+
+export function findNativeBinary(cwd: string): string {
+  if (process.env['TARDIS_NATIVE_BIN']) {
+    return process.env['TARDIS_NATIVE_BIN']
+  }
+  const here = path.dirname(fileURLToPath(import.meta.url))
+  const platform = `${process.platform}-${process.arch}`
+  const candidates = nativeBinaryCandidates(cwd, here)
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate
   }
