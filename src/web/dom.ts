@@ -13,104 +13,8 @@ export interface WebHostOptions {
   color?: string
 }
 
-const CSS_PROPERTIES: Record<string, string> = {
-  width: 'width',
-  height: 'height',
-  minWidth: 'min-width',
-  maxWidth: 'max-width',
-  minHeight: 'min-height',
-  maxHeight: 'max-height',
-  padding: 'padding',
-  paddingTop: 'padding-top',
-  paddingRight: 'padding-right',
-  paddingBottom: 'padding-bottom',
-  paddingLeft: 'padding-left',
-  margin: 'margin',
-  marginTop: 'margin-top',
-  marginRight: 'margin-right',
-  marginBottom: 'margin-bottom',
-  marginLeft: 'margin-left',
-  flexDirection: 'flex-direction',
-  justifyContent: 'justify-content',
-  alignItems: 'align-items',
-  gap: 'gap',
-  flexGrow: 'flex-grow',
-  flexShrink: 'flex-shrink',
-  flexWrap: 'flex-wrap',
-  position: 'position',
-  top: 'top',
-  right: 'right',
-  bottom: 'bottom',
-  left: 'left',
-  backgroundColor: 'background-color',
-  borderRadius: 'border-radius',
-  opacity: 'opacity',
-  overflow: 'overflow',
-  display: 'display',
-  fontSize: 'font-size',
-  fontWeight: 'font-weight',
-  fontFamily: 'font-family',
-  color: 'color',
-  lineHeight: 'line-height',
-  textAlign: 'text-align',
-}
-
-const TAG_ELEMENTS = new Set([
-  'div',
-  'section',
-  'main',
-  'header',
-  'footer',
-  'nav',
-  'ul',
-  'li',
-  'span',
-  'label',
-  'strong',
-  'em',
-  'p',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'button',
-])
-
-const PIXEL_PROPERTIES = new Set([
-  'width',
-  'height',
-  'minWidth',
-  'maxWidth',
-  'minHeight',
-  'maxHeight',
-  'padding',
-  'paddingTop',
-  'paddingRight',
-  'paddingBottom',
-  'paddingLeft',
-  'margin',
-  'marginTop',
-  'marginRight',
-  'marginBottom',
-  'marginLeft',
-  'gap',
-  'top',
-  'right',
-  'bottom',
-  'left',
-  'borderRadius',
-  'fontSize',
-  'lineHeight',
-])
-
-const UNITLESS_PROPERTIES = new Set([
-  'flexGrow',
-  'flexShrink',
-  'opacity',
-  'fontWeight',
-])
+import { BASE_CSS, CSS_PROPERTIES, defaultStyle, rootStyle, toCssValue } from './style'
+import { semanticTag } from './tags'
 
 // Keeps CSS width/padding semantics aligned with taffy's border-box sizing.
 function ensureBaseStyles(doc: Document): void {
@@ -118,13 +22,12 @@ function ensureBaseStyles(doc: Document): void {
   if (doc.getElementById(id)) return
   const style = doc.createElement('style')
   style.id = id
-  style.textContent =
-    '[data-tardis]{box-sizing:border-box}[data-tardis="0"]{width:100%;min-height:100vh}'
+  style.textContent = BASE_CSS
   doc.head.appendChild(style)
 }
 
 export class WebHost {
-  private readonly container: HTMLElement
+  private container: HTMLElement
   private readonly root: HTMLElement
   private readonly elements = new Map<number, HTMLElement>()
   private readonly listeners: Array<{
@@ -144,14 +47,11 @@ export class WebHost {
     this.container = options.container ?? doc.getElementById('app') ?? doc.body
     this.root = doc.createElement('div')
     this.root.setAttribute('data-tardis', '0')
-    this.root.style.display = 'flex'
-    this.root.style.flexDirection = 'column'
-    this.root.style.width = '100%'
-    this.root.style.minHeight = '100vh'
-    this.root.style.background = options.background ?? '#0a0a0a'
-    this.root.style.color = options.color ?? '#ededed'
-    this.root.style.fontFamily =
-      "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    for (const [key, value] of Object.entries(
+      rootStyle(options.background, options.color)
+    )) {
+      this.applyStyle(this.root, key, value)
+    }
     this.container.appendChild(this.root)
     this.elements.set(0, this.root)
 
@@ -323,42 +223,14 @@ export class WebHost {
   }
 
   private createElement(kind: string, tag = ''): HTMLElement {
-    const doc = document
-    if (kind === 'fragment') {
-      const element = doc.createElement('div')
-      element.style.display = 'contents'
-      return element
+    const semantic = semanticTag(kind, tag)
+    const element = document.createElement(semantic) as HTMLElement
+    for (const [key, value] of Object.entries(defaultStyle(kind, tag))) {
+      this.applyStyle(element, key, value)
     }
-    if (kind === 'image') {
-      const element = doc.createElement('img')
-      element.style.display = 'block'
-      return element
-    }
-    const semantic = TAG_ELEMENTS.has(tag) ? tag : 'div'
-    const element = doc.createElement(semantic) as HTMLElement
-    if (kind === 'text') {
-      element.style.display = 'block'
-      element.style.whiteSpace = 'pre-wrap'
-      element.style.overflowWrap = 'break-word'
-      element.style.minWidth = '0'
-      element.style.margin = '0'
-      return element
-    }
-    element.style.display = 'flex'
-    element.style.flexDirection = 'column'
-    if (kind === 'scroll') element.style.overflow = 'auto'
     if (semantic === 'button') {
       ;(element as HTMLButtonElement).type = 'button'
-      element.style.border = '0'
-      element.style.font = 'inherit'
-      element.style.cursor = 'pointer'
     }
-    if (semantic === 'ul') {
-      element.style.margin = '0'
-      element.style.padding = '0'
-      element.style.listStyle = 'none'
-    }
-    if (semantic === 'li') element.style.listStyle = 'none'
     return element
   }
 
@@ -373,38 +245,36 @@ export class WebHost {
     if (css !== null) element.style.setProperty(property, css)
   }
 
-  dispose(): void {
-    if (this.disposed) return
-    this.disposed = true
+  getRootElement(): HTMLElement {
+    return this.root
+  }
+
+  /** Move the host to another container, replacing its children. */
+  setContainer(container: HTMLElement, replace = false): void {
+    this.detachEvents()
+    this.container = container
+    if (replace) container.replaceChildren(this.root)
+    else container.appendChild(this.root)
+    this.installEvents()
+  }
+
+  private detachEvents(): void {
     for (const listener of this.listeners) {
       listener.target.removeEventListener(listener.type, listener.fn)
     }
     this.listeners.length = 0
+  }
+
+  dispose(): void {
+    if (this.disposed) return
+    this.disposed = true
+    this.detachEvents()
     const g = globalThis as unknown as Record<string, unknown>
     if (g['__tardis_flush'] === this.flushFn) delete g['__tardis_flush']
     if (currentHost === this) currentHost = null
     this.root.remove()
     this.elements.clear()
   }
-}
-
-function toCssValue(key: string, value: unknown): string | null {
-  if (key === 'display') {
-    if (value === false || value === 'none') return 'none'
-    if (value === true) return 'flex'
-    return String(value)
-  }
-  if (key === 'overflow') {
-    if (value === 'hidden') return 'hidden'
-    if (value === 'scroll' || value === 'auto') return 'auto'
-    return 'visible'
-  }
-  if (typeof value === 'number') {
-    if (UNITLESS_PROPERTIES.has(key)) return String(value)
-    if (PIXEL_PROPERTIES.has(key)) return `${value}px`
-    return String(value)
-  }
-  return String(value)
 }
 
 let currentHost: WebHost | null = null

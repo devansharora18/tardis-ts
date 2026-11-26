@@ -21,6 +21,12 @@ export default [
     output: { file: 'dist/web/index.mjs', format: 'esm', sourcemap: true },
     plugins: [typescript({ tsconfig: './tsconfig.json' })],
   },
+  // server rendering + hydration
+  {
+    input: 'src/ssr/index.ts',
+    output: { file: 'dist/ssr/index.mjs', format: 'esm', sourcemap: true },
+    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+  },
   // compiler subpath — tsx transform + bundler
   {
     input: 'src/compiler/index.ts',

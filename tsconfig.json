@@ -18,8 +18,10 @@
       "tardisjs/scene": ["./src/scene/index.ts"],
       "@devansharora18/tardisjs/scene": ["./src/scene/index.ts"],
       "@devansharora18/tardisjs/web": ["./src/web/index.ts"],
+      "@devansharora18/tardisjs/ssr": ["./src/ssr/index.ts"],
       "tardisjs/compiler": ["./src/compiler/index.ts"],
       "tardisjs/web": ["./src/web/index.ts"],
+      "tardisjs/ssr": ["./src/ssr/index.ts"],
       "@devansharora18/tardisjs/compiler": ["./src/compiler/index.ts"]
     }
   },

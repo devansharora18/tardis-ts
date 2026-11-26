@@ -25,6 +25,10 @@
     "./web": {
       "types": "./dist/src/web/index.d.ts",
       "import": "./dist/web/index.mjs"
+    },
+    "./ssr": {
+      "types": "./dist/src/ssr/index.d.ts",
+      "import": "./dist/ssr/index.mjs"
     }
   },
   "files": [
