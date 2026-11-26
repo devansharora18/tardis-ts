@@ -63,8 +63,11 @@ export async function initProject(cwd = process.cwd()): Promise<void> {
       .replace(/[^a-z0-9-_]+/g, '-') || 'tardis-app'
 
   await fs.writeFile(entry, APP, 'utf8')
-  await fs.writeFile(
-    path.join(cwd, 'package.json'),
+  const packagePath = path.join(cwd, 'package.json')
+  const packageExists = await fs.stat(packagePath).catch(() => null)
+  if (!packageExists) {
+    await fs.writeFile(
+      packagePath,
     `${JSON.stringify(
       {
         name,
@@ -83,8 +86,9 @@ export async function initProject(cwd = process.cwd()): Promise<void> {
       null,
       2
     )}\n`,
-    'utf8'
-  )
+      'utf8'
+    )
+  }
   await fs.writeFile(path.join(cwd, 'tsconfig.json'), TSCONFIG, 'utf8')
   await fs.writeFile(path.join(cwd, '.gitignore'), 'node_modules/\ndist/\n*.png\n', 'utf8')
   await fs.writeFile(path.join(cwd, 'README.md'), README, 'utf8')
