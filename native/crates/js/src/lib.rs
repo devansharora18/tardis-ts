@@ -49,6 +49,33 @@ impl JsHost {
                 .set("__tardis_flush", flush)
                 .map_err(|err| format!("install flush: {err}"))?;
 
+            // Clipboard bridge. arboard returns None without a display, in
+            // which case the JS runtime keeps its in-memory fallback.
+            let clipboard = Rc::new(RefCell::new(arboard::Clipboard::new().ok()));
+            let read_clipboard = clipboard.clone();
+            let clipboard_read = Function::new(ctx.clone(), move || -> String {
+                read_clipboard
+                    .borrow_mut()
+                    .as_mut()
+                    .and_then(|clipboard| clipboard.get_text().ok())
+                    .unwrap_or_default()
+            })
+            .map_err(|err| format!("host clipboard read: {err}"))?;
+            globals
+                .set("__tardis_clipboard_read", clipboard_read)
+                .map_err(|err| format!("install clipboard read: {err}"))?;
+
+            let write_clipboard = clipboard.clone();
+            let clipboard_write = Function::new(ctx.clone(), move |text: String| {
+                if let Some(clipboard) = write_clipboard.borrow_mut().as_mut() {
+                    let _ = clipboard.set_text(text);
+                }
+            })
+            .map_err(|err| format!("host clipboard write: {err}"))?;
+            globals
+                .set("__tardis_clipboard_write", clipboard_write)
+                .map_err(|err| format!("install clipboard write: {err}"))?;
+
             ctx.eval::<(), _>(
                 "globalThis.console = {\
                    log: function(){ __tardis_log(Array.prototype.slice.call(arguments).map(String).join(' ')); },\

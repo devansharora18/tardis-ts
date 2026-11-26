@@ -44,8 +44,23 @@ export function render(factory: () => unknown): RenderHandle {
   }
 }
 
-export function focusNode(id: number | null): void {
+function setFocus(id: number | null): void {
+  if (focused === id) return
+  const previous = focused !== null ? getNode(focused) : null
+  if (previous) {
+    const blur = nearestHandler(previous.id, 'onBlur')
+    blur?.handler({ type: 'blur', node: previous.id })
+  }
   focused = id
+  if (id !== null) {
+    const focus = nearestHandler(id, 'onFocus')
+    focus?.handler({ type: 'focus', node: id })
+  }
+}
+
+export function focusNode(id: number | null): void {
+  setFocus(id)
+  flushNow()
 }
 
 export function dispatchEvent(event: SceneEvent): void {
@@ -53,10 +68,17 @@ export function dispatchEvent(event: SceneEvent): void {
     const target = typeof event.node === 'number' ? event.node : null
     if (event.phase === 'down') {
       pressed = target
-      focused = target
+      setFocus(target)
+      if (target !== null) {
+        nearestHandler(target, 'onPointerDown')?.handler(event)
+      }
+      flushNow()
       return
     }
     if (event.phase === 'up') {
+      if (target !== null) {
+        nearestHandler(target, 'onPointerUp')?.handler(event)
+      }
       if (target !== null && pressed !== null) {
         const down = clickableAncestor(pressed)
         const up = clickableAncestor(target)
@@ -104,6 +126,19 @@ export function dispatchEvent(event: SceneEvent): void {
   }
   // Keyboard and text input arrive with the focus subsystem.
   flushNow()
+}
+
+function nearestHandler(
+  id: number,
+  name: string
+): { node: SceneNode; handler: EventHandler } | null {
+  let node: SceneNode | null = getNode(id) ?? null
+  while (node) {
+    const handler = node.handlers[name]
+    if (handler) return { node, handler }
+    node = node.parent
+  }
+  return null
 }
 
 function clickableAncestor(

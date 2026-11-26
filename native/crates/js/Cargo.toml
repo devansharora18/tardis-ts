@@ -8,3 +8,4 @@ description = "Embedded QuickJS host for TardisJS apps"
 [dependencies]
 tardis-core = { path = "../core" }
 rquickjs = "0.14"
+arboard = "3.7"
