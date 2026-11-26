@@ -6,7 +6,7 @@
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::scene::{Node, NodeKind, Scene};
+use crate::scene::{Node, NodeKind, Scene, Style};
 
 #[derive(Debug, Deserialize)]
 pub struct Patch {
@@ -53,16 +53,117 @@ pub enum Op {
     },
 }
 
-pub fn apply_patch(scene: &mut Scene, patch: Patch) -> Result<(), String> {
+#[derive(Debug, Default, Clone)]
+pub struct ChangeSet {
+    /// A create/destroy/insert happened; the layout tree must be rebuilt.
+    pub structural: bool,
+    /// Nodes whose style changed.
+    pub styled: Vec<u32>,
+    /// Text nodes whose content changed.
+    pub texted: Vec<u32>,
+}
+
+enum Prepared {
+    Style(u32, Style),
+    Text(u32, String),
+    Image(u32, String),
+    Scroll(u32, f32, f32),
+}
+
+pub fn apply_patch(scene: &mut Scene, patch: Patch) -> Result<ChangeSet, String> {
     if patch.v != 0 {
         return Err(format!("unsupported patch version {}", patch.v));
     }
-    let mut next = scene.clone();
-    for op in patch.ops {
-        apply_op(&mut next, op)?;
+
+    let structural = patch.ops.iter().any(|op| {
+        matches!(
+            op,
+            Op::Create { .. } | Op::Destroy { .. } | Op::Insert { .. }
+        )
+    });
+
+    if structural {
+        // Structural patches keep the atomic clone path. They are rare after
+        // mount; the common update path never clones the scene.
+        let mut next = scene.clone();
+        for op in patch.ops {
+            apply_op(&mut next, op)?;
+        }
+        *scene = next;
+        return Ok(ChangeSet {
+            structural: true,
+            ..Default::default()
+        });
     }
-    *scene = next;
-    Ok(())
+
+    // Validate and parse everything first. If any op is invalid the scene is
+    // untouched, matching the protocol's atomic-frame invariant.
+    let mut prepared = Vec::with_capacity(patch.ops.len());
+    for op in patch.ops {
+        match op {
+            Op::Style { id, props } => {
+                let node = scene
+                    .nodes
+                    .get(&id)
+                    .ok_or_else(|| format!("style: id {id} does not exist"))?;
+                let mut style = node.style.clone();
+                for (key, value) in &props {
+                    style.set(key, value)?;
+                }
+                prepared.push(Prepared::Style(id, style));
+            }
+            Op::Text { id, value } => {
+                if !scene.nodes.contains_key(&id) {
+                    return Err(format!("text: id {id} does not exist"));
+                }
+                prepared.push(Prepared::Text(id, value));
+            }
+            Op::Image { id, src, .. } => {
+                if !scene.nodes.contains_key(&id) {
+                    return Err(format!("image: id {id} does not exist"));
+                }
+                prepared.push(Prepared::Image(id, src));
+            }
+            Op::Scroll { id, x, y } => {
+                if !scene.nodes.contains_key(&id) {
+                    return Err(format!("scroll: id {id} does not exist"));
+                }
+                prepared.push(Prepared::Scroll(id, x, y));
+            }
+            Op::Create { id, .. } | Op::Destroy { id } | Op::Insert { id, .. } => {
+                return Err(format!("structural op {id} in a non-structural patch"));
+            }
+        }
+    }
+
+    let mut changes = ChangeSet::default();
+    for op in prepared {
+        match op {
+            Prepared::Style(id, style) => {
+                if let Some(node) = scene.nodes.get_mut(&id) {
+                    node.style = style;
+                    changes.styled.push(id);
+                }
+            }
+            Prepared::Text(id, value) => {
+                if let Some(node) = scene.nodes.get_mut(&id) {
+                    node.text = value;
+                    changes.texted.push(id);
+                }
+            }
+            Prepared::Image(id, src) => {
+                if let Some(node) = scene.nodes.get_mut(&id) {
+                    node.src = Some(src);
+                }
+            }
+            Prepared::Scroll(id, x, y) => {
+                if let Some(node) = scene.nodes.get_mut(&id) {
+                    node.scroll = (x, y);
+                }
+            }
+        }
+    }
+    Ok(changes)
 }
 
 fn apply_op(scene: &mut Scene, op: Op) -> Result<(), String> {

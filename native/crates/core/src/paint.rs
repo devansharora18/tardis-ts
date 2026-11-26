@@ -52,7 +52,16 @@ pub fn render(
         .get(&scene.root)
         .ok_or_else(|| "paint: root node missing".to_string())?;
     for child in &root.children {
-        draw_node(scene, layout, text, &mut pixmap, *child, 1.0);
+        draw_node(
+            scene,
+            layout,
+            text,
+            &mut pixmap,
+            *child,
+            1.0,
+            options.width as f32,
+            options.height as f32,
+        );
     }
     Ok(pixmap)
 }
@@ -68,6 +77,7 @@ pub fn render_to_png(
     pixmap.save_png(path).map_err(|err| err.to_string())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn draw_node(
     scene: &Scene,
     layout: &ComputedLayout,
@@ -75,17 +85,41 @@ fn draw_node(
     pixmap: &mut Pixmap,
     id: u32,
     inherited_opacity: f32,
+    viewport_width: f32,
+    viewport_height: f32,
 ) {
     let Some(node) = scene.nodes.get(&id) else {
         return;
     };
     let rect = layout.rects.get(&id).copied().unwrap_or_default();
+
+    // Fully offscreen subtrees are skipped. v0 assumes children stay inside
+    // their parent's rect (no absolutely positioned escapees); fragments have
+    // a zero rect at the origin and always recurse.
+    if node.kind != NodeKind::Fragment
+        && (rect.x >= viewport_width
+            || rect.y >= viewport_height
+            || rect.x + rect.width <= 0.0
+            || rect.y + rect.height <= 0.0)
+    {
+        return;
+    }
+
     let opacity = (inherited_opacity * node.style.opacity).clamp(0.0, 1.0);
 
     match node.kind {
         NodeKind::Fragment => {
             for child in &node.children {
-                draw_node(scene, layout, text, pixmap, *child, inherited_opacity);
+                draw_node(
+                    scene,
+                    layout,
+                    text,
+                    pixmap,
+                    *child,
+                    inherited_opacity,
+                    viewport_width,
+                    viewport_height,
+                );
             }
         }
         NodeKind::View | NodeKind::Scroll => {
@@ -98,7 +132,16 @@ fn draw_node(
                 );
             }
             for child in &node.children {
-                draw_node(scene, layout, text, pixmap, *child, opacity);
+                draw_node(
+                    scene,
+                    layout,
+                    text,
+                    pixmap,
+                    *child,
+                    opacity,
+                    viewport_width,
+                    viewport_height,
+                );
             }
         }
         NodeKind::Text => {

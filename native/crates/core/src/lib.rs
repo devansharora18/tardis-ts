@@ -6,11 +6,20 @@ pub mod patch;
 pub mod scene;
 pub mod text;
 
-pub use layout::{dump_scene, layout_scene, ComputedLayout, NodeDump, Rect, SceneDump};
+pub use layout::{
+    dump_scene, layout_scene, ComputedLayout, LayoutEngine, NodeDump, Rect, SceneDump,
+};
+
 pub use paint::{render, render_to_png, RenderOptions};
-pub use patch::{apply_patch, Op, Patch};
+pub use patch::{apply_patch, ChangeSet, Op, Patch};
 pub use scene::{Color, Node, NodeKind, Scene, Style};
 pub use text::TextEngine;
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ApplyTiming {
+    pub patch_ms: f64,
+    pub layout_ms: f64,
+}
 
 pub struct Engine {
     pub scene: Scene,
@@ -18,6 +27,7 @@ pub struct Engine {
     pub layout: Option<ComputedLayout>,
     pub width: f32,
     pub height: f32,
+    layout_engine: LayoutEngine,
 }
 
 impl Engine {
@@ -28,12 +38,34 @@ impl Engine {
             layout: None,
             width,
             height,
+            layout_engine: LayoutEngine::new(),
         }
     }
 
     pub fn apply(&mut self, patch: Patch) -> Result<(), String> {
-        apply_patch(&mut self.scene, patch)?;
-        self.relayout()
+        self.apply_timed(patch).map(|_| ())
+    }
+
+    /// Same as `apply`, with patch-decode/apply and layout timings. Used by the
+    /// benchmark harness; the timing itself costs two `Instant` reads.
+    pub fn apply_timed(&mut self, patch: Patch) -> Result<ApplyTiming, String> {
+        let start = std::time::Instant::now();
+        let changes = apply_patch(&mut self.scene, patch)?;
+        let patch_ms = start.elapsed().as_secs_f64() * 1000.0;
+
+        let start = std::time::Instant::now();
+        self.layout = Some(self.layout_engine.layout(
+            &self.scene,
+            &mut self.text,
+            self.width,
+            self.height,
+            &changes,
+        )?);
+        let layout_ms = start.elapsed().as_secs_f64() * 1000.0;
+        Ok(ApplyTiming {
+            patch_ms,
+            layout_ms,
+        })
     }
 
     pub fn apply_json(&mut self, json: &str) -> Result<(), String> {
@@ -43,11 +75,16 @@ impl Engine {
     }
 
     pub fn relayout(&mut self) -> Result<(), String> {
-        self.layout = Some(layout_scene(
+        self.layout_engine.invalidate();
+        self.layout = Some(self.layout_engine.layout(
             &self.scene,
             &mut self.text,
             self.width,
             self.height,
+            &ChangeSet {
+                structural: true,
+                ..Default::default()
+            },
         )?);
         Ok(())
     }
@@ -59,6 +96,7 @@ impl Engine {
             layout,
             width,
             height,
+            ..
         } = self;
         let layout = layout
             .as_ref()
@@ -89,6 +127,7 @@ impl Engine {
             layout,
             width,
             height,
+            ..
         } = self;
         let layout = layout
             .as_ref()

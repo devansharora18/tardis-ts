@@ -15,6 +15,7 @@ use taffy::style::{
 };
 use taffy::{AvailableSpace, NodeId, TaffyTree};
 
+use crate::patch::ChangeSet;
 use crate::scene::{
     AlignItems, FlexDirection, FlexWrap, JustifyContent, NodeKind, Position, Scene, Style,
 };
@@ -35,100 +36,214 @@ pub struct ComputedLayout {
     pub height: f32,
 }
 
+pub struct LayoutEngine {
+    tree: TaffyTree<u32>,
+    mapped: HashMap<u32, NodeId>,
+    root: Option<NodeId>,
+    width: f32,
+    height: f32,
+}
+
+impl Default for LayoutEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl LayoutEngine {
+    pub fn new() -> Self {
+        Self {
+            tree: TaffyTree::new(),
+            mapped: HashMap::new(),
+            root: None,
+            width: 0.0,
+            height: 0.0,
+        }
+    }
+
+    /// Force the next layout to rebuild the taffy tree.
+    pub fn invalidate(&mut self) {
+        self.root = None;
+        self.mapped.clear();
+    }
+
+    pub fn layout(
+        &mut self,
+        scene: &Scene,
+        text: &mut TextEngine,
+        width: f32,
+        height: f32,
+        changes: &ChangeSet,
+    ) -> Result<ComputedLayout, String> {
+        let structural = changes.structural
+            || self.root.is_none()
+            || (self.width - width).abs() > f32::EPSILON
+            || (self.height - height).abs() > f32::EPSILON;
+        if structural {
+            self.rebuild(scene, width, height)?;
+        } else {
+            self.update(scene, changes)?;
+        }
+        self.compute(scene, text, width, height)
+    }
+
+    fn rebuild(&mut self, scene: &Scene, width: f32, height: f32) -> Result<(), String> {
+        self.tree = TaffyTree::new();
+        self.mapped.clear();
+        self.width = width;
+        self.height = height;
+
+        let mut children = Vec::new();
+        if let Some(root) = scene.nodes.get(&scene.root) {
+            for child in &root.children {
+                children.extend(build(&mut self.tree, scene, *child, &mut self.mapped)?);
+            }
+        }
+
+        let root_style = TaffyStyle {
+            size: Size {
+                width: Dimension::Length(width),
+                height: Dimension::Length(height),
+            },
+            display: Display::Flex,
+            flex_direction: TaffyDirection::Column,
+            align_items: Some(TaffyAlign::Stretch),
+            ..Default::default()
+        };
+        let root = if children.is_empty() {
+            self.tree.new_leaf(root_style)
+        } else {
+            self.tree.new_with_children(root_style, &children)
+        }
+        .map_err(|err| err.to_string())?;
+        self.root = Some(root);
+        Ok(())
+    }
+
+    fn update(&mut self, scene: &Scene, changes: &ChangeSet) -> Result<(), String> {
+        for id in &changes.styled {
+            let Some(taffy_id) = self.mapped.get(id).copied() else {
+                continue;
+            };
+            let Some(node) = scene.nodes.get(id) else {
+                continue;
+            };
+            self.tree
+                .set_style(taffy_id, to_taffy(&node.style))
+                .map_err(|err| err.to_string())?;
+        }
+        for id in &changes.texted {
+            let Some(taffy_id) = self.mapped.get(id).copied() else {
+                continue;
+            };
+            self.tree
+                .mark_dirty(taffy_id)
+                .map_err(|err| err.to_string())?;
+        }
+        Ok(())
+    }
+
+    fn compute(
+        &mut self,
+        scene: &Scene,
+        text: &mut TextEngine,
+        width: f32,
+        height: f32,
+    ) -> Result<ComputedLayout, String> {
+        let root = self
+            .root
+            .ok_or_else(|| "layout: root missing".to_string())?;
+        let available = Size {
+            width: AvailableSpace::Definite(width),
+            height: AvailableSpace::Definite(height),
+        };
+        self.tree
+            .compute_layout_with_measure(
+                root,
+                available,
+                |known, available, _node, context, _style| {
+                    let Some(context) = context else {
+                        return Size {
+                            width: known.width.unwrap_or(0.0),
+                            height: known.height.unwrap_or(0.0),
+                        };
+                    };
+                    let scene_id = *context;
+                    let node = match scene.nodes.get(&scene_id) {
+                        Some(node) => node,
+                        None => {
+                            return Size {
+                                width: known.width.unwrap_or(0.0),
+                                height: known.height.unwrap_or(0.0),
+                            }
+                        }
+                    };
+                    if node.kind != NodeKind::Text {
+                        return Size {
+                            width: known.width.unwrap_or(0.0),
+                            height: known.height.unwrap_or(0.0),
+                        };
+                    }
+                    let max_width = known.width.or(match available.width {
+                        AvailableSpace::Definite(value) => Some(value),
+                        _ => None,
+                    });
+                    let (measured_width, measured_height) =
+                        text.measure(&node.text, &node.style, max_width);
+                    Size {
+                        width: known.width.unwrap_or(measured_width),
+                        height: known.height.unwrap_or(measured_height),
+                    }
+                },
+            )
+            .map_err(|err| err.to_string())?;
+
+        let mut rects = HashMap::new();
+        rects.insert(
+            scene.root,
+            Rect {
+                x: 0.0,
+                y: 0.0,
+                width,
+                height,
+            },
+        );
+        collect_rects(
+            scene,
+            &self.tree,
+            &self.mapped,
+            scene.root,
+            0.0,
+            0.0,
+            &mut rects,
+        )?;
+
+        Ok(ComputedLayout {
+            rects,
+            width,
+            height,
+        })
+    }
+}
+
+/// One-shot layout. Kept for callers that do not need incremental updates.
 pub fn layout_scene(
     scene: &Scene,
     text: &mut TextEngine,
     width: f32,
     height: f32,
 ) -> Result<ComputedLayout, String> {
-    let mut tree: TaffyTree<u32> = TaffyTree::new();
-    let mut mapped: HashMap<u32, NodeId> = HashMap::new();
-
-    let mut children = Vec::new();
-    if let Some(root) = scene.nodes.get(&scene.root) {
-        for child in &root.children {
-            children.extend(build(&mut tree, scene, *child, &mut mapped)?);
-        }
-    }
-
-    let root_style = TaffyStyle {
-        size: Size {
-            width: Dimension::Length(width),
-            height: Dimension::Length(height),
-        },
-        display: Display::Flex,
-        flex_direction: TaffyDirection::Column,
-        align_items: Some(TaffyAlign::Stretch),
-        ..Default::default()
-    };
-    let root = if children.is_empty() {
-        tree.new_leaf(root_style)
-    } else {
-        tree.new_with_children(root_style, &children)
-    }
-    .map_err(|err| err.to_string())?;
-
-    let available = Size {
-        width: AvailableSpace::Definite(width),
-        height: AvailableSpace::Definite(height),
-    };
-    tree.compute_layout_with_measure(
-        root,
-        available,
-        |known, available, _node, context, _style| {
-            let Some(context) = context else {
-                return Size {
-                    width: known.width.unwrap_or(0.0),
-                    height: known.height.unwrap_or(0.0),
-                };
-            };
-            let scene_id = *context;
-            let node = match scene.nodes.get(&scene_id) {
-                Some(node) => node,
-                None => {
-                    return Size {
-                        width: known.width.unwrap_or(0.0),
-                        height: known.height.unwrap_or(0.0),
-                    }
-                }
-            };
-            if node.kind != NodeKind::Text {
-                return Size {
-                    width: known.width.unwrap_or(0.0),
-                    height: known.height.unwrap_or(0.0),
-                };
-            }
-            let max_width = known.width.or(match available.width {
-                AvailableSpace::Definite(value) => Some(value),
-                _ => None,
-            });
-            let (measured_width, measured_height) =
-                text.measure(&node.text, &node.style, max_width);
-            Size {
-                width: known.width.unwrap_or(measured_width),
-                height: known.height.unwrap_or(measured_height),
-            }
-        },
-    )
-    .map_err(|err| err.to_string())?;
-
-    let mut rects = HashMap::new();
-    rects.insert(
-        scene.root,
-        Rect {
-            x: 0.0,
-            y: 0.0,
-            width,
-            height,
-        },
-    );
-    collect_rects(scene, &tree, &mapped, scene.root, 0.0, 0.0, &mut rects)?;
-
-    Ok(ComputedLayout {
-        rects,
+    let mut engine = LayoutEngine::new();
+    engine.layout(
+        scene,
+        text,
         width,
         height,
-    })
+        &ChangeSet {
+            structural: true,
+            ..Default::default()
+        },
+    )
 }
 
 fn build(
