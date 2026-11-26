@@ -220,13 +220,14 @@ function isStaticProp(name: string, expression: ts.Expression): boolean {
 // space before the tag; a text node that ends with a newline does not.
 export function cleanJsxText(raw: string): string {
   if (!raw) return ''
-  const startsWithNewline = /^[ \t]*\n/.test(raw)
-  const endsWithNewline = /\n[ \t]*$/.test(raw)
-  let out = raw.replace(/[ \t]*\n[ \t]*/g, ' ').replace(/[ \t]+/g, ' ')
+  const text = raw.replace(/\r\n?/g, '\n')
+  const startsWithNewline = /^[ \t]*\n/.test(text)
+  const endsWithNewline = /\n[ \t]*$/.test(text)
+  let out = text.replace(/[ \t]*\n[ \t]*/g, ' ').replace(/[ \t]+/g, ' ')
   if (startsWithNewline) out = out.replace(/^ /, '')
   if (endsWithNewline) out = out.replace(/ $/, '')
   if (out.trim() === '') {
-    return /^[ \t]+$/.test(raw) ? ' ' : ''
+    return /^[ \t]+$/.test(text) ? ' ' : ''
   }
   return out
 }

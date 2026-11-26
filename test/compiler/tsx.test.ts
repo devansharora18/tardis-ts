@@ -139,3 +139,13 @@ describe('cleanJsxText', () => {
     expect(cleanJsxText('\n    \n  ')).toBe('')
   })
 })
+
+describe('JSX whitespace on Windows line endings', () => {
+  it('normalizes CRLF indentation', () => {
+    const out = compile(
+      'export const A = () => <button>\r\n        Increment\r\n      </button>'
+    )
+    expect(out).toContain('"Increment"')
+    expect(out).not.toContain('\\r')
+  })
+})
