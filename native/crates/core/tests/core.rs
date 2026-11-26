@@ -232,3 +232,42 @@ fn renders_png_images() {
     let outside = frame.pixel(15, 15).unwrap();
     assert!(outside.red() < 60);
 }
+
+#[test]
+fn stores_accessibility_attributes() {
+    let mut engine = Engine::new(200.0, 200.0);
+    apply(
+        &mut engine,
+        r##"[
+          {"op":"create","id":1,"kind":"view","parent":0,"index":0},
+          {"op":"a11y","id":1,"props":{"role":"textbox","aria-label":"Name"}}
+        ]"##,
+    );
+    let node = engine.scene.node(1).unwrap();
+    assert_eq!(
+        node.a11y.get("role").and_then(|value| value.as_str()),
+        Some("textbox")
+    );
+    assert_eq!(
+        node.a11y.get("aria-label").and_then(|value| value.as_str()),
+        Some("Name")
+    );
+
+    // A11y-only patches update in place, without a structural rebuild.
+    apply(
+        &mut engine,
+        r##"[
+          {"op":"a11y","id":1,"props":{"aria-label":"Full name"}}
+        ]"##,
+    );
+    assert_eq!(
+        engine
+            .scene
+            .node(1)
+            .unwrap()
+            .a11y
+            .get("aria-label")
+            .and_then(|value| value.as_str()),
+        Some("Full name")
+    );
+}

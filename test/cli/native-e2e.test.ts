@@ -174,4 +174,36 @@ describe('native end to end', () => {
     expect(scrolledTexts).toContain('Row 8')
     expect(scrolledTexts).not.toContain('Row 0')
   }, 300_000)
+
+  it('renders accessible form fields and a checkbox natively', async () => {
+    const bundle = path.join(temp, 'forms.js')
+    await bundleApp({
+      entry: path.join(root, 'examples/forms/app.tsx'),
+      outfile: bundle,
+    })
+    const dumpPath = path.join(temp, 'forms.json')
+    const result = run([
+      '--headless',
+      '--bundle',
+      bundle,
+      '--width',
+      '800',
+      '--height',
+      '600',
+      '--out',
+      path.join(temp, 'forms.png'),
+      '--dump',
+      dumpPath,
+    ])
+    expect(result.status, result.stderr).toBe(0)
+    const dump = readDump(dumpPath)
+    const texts = dump.nodes
+      .map((node) => node.text)
+      .filter((text): text is string => Boolean(text))
+    expect(texts).toContain('Form')
+    expect(texts).toContain('Name')
+    expect(texts).toContain('Email')
+    expect(texts).toContain('Subscribe')
+    expect(texts).toContain('Not submitted')
+  }, 300_000)
 })
