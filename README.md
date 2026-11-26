@@ -111,6 +111,9 @@ app.tsx ─ compiler ─ bundle
   reset) and `FormField` for labels/errors.
 - **Async resources** — `createResource` with loading, error, refetch, and
   last-request-wins semantics.
+- **Native accessibility** — the scene maps to an AccessKit tree with roles,
+  names, values, bounds, focus, and focus/click/set-value actions. Web renders
+  semantic DOM elements with ARIA attributes.
 - **SSR + hydration** — `renderToString`/`renderDocument` serialize the same
   scene tree without a DOM; `hydrate` takes over server markup on the client.
 - **ScrollView** — wheel scrolling with a scrollbar for arbitrary content.
@@ -202,7 +205,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
   placement is not implemented.
 - Clipboard is system-backed on web and native when a display is available.
 - Native text clipping is rectangle clipping; no ellipsis.
-- Native accessibility attributes are stored but accesskit is not wired yet.
+- Native accessibility trees use AccessKit; screen-reader behavior still needs
+  host testing on macOS/Windows/Linux.
 - Native HiDPI is handled with the window scale factor; verify on Retina hosts.
 - Hydration is a verified remount (content compared), not server-node adoption.
 - No streaming SSR or data prefetch; no server bundle CLI yet.

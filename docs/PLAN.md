@@ -190,3 +190,14 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   preedit renders at the caret; commit inserts text. Tab is routed to scene focus.
 - Native IME: winit IME enabled; preedit/commit/disabled map to `text` events.
 - 110 JS / 13 Rust tests. Still open: native accesskit tree, pointer caret.
+
+## Native accessibility slice result (2026-11-27)
+
+- AccessKit adapter wired to winit; tree rebuilt on initial request, input, and
+  accessibility actions.
+- Scene -> AccessKit: roles (button/checkbox/textbox/heading/list/link/...),
+  names, values, disabled state, physical-pixel bounds, focus.
+- Actions: focus, default (click), set-value, replace-selected-text.
+- Scene focus travels as a `focus` patch op; source tags now reach the core.
+- 15 JS input tests, 14 core tests, 3 accesskit tests. Screen-reader verification
+  on real hosts remains.

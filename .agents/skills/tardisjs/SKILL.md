@@ -122,8 +122,9 @@ nodes in document order. Clipboard uses memory + `navigator.clipboard` on web,
 `role="checkbox"`/`aria-checked`.
 
 Intrinsic tags render as real web elements (`button`, `h1`, `p`, `ul`, ...).
-`role`, `tabIndex`, and `aria-*` become an `a11y` op. Native stores them; the
-accesskit tree is not wired.
+`role`, `tabIndex`, and `aria-*` become an `a11y` op. Native builds an AccessKit
+tree from them plus scene tags, focus, and layout bounds; focus/click/set-value
+actions dispatch back into JS.
 
 ## Server rendering
 
@@ -198,6 +199,7 @@ Do not claim one.
 - `overflow: hidden` is rectangular clipping; no ellipsis.
 - Native images are PNG only; ScrollView clips and offsets, no native scroll node.
 - TextField has selection/multiline/IME; pointer caret placement is missing.
+- Native AccessKit tree exists; verify screen readers on each host.
 - Clipboard is system-backed when available; otherwise memory.
 - Hydration is a remount, not node adoption; no streaming SSR.
 - No Dioxus frame-time benchmark.

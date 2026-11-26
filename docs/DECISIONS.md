@@ -72,3 +72,6 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 66 | Tab order is document order of nodes with `tabIndex >= 0` | Predictable and host-neutral; no CSS-layout hit-testing in JS |
 | 67 | IME uses a hidden focused textarea on web | Composition events require a real editable; the scene caret stays the source of truth |
 | 68 | Native IME commits arrive as `text` events, preedit as composition updates | Keeps platform IME out of the editor model; same event shape on both hosts |
+| 69 | Scene focus is a `focus` patch op | Native accessibility must follow the real focused node; web ignores it and uses DOM focus |
+| 70 | Source tags travel to the native core | Accessibility roles need `button`/`h1`/`ul` semantics, not just view/text kinds |
+| 71 | Text inside controls is excluded from the AccessKit tree | The control's name carries the text; duplicate static-text children confuse screen readers |
