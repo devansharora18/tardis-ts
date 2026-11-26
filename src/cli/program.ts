@@ -2,11 +2,19 @@ import path from 'node:path'
 import { Command } from 'commander'
 import { buildApp, type BuildTarget } from './commands/build'
 import { devApp } from './commands/dev'
-import { initProject } from './commands/init'
+import {
+	createProject,
+	initProject,
+	type PackageManager,
+	type Platform,
+	type Styling,
+	type Template,
+} from './commands/init'
 import { previewProject } from './commands/preview'
 import { runApp } from './commands/run'
 import { screenshotApp } from './commands/screenshot'
 import { formatBytes } from './lib/fs'
+import { createPrompter, isInteractive } from './lib/prompt'
 
 export function createProgram(): Command {
 	const program = new Command()
@@ -14,12 +22,65 @@ export function createProgram(): Command {
 		.name('tardis')
 		.description('TSX-native UI framework for desktop and web')
 
-	program
-		.command('init')
-		.description('Create a starter app in the current directory')
-		.action(async () => {
-			await initProject(process.cwd())
-		})
+	const scaffoldOptions = (options: {
+		platform?: string
+		styling?: string
+		template?: string
+		pm?: string
+		install?: boolean
+		git?: boolean
+		yes?: boolean
+		force?: boolean
+	}) => ({
+		platform: parsePlatform(options.platform),
+		styling: parseStyling(options.styling),
+		template: parseTemplate(options.template),
+		packageManager: parsePackageManager(options.pm),
+		install: options.install,
+		git: options.git,
+		force: options.force,
+		prompt: options.yes ? false : undefined,
+	})
+
+	const withScaffoldOptions = (command: Command): Command =>
+		command
+			.option('--platform <platform>', 'native, web, or both')
+			.option('--styling <styling>', 'default or tailwind')
+			.option('--template <template>', 'counter, form, or sheet')
+			.option('--pm <pm>', 'npm, pnpm, yarn, or bun')
+			.option('--install', 'install dependencies')
+			.option('--git', 'initialize a git repository')
+			.option('--yes', 'accept defaults (no prompts)')
+			.option('--force', 'write into a non-empty directory')
+
+	withScaffoldOptions(
+		program
+			.command('create [dir]')
+			.description('Create a new app (interactive like flutter create)')
+	).action(async (dir: string | undefined, options: Parameters<typeof scaffoldOptions>[0]) => {
+		let target = dir
+		if (!target && isInteractive() && !options.yes) {
+			const prompter = createPrompter()
+			try {
+				target = await prompter.text('Project directory', 'tardis-app')
+			} finally {
+				prompter.close()
+			}
+		}
+		target ??= 'tardis-app'
+		const result = await createProject(target, scaffoldOptions(options))
+		console.log(`created ${result.files.length} files in ${result.dir}`)
+		console.log('next: cd into the project and run your package manager install')
+	})
+
+	withScaffoldOptions(
+		program
+			.command('init [dir]')
+			.description('Create a starter app in the current directory')
+	).action(async (dir: string | undefined, options: Parameters<typeof scaffoldOptions>[0]) => {
+		const result = await initProject(dir ? path.resolve(dir) : process.cwd(), scaffoldOptions(options))
+		console.log(`created ${result.files.length} files in ${result.dir}`)
+	})
 
 	program
 		.command('build [entry]')
@@ -27,10 +88,16 @@ export function createProgram(): Command {
 		.option('--target <target>', 'native or web', 'native')
 		.option('--out <path>', 'output bundle')
 		.option('--minify', 'minify the bundle')
+		.option('--css <path>', 'stylesheet to link from the web shell')
 		.action(
 			async (
 				entry: string | undefined,
-				options: { target: string; out?: string; minify?: boolean }
+				options: {
+					target: string
+					out?: string
+					minify?: boolean
+					css?: string
+				}
 			) => {
 				const target = parseTarget(options.target)
 				const result = await buildApp(process.cwd(), {
@@ -38,6 +105,7 @@ export function createProgram(): Command {
 					out: options.out,
 					minify: options.minify,
 					target,
+					css: options.css,
 				})
 				console.log(
 					`built ${displayPath(process.cwd(), result.outfile)} (${formatBytes(result.bytes)})`
@@ -154,6 +222,30 @@ export function createProgram(): Command {
 		})
 
 	return program
+}
+
+function parsePlatform(value: string | undefined): Platform | undefined {
+	if (value === undefined) return undefined
+	if (value === 'native' || value === 'web' || value === 'both') return value
+	throw new Error(`unknown platform: ${value} (use native, web, or both)`)
+}
+
+function parseStyling(value: string | undefined): Styling | undefined {
+	if (value === undefined) return undefined
+	if (value === 'default' || value === 'tailwind') return value
+	throw new Error(`unknown styling: ${value} (use default or tailwind)`)
+}
+
+function parseTemplate(value: string | undefined): Template | undefined {
+	if (value === undefined) return undefined
+	if (value === 'counter' || value === 'form' || value === 'sheet') return value
+	throw new Error(`unknown template: ${value} (use counter, form, or sheet)`)
+}
+
+function parsePackageManager(value: string | undefined): PackageManager | undefined {
+	if (value === undefined) return undefined
+	if (value === 'npm' || value === 'pnpm' || value === 'yarn' || value === 'bun') return value
+	throw new Error(`unknown package manager: ${value}`)
 }
 
 function parseTarget(value: string): BuildTarget {

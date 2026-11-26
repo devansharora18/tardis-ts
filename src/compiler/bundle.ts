@@ -23,6 +23,7 @@ export interface BundleOptions {
   runtime?: string
   webRuntime?: string
   title?: string
+  css?: string
 }
 
 export interface BundleResult {
@@ -132,12 +133,16 @@ export async function bundleApp(options: BundleOptions): Promise<BundleResult> {
     bytes: fs.statSync(outfile).size,
   }
   if (target === 'web') {
-    result.shell = await writeShell(outfile, options.title)
+    result.shell = await writeShell(outfile, options.title, options.css)
   }
   return result
 }
 
-async function writeShell(outfile: string, title = 'Tardis app'): Promise<string> {
+async function writeShell(
+  outfile: string,
+  title = 'Tardis app',
+  css?: string
+): Promise<string> {
   const dir = path.dirname(outfile)
   const shell = path.join(dir, 'index.html')
   const script = path.basename(outfile)
@@ -153,6 +158,9 @@ async function writeShell(outfile: string, title = 'Tardis app'): Promise<string
         return '&quot;'
     }
   })
+  const cssLink = css
+    ? `<link rel="stylesheet" href="./${path.relative(dir, path.resolve(css)).split(path.sep).join('/')}" />\n`
+    : ''
   const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -160,6 +168,7 @@ async function writeShell(outfile: string, title = 'Tardis app'): Promise<string
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="dark" />
 <title>${safeTitle}</title>
+${cssLink}
 <style>
   html, body, #app { height: 100%; margin: 0; }
   body {

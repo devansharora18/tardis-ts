@@ -67,3 +67,22 @@ describe('web bundle', () => {
     expect(fs.existsSync(path.join(dir, 'index.html'))).toBe(false)
   })
 })
+
+describe('web shell stylesheet', () => {
+  it('links an explicit stylesheet', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tardis-css-'))
+    try {
+      const outfile = path.join(dir, 'app.js')
+      const result = await bundleApp({
+        entry: path.join(root, 'examples/native-counter/app.tsx'),
+        outfile,
+        target: 'web',
+        css: path.join(dir, 'app.css'),
+      })
+      const html = fs.readFileSync(result.shell!, 'utf8')
+      expect(html).toContain('<link rel="stylesheet" href="./app.css" />')
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true })
+    }
+  })
+})

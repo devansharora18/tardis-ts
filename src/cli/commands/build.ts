@@ -9,6 +9,7 @@ export interface BuildOptions {
   out?: string
   minify?: boolean
   target?: BuildTarget
+  css?: string
 }
 
 export interface BuildResult {
@@ -32,6 +33,7 @@ export async function buildApp(
     outfile,
     minify: options.minify,
     target,
+    css: options.css,
   })
   return {
     target,
