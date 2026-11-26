@@ -61,3 +61,9 @@ node scripts/package-native.mjs \
 
 `release.yml` uses the same script. Arm64 Linux runners and the Intel macOS
 runner are part of the matrix.
+
+## Verified
+
+The `release` workflow was run with `workflow_dispatch` on 2026-11-27. All five
+targets built and uploaded artifacts; `tardisjs-linux-x64` contains a 14 MB
+wgpu-enabled binary. Publishing was skipped because the ref was not a `v*` tag.

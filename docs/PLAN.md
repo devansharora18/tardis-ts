@@ -275,3 +275,11 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
 - `createMutation` added with latest-call-wins state and AbortSignal.
 - Platform binary resolver fixed for the installed scope layout.
 - Remaining gaps are tracked in `docs/TODO.md`; none are padded.
+
+## Platform matrix result (2026-11-27)
+
+- Release workflow built all five targets: linux-x64, linux-arm64, darwin-x64,
+  darwin-arm64, win32-x64. Artifacts contain `tardisjs-<platform>-<arch>` with a
+  14 MB wgpu-enabled binary and a valid package manifest.
+- npm publish was skipped because this was a `workflow_dispatch` run, not a tag;
+  publishing still requires `NPM_TOKEN` and signing secrets.
