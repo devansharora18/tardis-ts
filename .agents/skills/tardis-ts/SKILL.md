@@ -1,6 +1,6 @@
 ---
 name: tardis-ts
-description: Use when editing Tardis TS v2 apps or framework code. Tardis TS is a TSX-only UI framework for Linux, macOS, Windows, and web (signals, retained scene tree, Rust native renderer, DOM web host) — not React, not the old .tardis blueprint DSL.
+description: Use when editing Tardis TS v2 apps or framework code. Tardis TS is a TSX-only UI framework for Linux, macOS, Windows, and web (signals, retained scene tree, Rust native renderer, DOM web host, QuickJS/native fetch) — not React, not the old .tardis blueprint DSL.
 ---
 
 # Tardis TS v2
@@ -9,25 +9,38 @@ TSX-only. No `.tardis` files, no directives, no virtual DOM. Components run once
 signals bind updates to a retained scene tree. Two hosts consume the same patch
 stream:
 
-- **Native** — Rust core (taffy, cosmic-text, tiny-skia) inside winit/softbuffer,
-  app logic in embedded QuickJS.
-- **Web** — DOM host maps patches to elements and CSS flex.
+- **Native** — Rust core (taffy, cosmic-text, tiny-skia) inside winit/softbuffer
+  or wgpu, app logic in embedded QuickJS.
+- **Web** — DOM host maps patches to real elements and CSS flex.
 
 Mobile is deferred.
 
-Repo map:
+## Reference router
+
+| Open | When |
+|---|---|
+| `reference/app-shape.md` | starting an app, props, children, dynamic regions |
+| `reference/components.md` | TextField, VirtualList, ScrollView, Dialog, Select, accessibility |
+| `reference/forms-data.md` | createForm, createResource, createMutation, errors |
+| `reference/routing-ssr.md` | guards, lazy routes, SSR and structural hydration |
+| `reference/native-web.md` | host differences, wgpu, storage, fetch, native a11y |
+| `reference/examples.md` | the 16 example apps and how to build them |
+| `reference/testing-benchmarks.md` | test suites and benchmark commands/results |
+| `reference/pitfalls.md` | known traps and limitations |
+
+## Repo map
 
 - `src/compiler/tsx.ts` — TypeScript JSX transformer
-- `src/compiler/bundle.ts` — esbuild bundler, native + web targets
-- `src/scene/` — signals, JSX factory, scene tree, dynamic regions, events
-- `src/web/` — DOM host (`WebHost`, `installWebHost`)
-- `src/cli/` — build/run/screenshot/dev/preview/init
-- `native/crates/core` — patch decode, layout, text, raster
-- `native/crates/js` — QuickJS host (`__tardis_ts_flush`, `__tardis_ts_event`)
-- `native/crates/cli` — headless PNG + winit/softbuffer/wgpu window
-- `examples/native-counter/app.tsx` — minimal reference app
-- `examples/editor/app.tsx` — VS Code-style editor (compare: docs/EDITORS.md)
-- `examples/spreadsheet/app.tsx` — 100k-row spreadsheet (docs/SHEETS.md)
+- `src/compiler/bundle.ts` — esbuild bundler, native + web, `--css` shell link
+- `src/scene/` — signals, JSX, scene tree, events, inputs, router, SSR
+- `src/web/` — DOM host
+- `src/cli/` — create/build/run/screenshot/dev/preview
+- `native/crates/core` — patch decode, taffy, text, raster
+- `native/crates/js` — QuickJS host, `localStorage` and `fetch` bridges
+- `native/crates/cli` — headless PNG + winit/softbuffer/wgpu
+- `examples/` — 15 cross-platform apps + web-only PDF editor
+- `site/` — landing page and docs site (built with Tardis TS)
+- `docs/` — architecture, protocol, benchmarks, comparisons, ADRs
 
 ## App shape
 
@@ -49,181 +62,75 @@ function App() {
 render(() => <App />)
 ```
 
-## API
+Props from the compiler are getters. Use `dynamic()` for changing arrays and
+conditionals. Styles are objects; `className` is web-only. List/card styles follow
+the examples in `docs/TSX.md`.
 
-- CLI: `tardis-ts create` (interactive: platform, styling, template, pm, install,
-  git) or `--platform/--styling/--template/--pm/--yes`; `--css` on build/dev
-- `createSignal(v) -> [get, set]`; setter accepts `(prev) => next`
-- `createMemo(fn) -> get`, `createEffect(fn)`, `batch(fn)`, `untrack(fn)`
-- `createRoot((dispose) => ...)`, `onCleanup(fn)`
+## API quick reference
+
+- `createSignal(v) -> [get, set]`; setters accept `(prev) => next`
+- `createMemo(fn)`, `createEffect(fn)`, `batch(fn)`, `untrack(fn)`, `onCleanup(fn)`
 - `render(() => <App />) -> { root, dispose }`
-- `jsx`, `dynamic`, `Fragment` (compiler output; rarely used directly)
-- `installWebHost(options?)` for custom web mounting; auto-installed on `#app`
-- `VirtualList({ items, rowHeight, height, renderRow, overscan?, scrollTop?, onScroll? })`
-- `createRouter({ initial?, history?, scrollRestoration? })`,
-  `Router({ router, routes, fallback?, guards?, lazy?, loading?, error? })`,
-  `Link({ router, to, children })`, `matchPath(pattern, path)`
-- `focusNode(id)`; keyboard handlers `onKeyDown`/`onKeyUp`; wheel `onWheel`
-- `TextField({ value?, onChange?, placeholder?, ariaLabel?, width?, disabled?,
-  multiline?, rows?, fontFamily?, tabInserts?, autoIndent?, wrap?, onCaretChange?,
-  highlightLine?, lineStyle?, onKeyDown?, onSubmit?, onBlur?, onFocus? })`
-- `Checkbox({ checked, onChange?, label?, ariaLabel? })`
-- `Select({ value, options, onChange, placeholder?, ariaLabel?, width?, disabled? })`
-- `RadioGroup({ value, options, onChange, ariaLabel?, direction? })`
-- accessibility props: `role`, `tabIndex`, `className`, `aria-*` (web
-  attributes; native stores them; `className` is web-only)
-- compiler CSS shell link: `tardis-ts build --css dist/web/app.css`
-- `createForm({ initial, validate?, validateAsync?, onSubmit?, onSubmitError? })`
-  → values/touched/errors, submitting/submitted, submitError, submit/reset,
-  `field(key)`
-- `FormField({ label, error?, hint?, children })`
-- `createResource((signal) => Promise, { initial? })` → data/error/loading/
-  refetch/dispose, aborts on refetch/dispose
-- `createMutation((input, signal) => Promise, { onSuccess?, onError?, initial? })`
-  → mutate/data/error/loading/reset/dispose, latest call wins
-- `renderToString(App)`, `renderDocument(body, { title?, head?, script? })`,
-  `hydrate(App, container, { onMismatch? })` from `tardis-ts/ssr`
-- `ScrollView({ height, contentHeight, scrollTop?, onScroll?, children })`
-- `Boundary({ content, fallback?, onError?, onReset? })` — catches render and
-  subtree effect errors
-- `Dialog({ open, onClose, title?, width?, children })` — modal + focus trap
-- `installDevtools({ container?, startOpen? })` from `tardis-ts/devtools`
-- native `--scale` (headless) and window scale-factor support
-
-## JSX rules
-
-- Intrinsics: `div section main header footer nav ul li span label strong em p h1..h6 button img`
-- Capitalized tags are components; fragments `<>…</>` work.
-- Control flow is JavaScript: ternaries, `&&`, `.map`.
-- Non-event expression attributes compile to getters. Components read them:
-  `props.title()`. Destructuring loses reactivity.
-- Event props (`on[A-Z]…`), `key`, `ref`, and function-valued props are not wrapped.
-- Expression children become dynamic regions; `{items().map(...)}` rebuilds on change
-  (keyed reuse is not implemented).
-- Unknown intrinsic tags throw at compile time.
-
-## Styles
-
-Style objects only; no CSS files. Keys: `width height min/maxWidth/Height`,
-`padding*`, `margin*`, `flexDirection justifyContent alignItems gap flexGrow
-flexShrink flexWrap`, `position top right bottom left`, `backgroundColor
-borderRadius opacity overflow display`, `fontSize fontWeight color lineHeight
-textAlign`. Colors `#rgb`, `#rrggbb`, `#rrggbbaa`. Text styles inherit.
-
-Native maps to taffy; web maps to CSS flex with `box-sizing: border-box`. Line
-heights are explicit on block text; font metrics still differ by host.
-
-## Events
-
-`onClick` / `onPress` (equivalent). Native hit-tests the pointer; web delegates
-`pointerdown`/`pointerup` through `closest('[data-tardis-ts]')`. Both bubble to the
-nearest clickable ancestor.
-
-Pointer down focuses a node; `onKeyDown`/`onKeyUp` bubble to the nearest handler.
-Enter/Space activate the nearest clickable ancestor. Web listens on `window`;
-native maps winit keyboard input. Wheel events reach `onWheel`. IME composition
-is not implemented.
-
-## Forms, resources, accessibility
-
-`createForm` owns values/touched/errors/submitting; `FormField` renders
-label/error/hint; errors show after touch or submit. `createResource` starts a
-request immediately and ignores stale responses (no AbortSignal yet).
-
-`TextField` is controlled/uncontrolled with caret, selection, and optional
-multiline. Shortcuts: arrows/Home/End, Shift+movement selection, Ctrl/Cmd+A,
-Ctrl/Cmd+C/X/V, Alt+arrows by word, Ctrl/Cmd+Home/End document ends; Enter
-submits single-line, ctrl+enter submits multiline. IME preedit/commit is bridged
-on both hosts (web uses a hidden textarea). Tab/Shift+Tab traverse `tabIndex >= 0`
-nodes in document order. Clipboard uses memory + `navigator.clipboard` on web,
-`arboard` natively when a display exists. `Checkbox` toggles on click/Enter/Space with
-`role="checkbox"`/`aria-checked`.
-
-Intrinsic tags render as real web elements (`button`, `h1`, `p`, `ul`, ...).
-`role`, `tabIndex`, and `aria-*` become an `a11y` op. Native builds an AccessKit
-tree from them plus scene tags, focus, and layout bounds; focus/click/set-value
-actions dispatch back into JS.
-
-## Server rendering
-
-Export the component and guard the client render with
-`typeof document !== 'undefined'` (or `|| typeof __tardis_ts_flush === 'function'`
-for native). Server: `renderToString(App)`, then `renderDocument(body, {...})`.
-Client: `hydrate(App, document.getElementById('app')!)`.
-
-Hydration is a verified remount: staging render, text compare, warning on
-mismatch, then replace server nodes and move listeners. No node adoption,
-streaming, or data prefetch. Base CSS comes from `renderDocument`.
-
-## Scroll, boundaries, HiDPI
-
-`ScrollView` clips content, scrolls on wheel, and draws an indicator; pass
-`contentHeight` explicitly. `Boundary` catches render errors and effect errors
-from effects created inside its content. Native HiDPI keeps layout logical and scales raster/text/
-bounds; `tardis-ts-native --scale 2` renders physical screenshots.
-
-## Large lists, routing, images
-
-- `VirtualList` mounts only the visible window (~40 nodes for 10,000 rows) and
-  scrolls on wheel events. Use it for any long list.
-- `createRouter` + `Router` + `Link` work with memory history natively and
-  `window.history`/`popstate` on web. Routes support `:param` and `*`.
-- Native `<img src="path.png" style={{width,height}} />` decodes PNGs and caches
-  them; web uses `<img>`. Explicit dimensions are required.
+- `dynamic(fn)`, `Fragment`, `jsx`
+- `VirtualList`, `ScrollView`, `TextField`, `Checkbox`, `Select`, `RadioGroup`,
+  `Dialog`, `Boundary`
+- Router: `createRouter`, `Router`, `Link`, `matchPath`
+- Forms: `createForm`, `FormField`; data: `createResource`, `createMutation`
+- SSR: `renderToString`, `renderDocument`, `hydrate`
+- Devtools: `installDevtools` from `@devansharora18/tardis-ts/devtools`
+- Events: `onClick`, `onPointerDown/Move/Up`, `onKeyDown`, `onWheel`, `onText`,
+  `onTab`; pointer events include `localX/localY`
+- Accessibility: `role`, `tabIndex`, `className`, `aria-*`
 
 ## CLI
 
 ```
+tardis-ts create [dir]        # interactive: platforms, styling, template, pm, install, git
 tardis-ts init
-tardis-ts build [entry] --target native|web --out <path> --minify
-tardis-ts run [entry] --width 800 --height 600
-tardis-ts dev [entry] --target native|web --port 4173
-tardis-ts screenshot [entry] -o shot.png --dump scene.json
+tardis-ts build [entry] --target native|web --out <path> --minify --css <css>
+tardis-ts run [entry] --width 800 --height 600 --backend softbuffer|wgpu --scale 2
+tardis-ts dev [entry] --target native|web --port 4173 --css <css>
+tardis-ts screenshot [entry] -o shot.png --dump scene.json --scale 2
 tardis-ts preview --dir dist/web --port 4173
 ```
 
-Default entry: `app.tsx`, `src/app.tsx`, `index.tsx`, or `src/index.tsx`.
-Native binary lookup: `TARDIS_TS_NATIVE_BIN`, `native/target/{release,debug}`,
-`node_modules/.bin/tardis-ts-native` (`.exe` on Windows).
+Default entry: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
+Native lookup: `TARDIS_TS_NATIVE_BIN`, `native/target/{release,debug}`,
+`node_modules/@devansharora18/tardis-ts-<platform>-<arch>/bin/tardis-ts-native`.
 
-## Performance
+## Current measured truth
 
-Release core harness (`cargo run -p tardis-ts-bench --release -- --rows 1000`):
-
-- 1k update 1.97 ms; 10k fully mounted update 23.0 ms; 10k paint 1.87 ms.
-- Virtualized 10k window: 0.55 ms update, 3.1 ms mount.
-- Patch apply is ~0.003 ms for style/text updates (no scene clone); the taffy
-  tree is reused. Fully mounted 10k is a stress case, not the production shape.
-
-Same-machine startup/size: Tardis 451 ms / 7.3 MB vs Dioxus 0.6.3 desktop
-625 ms / 8.7 MB (first paint). Startup/size only; no frame-time head-to-head.
-Do not claim one.
+- 10k fully mounted browser: Tardis 8.3 fps vs Dioxus 12.3 vs React 6.0 vs
+  Electron 4.1. **Tardis loses to Dioxus.**
+- 100k virtualized sheet: Tardis 60.2 fps vs Dioxus 60.3. **Tie.**
+- Editor startup/RSS: Tardis 410 ms/45 MiB vs Zed 624 ms/363 MiB.
+- Desktop counter startup/size: Tardis 451 ms/7.3 MB vs Dioxus 625 ms/8.7 MB.
+- Full-list browser and sheet details: `docs/BENCHMARKS.md`, `docs/SHEETS.md`,
+  `docs/EDITORS.md`.
 
 ## Testing
 
-- Compiler: `npx vitest run test/compiler/tsx.test.ts`
-- Scene runtime: fake host with `globalThis.__tardis_ts_flush = (json) => ...`
-- Web host: jsdom (`test/web/dom.test.ts`)
-- Web bundle: `test/compiler/web-bundle.test.ts` renders and clicks in jsdom
-- Static server: `test/cli/server.test.ts`
-- Native end to end: `test/cli/native-e2e.test.ts` (builds headless into
-  `native/target/headless`)
-- Window smoke: `xvfb-run -a target/debug/tardis-ts-native --bundle dist/app.js`
-  (unset `WAYLAND_DISPLAY`, set `WINIT_UNIX_BACKEND=x11` if needed)
-- Real browser smoke: build `--target web`, `tardis-ts preview`, open Chrome
+```sh
+npm test
+npx tsc --noEmit
+npm run build
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+```
+
+Native e2e builds `native/target/headless`. Run native windows with
+`env -u WAYLAND_DISPLAY DISPLAY=:N WINIT_UNIX_BACKEND=x11` under Xvfb; otherwise
+winit may choose a Wayland display that is not captured.
 
 ## Gotchas
 
-- `overflow: hidden` clips rectangles; `textOverflow: 'ellipsis'` truncates one line.
-- Native images are PNG only; ScrollView clips and offsets, no native scroll node.
-- TextField has selection/multiline/IME; pointer caret placement is missing.
-- Devtools shows the scene and patch stream; no time travel or owner view.
-- ScrollView thumb is draggable; content height is still explicit.
-- Native AccessKit tree exists; verify screen readers on each host.
-- `--backend wgpu` presents CPU frames through wgpu; no GPU geometry yet.
-- Clipboard is system-backed when available; otherwise memory.
-- Hydration is a remount, not node adoption; no streaming SSR.
-- No Dioxus frame-time benchmark.
-- Sending a native bundle through a headless-only build? Keep the window build
-  in `native/target/debug`; tests use `native/target/headless`.
-- The npm tarball ships Rust sources; platform binaries are still TODO.
+See `reference/pitfalls.md`. The short list:
+
+- DOM attribute is `data-tardis-ts`; host globals are `__tardis_ts_*`.
+- Inline web styles beat CSS classes; use `!important` in web-only skins.
+- `className`/Tailwind applies on web only; native uses style objects.
+- No pointer caret placement, keyed diff, streaming SSR, or GPU geometry yet.
+- PDF editor is web-only; native file dialogs are not implemented.
+- Hydration adopts nodes structurally; it is not streaming.
+- Never change a benchmark workload after seeing a loss.
