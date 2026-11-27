@@ -296,6 +296,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 ## Docs
 
 - [TSX guide](docs/TSX.md)
+- [API reference](docs/API.md)
+- [Examples catalog](docs/EXAMPLES.md)
 - [Architecture](docs/native/architecture.md)
 - [Frame protocol](docs/native/protocol.md)
 - [Decisions](docs/DECISIONS.md)

@@ -6,7 +6,7 @@ const docsDir = path.join(root, 'docs')
 
 const groups = [
   ['Introduction', ['../README.md']],
-  ['Guides', ['TSX.md', 'EDITORS.md', 'SHEETS.md', 'ELECTRON.md', 'BENCHMARKS.md']],
+  ['Guides', ['TSX.md', 'API.md', 'EXAMPLES.md', 'EDITORS.md', 'SHEETS.md', 'ELECTRON.md', 'BENCHMARKS.md']],
   ['Native', ['native/architecture.md', 'native/protocol.md', 'PACKAGING.md']],
   ['Project', ['DECISIONS.md', 'PLAN.md', 'TODO.md', 'RECON.md']],
   ['ADRs', [
