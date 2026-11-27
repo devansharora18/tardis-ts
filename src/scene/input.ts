@@ -7,7 +7,7 @@
 
 import { pasteClipboard, writeClipboard } from './clipboard'
 import { dynamic, jsx } from './jsx'
-import { createEffect, createSignal } from './signals'
+import { createEffect, createSignal, untrack } from './signals'
 import type { SceneEvent, SceneNode } from './types'
 type MaybeGetter<T> = T | (() => T)
 
@@ -116,7 +116,7 @@ export interface TextFieldProps {
 
 export function TextField(props: TextFieldProps): SceneNode {
   const controlled = props.value !== undefined
-  const [internal, setInternal] = createSignal(read(props.value, ''))
+  const [internal, setInternal] = createSignal(untrack(() => read(props.value, '')))
   const [caret, setCaret] = createSignal(0)
   const [anchor, setAnchor] = createSignal(0)
   const [focused, setFocused] = createSignal(false)
