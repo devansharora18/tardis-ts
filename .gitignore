@@ -22,3 +22,13 @@ bench/web-frame/dioxus-sheet/*.wasm
 bench/web-frame/dioxus-sheet/*.ts
 bench/sheet-frame/tardis/app.js
 bench/sheet-frame/tardis/index.html
+
+site/dist/
+site/docs/content.generated.ts
+
+bench/electron/node_modules/
+bench/electron/renderer/app.js
+bench/web-frame/react/app.js
+bench/web-frame/dioxus-sheet/*.js
+bench/web-frame/dioxus-sheet/*.wasm
+bench/web-frame/dioxus-sheet/*.ts

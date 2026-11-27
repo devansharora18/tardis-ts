@@ -9,3 +9,5 @@ mkdir -p bench/web-frame/dioxus/generated
 wasm-bindgen --target web --no-typescript \
   bench/web-frame/dioxus/target/wasm32-unknown-unknown/release/dioxus_web_bench.wasm \
   --out-dir bench/web-frame/dioxus
+npx esbuild bench/web-frame/react/app.tsx --bundle --format=iife \
+  --outfile=bench/web-frame/react/app.js --loader:.tsx=tsx --jsx=automatic --log-level=error

@@ -87,6 +87,7 @@ function median(values) {
 
 const serverTardis = await serve(path.join(here, 'tardis'), 4310)
 const serverDioxus = await serve(path.join(here, 'dioxus'), 4311)
+const serverReact = await serve(path.join(here, 'react'), 4312)
 const { chromium } = await loadPlaywright()
 const launchOptions = {
   headless: true,
@@ -105,18 +106,21 @@ for (const candidate of [
 }
 const browser = await chromium.launch(launchOptions)
 
-const results = { tardis-ts: [], dioxus: [] }
+const results = { tardis: [], dioxus: [], react: [] }
 try {
   for (let round = 0; round < REPEATS; round += 1) {
-    const order =
-      round % 2 === 0
-        ? ['tardis', 'dioxus']
-        : ['dioxus', 'tardis']
+    const order = [
+      ['tardis', 'dioxus', 'react'],
+      ['react', 'tardis', 'dioxus'],
+      ['dioxus', 'react', 'tardis'],
+    ][round % 3]
     for (const target of order) {
       const url =
         target === 'tardis'
           ? 'http://127.0.0.1:4310/'
-          : 'http://127.0.0.1:4311/'
+          : target === 'dioxus'
+            ? 'http://127.0.0.1:4311/'
+            : 'http://127.0.0.1:4312/'
       results[target].push(await measure(browser, url, target))
       console.log(`${target} round ${round + 1}:`, results[target].at(-1))
     }
@@ -125,6 +129,7 @@ try {
   await browser.close()
   serverTardis.close()
   serverDioxus.close()
+  serverReact.close()
 }
 
 const summary = {}

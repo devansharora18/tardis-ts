@@ -93,7 +93,7 @@ for (const candidate of [
   }
 }
 const browser = await chromium.launch(launchOptions)
-const results = { tardis-ts: [], dioxus: [] }
+const results = { tardis: [], dioxus: [] }
 try {
   for (let round = 0; round < REPEATS; round += 1) {
     const order = round % 2 === 0 ? ['tardis', 'dioxus'] : ['dioxus', 'tardis']
