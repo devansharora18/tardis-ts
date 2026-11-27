@@ -365,3 +365,31 @@ describe('pointer focus stability', () => {
     expect(value()).toBe('Zab')
   })
 })
+
+
+describe('TextField theme', () => {
+  it('applies theme colors, borders, and the caret color', () => {
+    handle = render(() =>
+      jsx(TextField, {
+        value: 'x',
+        backgroundColor: '#ffffff',
+        color: '#201f1e',
+        caretColor: '#107c41',
+        selectionColor: '#cfe8dc',
+        borderWidth: 1,
+        borderColor: '#d2d0ce',
+        fontSize: 12,
+      })
+    )
+    const element = fieldElement()
+    expect(element.style.backgroundColor).toBe('rgb(255, 255, 255)')
+    expect(element.style.color).toBe('rgb(32, 31, 30)')
+    expect(element.style.borderWidth).toBe('1px')
+    focusField()
+    flushNow()
+    const caret = Array.from(element.querySelectorAll('div')).find(
+      (child) => child.style.backgroundColor === 'rgb(16, 124, 65)'
+    )
+    expect(caret).toBeTruthy()
+  })
+})

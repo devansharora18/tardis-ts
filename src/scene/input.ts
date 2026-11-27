@@ -98,6 +98,20 @@ export interface TextFieldProps {
   onSubmit?: () => void
   onBlur?: () => void
   onFocus?: () => void
+  /** Theme overrides. Defaults preserve the original dark field. */
+  backgroundColor?: MaybeGetter<string>
+  color?: MaybeGetter<string>
+  placeholderColor?: MaybeGetter<string>
+  selectionColor?: MaybeGetter<string>
+  caretColor?: MaybeGetter<string>
+  borderColor?: MaybeGetter<string>
+  borderWidth?: MaybeGetter<number>
+  borderRadius?: MaybeGetter<number>
+  fontSize?: MaybeGetter<number>
+  lineHeight?: MaybeGetter<number>
+  padding?: MaybeGetter<number>
+  /** Exact container height. Useful for dense grid cells. */
+  height?: MaybeGetter<number>
 }
 
 export function TextField(props: TextFieldProps): SceneNode {
@@ -363,15 +377,17 @@ export function TextField(props: TextFieldProps): SceneNode {
 
   const label = (): string => read(props.ariaLabel, read(props.placeholder, 'Text field'))
   const rows = (): number => Math.max(1, read(props.rows, 1))
-  const lineHeight = LINE_HEIGHT
+  const lineHeight = (): number => read(props.lineHeight, LINE_HEIGHT)
+  const caretColor = (): string => read(props.caretColor, CARET_COLOR)
+  const selectionColor = (): string => read(props.selectionColor, SELECTION_COLOR)
 
   const caretView = (): SceneNode =>
     jsx('div', {
       style: {
         width: 2,
-        height: CARET_HEIGHT,
+        height: Math.max(10, lineHeight() - 2),
         borderRadius: 1,
-        backgroundColor: CARET_COLOR,
+        backgroundColor: caretColor(),
       },
     })
 
@@ -383,8 +399,7 @@ export function TextField(props: TextFieldProps): SceneNode {
             'span',
             {
               style: {
-                color: CARET_COLOR,
-                backgroundColor: '#14321c',
+                color: caretColor(),
               },
             },
             preedit()
@@ -422,7 +437,7 @@ export function TextField(props: TextFieldProps): SceneNode {
         }
         if (end <= cursor) end = to
         const base: Record<string, unknown> = selected
-          ? { backgroundColor: SELECTION_COLOR }
+          ? { backgroundColor: selectionColor() }
           : token?.backgroundColor
             ? { backgroundColor: token.backgroundColor }
             : {}
@@ -453,10 +468,10 @@ export function TextField(props: TextFieldProps): SceneNode {
         style: {
           flexDirection: 'row',
           alignItems: 'center',
-          minHeight: lineHeight,
+          minHeight: lineHeight(),
           ...(wrap()
             ? {}
-            : { height: lineHeight, overflow: 'hidden' }),
+            : { height: lineHeight(), overflow: 'hidden' }),
           ...(props.lineStyle?.(index) ?? {}),
         },
       },
@@ -467,19 +482,33 @@ export function TextField(props: TextFieldProps): SceneNode {
   return jsx(
     'div',
     {
-      style: () => ({
-        width: read(props.width, 240),
-        minHeight: rows() * lineHeight + 16,
-        padding: 8,
-        flexDirection: 'column',
-        justifyContent: multiline() ? 'flex-start' : 'center',
-        backgroundColor: focused() ? '#151515' : '#111111',
-        borderRadius: 8,
-        color: '#ededed',
-        fontSize: 14,
-        fontFamily: read(props.fontFamily, undefined),
-        opacity: disabled() ? 0.5 : 1,
-      }),
+      style: () => {
+        const padding = read(props.padding, 8)
+        const background = read(props.backgroundColor, '')
+        return {
+          width: read(props.width, 240),
+          height: read(props.height, undefined),
+          minHeight:
+            read(props.height, 0) ||
+            rows() * lineHeight() + padding * 2,
+          padding,
+          flexDirection: 'column',
+          justifyContent: multiline() ? 'flex-start' : 'center',
+          backgroundColor:
+            background !== ''
+              ? background
+              : focused()
+                ? '#151515'
+                : '#111111',
+          borderRadius: read(props.borderRadius, 8),
+          borderWidth: read(props.borderWidth, 0),
+          borderColor: read(props.borderColor, 'transparent'),
+          color: read(props.color, '#ededed'),
+          fontSize: read(props.fontSize, 14),
+          fontFamily: read(props.fontFamily, undefined),
+          opacity: disabled() ? 0.5 : 1,
+        }
+      },
       onKeyDown,
       onText,
       onTab,

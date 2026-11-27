@@ -97,6 +97,12 @@ export class WebHost {
         localX: rect ? (pointer.clientX ?? 0) - rect.left : undefined,
         localY: rect ? (pointer.clientY ?? 0) - rect.top : undefined,
         button: pointer.button ?? 0,
+        mods: {
+          ctrl: pointer.ctrlKey,
+          shift: pointer.shiftKey,
+          alt: pointer.altKey,
+          meta: pointer.metaKey,
+        },
       })
       this.syncIme()
     }
@@ -116,6 +122,12 @@ export class WebHost {
         localX: rect ? (pointer.clientX ?? 0) - rect.left : undefined,
         localY: rect ? (pointer.clientY ?? 0) - rect.top : undefined,
         button: pointer.button ?? 0,
+        mods: {
+          ctrl: pointer.ctrlKey,
+          shift: pointer.shiftKey,
+          alt: pointer.altKey,
+          meta: pointer.metaKey,
+        },
       })
     }
     window.addEventListener('pointermove', move)
