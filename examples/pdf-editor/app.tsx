@@ -5,9 +5,17 @@ import {
   jsx,
   render,
   TextField,
+  type SceneNode,
 } from '@devansharora18/tardis-ts/scene'
-import { Badge, Button, Card, Page } from '../shared/ui'
-import { colors } from '../shared/theme'
+import {
+  accents,
+  DesktopApp,
+  Icon,
+  office,
+  Toolbar,
+  ToolbarButton,
+  type Accent,
+} from '../shared/office'
 
 interface PageInfo {
   index: number
@@ -17,14 +25,17 @@ interface PageInfo {
   height: number
 }
 
+const ACCENT: Accent = accents.access
 const [bytes, setBytes] = createSignal<Uint8Array | null>(null)
 const [pages, setPages] = createSignal<PageInfo[]>([])
 const [order, setOrder] = createSignal<number[]>([])
 const [selected, setSelected] = createSignal(0)
 const [note, setNote] = createSignal('Reviewed')
-const [status, setStatus] = createSignal('Load a PDF to begin')
+const [fileName, setFileName] = createSignal('No document')
+const [status, setStatus] = createSignal('Open a PDF to begin')
 const [loading, setLoading] = createSignal(false)
 const [error, setError] = createSignal('')
+const [zoom, setZoom] = createSignal(0.7)
 
 const web = typeof document !== 'undefined'
 
@@ -32,11 +43,11 @@ const importExternal = async (url: string): Promise<any> =>
   // Keep the URL out of the bundler: native never executes this branch.
   (new Function('url', 'return import(url)') as (url: string) => Promise<any>)(url)
 
-const renderPage = async (
+async function renderPage(
   pdf: { getPage: (index: number) => Promise<any> },
   index: number,
   scale: number
-): Promise<{ preview: string; width: number; height: number }> => {
+): Promise<{ preview: string; width: number; height: number }> {
   const page = await pdf.getPage(index)
   const viewport = page.getViewport({ scale })
   const canvas = document.createElement('canvas')
@@ -51,11 +62,12 @@ const renderPage = async (
   }
 }
 
-const load = async (file: File): Promise<void> => {
+async function load(file: File): Promise<void> {
   if (!web) return
   setLoading(true)
   setError('')
   setStatus(`Loading ${file.name}…`)
+  setFileName(file.name)
   try {
     const data = new Uint8Array(await file.arrayBuffer())
     setBytes(data)
@@ -80,8 +92,11 @@ const load = async (file: File): Promise<void> => {
   }
 }
 
-const choose = (): void => {
-  if (!web) return
+function choose(): void {
+  if (!web) {
+    setStatus('PDF editing requires the web build')
+    return
+  }
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'application/pdf,.pdf'
@@ -92,7 +107,7 @@ const choose = (): void => {
   input.click()
 }
 
-const rotate = (): void => {
+function rotate(): void {
   const index = order()[selected()]
   if (index === undefined) return
   setPages((items) =>
@@ -100,15 +115,18 @@ const rotate = (): void => {
       page.index === index ? { ...page, rotation: (page.rotation + 90) % 360 } : page
     )
   )
+  setStatus('Page rotated 90°')
 }
 
-const remove = (): void => {
+function remove(): void {
+  if (order().length === 0) return
   const next = order().filter((_, position) => position !== selected())
   setOrder(next)
   setSelected(Math.max(0, Math.min(selected(), next.length - 1)))
+  setStatus('Page removed from the export')
 }
 
-const move = (direction: -1 | 1): void => {
+function move(direction: -1 | 1): void {
   const list = [...order()]
   const from = selected()
   const to = from + direction
@@ -116,11 +134,12 @@ const move = (direction: -1 | 1): void => {
   ;[list[from], list[to]] = [list[to]!, list[from]!]
   setOrder(list)
   setSelected(to)
+  setStatus(direction < 0 ? 'Page moved earlier' : 'Page moved later')
 }
 
-const exportPdf = async (): Promise<void> => {
+async function exportPdf(): Promise<void> {
   const data = bytes()
-  if (!data || order().length === 0) return
+  if (!data || order().length === 0 || !web) return
   setLoading(true)
   try {
     const lib = await importExternal(
@@ -157,173 +176,401 @@ const exportPdf = async (): Promise<void> => {
     setStatus(`Exported ${order().length} pages`)
   } catch (reason) {
     setError(reason instanceof Error ? reason.message : String(reason))
+    setStatus('Export failed')
   } finally {
     setLoading(false)
   }
 }
 
-function App(): ReturnType<typeof jsx> {
-  if (!web) {
-    return jsx(Page, {
-      title: 'Tardis PDF',
-      subtitle: 'Web-only example',
-      children: [
-        jsx(Card, {
-          title: 'DESKTOP BUILD',
-          children: [
-            jsx(
-              'span',
-              { style: { color: colors.muted, lineHeight: 20 } },
-              'PDF parsing and rendering use browser APIs (PDF.js canvas and Blob downloads), so this example runs on the web target. The other 15 examples run on desktop and web.'
-            ),
-          ],
-        }),
-      ],
-    })
-  }
+function currentPage(): PageInfo | undefined {
+  return pages().find((page) => page.index === order()[selected()])
+}
 
-  const currentOrder = (): number | undefined => order()[selected()]
-  const currentPage = (): PageInfo | undefined =>
-    pages().find((page) => page.index === currentOrder())
-
+function PageList(): SceneNode {
   return jsx(
-    Page,
+    'div',
     {
-      title: 'Tardis PDF',
-      subtitle: 'PDF.js preview · pdf-lib page operations',
-      actions: [
-        jsx(Button, { label: 'Open PDF', onClick: choose }),
-        jsx(Button, { label: '← Move', onClick: () => move(-1) }),
-        jsx(Button, { label: 'Move →', onClick: () => move(1) }),
-        jsx(Button, { label: 'Rotate', onClick: rotate }),
-        jsx(Button, { label: 'Delete', onClick: remove, danger: true }),
-        jsx(Button, { label: 'Export', onClick: () => void exportPdf(), primary: true }),
-      ],
+      style: {
+        width: 190,
+        minWidth: 190,
+        flexDirection: 'column',
+        backgroundColor: office.chrome,
+        borderColor: office.borderSoft,
+        borderWidth: 1,
+      },
     },
     jsx(
       'div',
-      { style: { flexDirection: 'row', gap: 14, flexGrow: 1, minHeight: 0 } },
+      { style: { padding: 10, gap: 8 } },
       jsx(
-        Card,
-        {
-          title: 'PAGES',
-          children: [
-            dynamic(() => {
-              if (order().length === 0) {
-                return jsx(
-                  'span',
-                  { style: { color: colors.muted, fontSize: 11 } },
-                  'No PDF loaded'
-                )
-              }
-              return order().map((pageIndex, position) => {
-                const page = pages().find((entry) => entry.index === pageIndex)
-                if (!page) return null
-                return jsx(
-                  'div',
-                  {
-                    key: `${pageIndex}`,
-                    role: 'button',
-                    tabIndex: 0,
-                    onClick: () => setSelected(position),
-                    style: () => ({
-                      flexDirection: 'row',
-                      gap: 8,
-                      alignItems: 'center',
-                      padding: 6,
-                      borderRadius: 6,
-                      backgroundColor:
-                        position === selected() ? '#1f2937' : 'transparent',
-                    }),
-                  },
-                  jsx('img', {
-                    src: page.preview,
-                    style: { width: 52, height: 68, borderRadius: 2 },
-                  }),
-                  jsx(
-                    'span',
-                    { style: { color: colors.text, fontSize: 11 } },
-                    `Page ${pageIndex + 1}`
-                  ),
-                  page.rotation
-                    ? jsx(Badge, { label: `${page.rotation}°` })
-                    : null
-                )
-              })
-            }),
-          ],
-        }
+        'span',
+        { style: { fontSize: 10, fontWeight: 600, color: office.muted } },
+        'PAGES'
       ),
-      jsx(
-        'div',
-        {
-          style: {
-            flexGrow: 1,
-            padding: 12,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#05080d',
-            borderRadius: 10,
-            borderWidth: 1,
-            borderColor: colors.border,
-            minHeight: 0,
+      ...order().map((pageIndex, position) => {
+        const page = pages().find((entry) => entry.index === pageIndex)
+        if (!page) return null
+        return jsx(
+          'div',
+          {
+            key: String(pageIndex),
+            role: 'button',
+            tabIndex: 0,
+            onClick: () => setSelected(position),
+            style: () => ({
+              flexDirection: 'row',
+              gap: 8,
+              alignItems: 'center',
+              padding: 5,
+              borderRadius: 2,
+              backgroundColor: position === selected() ? ACCENT.tint : 'transparent',
+              borderWidth: 1,
+              borderColor: position === selected() ? ACCENT.main : 'transparent',
+            }),
           },
-        },
-        dynamic(() => {
-          if (loading()) {
-            return jsx('span', { style: { color: colors.muted } }, 'Rendering…')
-          }
-          const page = currentPage()
-          if (!page) {
-            return jsx(
-              'div',
-              { style: { alignItems: 'center', gap: 10 } },
-              jsx('span', { style: { color: colors.text, fontSize: 18 } }, 'Open a PDF'),
-              jsx(
-                'span',
-                { style: { color: colors.muted, fontSize: 12 } },
-                'Preview, reorder, rotate, annotate, and export.'
-              ),
-              jsx(Button, { label: 'Choose PDF', onClick: choose, primary: true })
-            )
-          }
-          return jsx('img', {
+          jsx('img', {
             src: page.preview,
-            style: {
-              width: page.width,
-              height: page.height,
-              borderRadius: 4,
-            },
-          })
-        })
-      ),
-      jsx(
-        Card,
-        {
-          title: 'ANNOTATE',
-          children: [
-            jsx(TextField, {
-              value: () => note(),
-              onChange: setNote,
-              ariaLabel: 'Annotation text',
-              width: 200,
-              placeholder: 'Footer annotation',
-            }),
+            style: { width: 48, height: 62, borderWidth: 1, borderColor: office.border },
+          }),
+          jsx(
+            'div',
+            { style: { flexGrow: 1, gap: 2 } },
             jsx(
               'span',
-              { style: { color: colors.muted, fontSize: 11, lineHeight: 16 } },
-              'The note is drawn at the bottom-left of the selected page on export.'
+              { style: { fontSize: 10.5, color: office.ink } },
+              `Page ${pageIndex + 1}`
             ),
-            dynamic(() => jsx(Badge, { label: `${order().length} pages` })),
-            jsx('span', { style: { color: colors.dim, fontSize: 11 } }, dynamic(() => status())),
+            jsx(
+              'span',
+              { style: { fontSize: 9, color: office.dim } },
+              `${Math.round(page.width)} × ${Math.round(page.height)}`
+            ),
+            page.rotation
+              ? jsx(
+                  'span',
+                  { style: { fontSize: 9, color: ACCENT.main } },
+                  `${page.rotation}°`
+                )
+              : null
+          )
+        )
+      }),
+      order().length === 0
+        ? jsx(
+            'span',
+            { style: { fontSize: 10, color: office.dim, paddingTop: 4 } },
+            'No pages loaded'
+          )
+        : null
+    )
+  )
+}
+
+function Inspector(): SceneNode {
+  return jsx(
+    'div',
+    {
+      style: {
+        width: 228,
+        minWidth: 228,
+        flexDirection: 'column',
+        backgroundColor: office.chrome,
+        borderColor: office.borderSoft,
+        borderWidth: 1,
+      },
+    },
+    jsx(
+      'div',
+      { style: { padding: 10, gap: 6 } },
+      jsx(
+        'span',
+        { style: { fontSize: 10, fontWeight: 600, color: office.muted } },
+        'DOCUMENT'
+      ),
+      jsx('span', { style: { fontSize: 11, color: office.ink } }, fileName()),
+      jsx(
+        'span',
+        { style: { fontSize: 9.5, color: office.dim } },
+        dynamic(() => `${order().length} pages · ${Math.round(zoom() * 100)}% zoom`)
+      ),
+      jsx(
+        'span',
+        { style: { fontSize: 10, fontWeight: 600, color: office.muted, marginTop: 6 } },
+        'ANNOTATION'
+      ),
+      jsx(TextField, {
+        value: () => note(),
+        onChange: setNote,
+        ariaLabel: 'Annotation text',
+        width: 204,
+        height: 26,
+        padding: 4,
+        lineHeight: 16,
+        fontSize: 11,
+        backgroundColor: office.surface,
+        color: office.ink,
+        placeholderColor: office.dim,
+        selectionColor: ACCENT.tint,
+        caretColor: ACCENT.main,
+        borderWidth: 1,
+        borderColor: office.border,
+        borderRadius: 2,
+        placeholder: 'Footer annotation',
+      }),
+      jsx(
+        'span',
+        {
+          style: {
+            fontSize: 9.5,
+            color: office.muted,
+            lineHeight: 14,
+          },
+        },
+        'The note is drawn at the bottom-left of the selected page on export.'
+      ),
+      jsx(
+        'span',
+        { style: { fontSize: 10, fontWeight: 600, color: office.muted, marginTop: 6 } },
+        'PAGE'
+      ),
+      jsx(
+        'span',
+        { style: { fontSize: 11, color: office.ink } },
+        dynamic(() => {
+          const page = currentPage()
+          return page
+            ? `Page ${order()[selected()] + 1} · ${Math.round(page.width)} × ${Math.round(page.height)}`
+            : 'No page selected'
+        })
+      ),
+      error()
+        ? jsx(
+            'span',
+            { style: { fontSize: 10, color: office.danger, lineHeight: 14 } },
             error()
-              ? jsx('span', { style: { color: colors.red, fontSize: 11 } }, error())
-              : null,
-          ],
-        }
+          )
+        : null
+    ),
+    jsx('div', { style: { flexGrow: 1 } }),
+    jsx(
+      'div',
+      {
+        style: {
+          padding: 10,
+          borderColor: office.borderSoft,
+          borderWidth: 1,
+          gap: 4,
+        },
+      },
+      jsx(
+        'span',
+        { style: { fontSize: 9.5, color: office.muted, lineHeight: 14 } },
+        web
+          ? 'PDF.js renders previews locally; pdf-lib rebuilds the page order on export.'
+          : 'PDF.js and Blob downloads need the web build. The other 15 examples run on desktop and web.'
       )
     )
   )
+}
+
+function EmptyState(): SceneNode {
+  return jsx(
+    'div',
+    {
+      style: {
+        width: 430,
+        padding: 26,
+        gap: 10,
+        alignItems: 'center',
+        backgroundColor: office.surface,
+        borderWidth: 1,
+        borderColor: office.border,
+      },
+    },
+    jsx(Icon, { name: 'page', size: 34, color: ACCENT.main }),
+    jsx(
+      'span',
+      { style: { fontSize: 18, fontWeight: 600, color: office.ink } },
+      web ? 'Open a PDF' : 'PDF editing is web-only'
+    ),
+    jsx(
+      'span',
+      {
+        style: {
+          fontSize: 11.5,
+          color: office.muted,
+          textAlign: 'center',
+          lineHeight: 17,
+        },
+      },
+      web
+        ? 'Preview, reorder, rotate, annotate, and export. Files stay in the browser.'
+        : 'PDF.js canvas rendering and Blob downloads are browser APIs. Run this example with --target web.'
+    ),
+    web
+      ? jsx(
+          'div',
+          {
+            role: 'button',
+            tabIndex: 0,
+            onClick: choose,
+            style: {
+              height: 30,
+              paddingLeft: 16,
+              paddingRight: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: ACCENT.main,
+              borderRadius: 2,
+            },
+          },
+          jsx(
+            'span',
+            { style: { fontSize: 11.5, color: '#ffffff', fontWeight: 600 } },
+            'Choose PDF'
+          )
+        )
+      : null
+  )
+}
+
+function App(): ReturnType<typeof jsx> {
+  const hasPages = (): boolean => order().length > 0
+  return jsx(DesktopApp, {
+    app: 'Tardis PDF',
+    initial: 'P',
+    file: () => fileName(),
+    accent: ACCENT,
+    toolbar: dynamic(() =>
+      jsx(Toolbar, {
+        accent: ACCENT,
+        children: [
+          jsx(ToolbarButton, {
+            icon: 'page',
+            label: 'Open',
+            accent: ACCENT,
+            onClick: choose,
+            disabled: !web,
+          }),
+          jsx('div', {
+            style: { width: 1, height: 20, backgroundColor: office.borderSoft, marginLeft: 4, marginRight: 4 },
+          }),
+          jsx(ToolbarButton, {
+            icon: 'undo',
+            label: 'Move left',
+            accent: ACCENT,
+            onClick: () => move(-1),
+            disabled: !hasPages(),
+          }),
+          jsx(ToolbarButton, {
+            icon: 'redo',
+            label: 'Move right',
+            accent: ACCENT,
+            onClick: () => move(1),
+            disabled: !hasPages(),
+          }),
+          jsx(ToolbarButton, {
+            icon: 'grid',
+            label: 'Rotate',
+            accent: ACCENT,
+            onClick: rotate,
+            disabled: !hasPages(),
+          }),
+          jsx(ToolbarButton, {
+            icon: 'close',
+            label: 'Delete',
+            accent: ACCENT,
+            onClick: remove,
+            disabled: !hasPages(),
+          }),
+          jsx('div', {
+            style: { width: 1, height: 20, backgroundColor: office.borderSoft, marginLeft: 4, marginRight: 4 },
+          }),
+          jsx(ToolbarButton, {
+            icon: 'minus',
+            label: 'Zoom out',
+            accent: ACCENT,
+            onClick: () => setZoom((value) => Math.max(0.4, Number((value - 0.1).toFixed(1)))),
+            disabled: !hasPages(),
+          }),
+          jsx(ToolbarButton, {
+            icon: 'plus',
+            label: 'Zoom in',
+            accent: ACCENT,
+            onClick: () => setZoom((value) => Math.min(1.4, Number((value + 0.1).toFixed(1)))),
+            disabled: !hasPages(),
+          }),
+          jsx('div', { style: { flexGrow: 1 } }),
+          jsx(ToolbarButton, {
+            icon: 'save',
+            label: 'Export PDF',
+            accent: ACCENT,
+            onClick: () => void exportPdf(),
+            disabled: !web || !hasPages(),
+          }),
+        ],
+      })
+    ),
+    statusLeft: jsx(
+      'span',
+      { style: { color: '#ffffff', fontSize: 10.5 } },
+      dynamic(() => status())
+    ),
+    statusCenter: jsx(
+      'span',
+      { style: { color: '#ffffff', fontSize: 10.5 } },
+      dynamic(() =>
+        hasPages() ? `Page ${selected() + 1} of ${order().length}` : 'No document'
+      )
+    ),
+    statusRight: jsx(
+      'span',
+      { style: { color: '#ffffff', fontSize: 10.5 } },
+      dynamic(() => `${order().length} pages`)
+    ),
+    zoom: () => zoom() * 100,
+    children: [
+      jsx(
+        'div',
+        { style: { flexGrow: 1, flexDirection: 'row', minHeight: 0 } },
+        dynamic(() => (hasPages() ? jsx(PageList, {}) : null)),
+        jsx(
+          'div',
+          {
+            style: {
+              flexGrow: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#d9d9d9',
+              minWidth: 0,
+            },
+          },
+          dynamic(() => {
+            if (loading()) {
+              return jsx(
+                'span',
+                { style: { fontSize: 12, color: office.muted } },
+                'Rendering pages…'
+              )
+            }
+            const page = currentPage()
+            if (!page) return jsx(EmptyState, {})
+            return jsx('img', {
+              src: page.preview,
+              style: {
+                width: Math.round(page.width * zoom()),
+                height: Math.round(page.height * zoom()),
+                borderWidth: 1,
+                borderColor: office.border,
+                backgroundColor: office.surface,
+              },
+            })
+          })
+        ),
+        dynamic(() => jsx(Inspector, {}))
+      ),
+    ],
+  })
 }
 
 render(() => jsx(App))
