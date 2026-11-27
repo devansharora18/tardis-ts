@@ -183,3 +183,24 @@ describe('className', () => {
     expect(box.getAttribute('class')).toBe('box two')
   })
 })
+
+describe('web borders', () => {
+  it('makes inline border widths visible by default', () => {
+    const app = mount(() =>
+      jsx('div', {
+        className: 'bordered',
+        style: {
+          width: 40,
+          height: 20,
+          borderWidth: 1,
+          borderColor: '#b3b0ad',
+        },
+      })
+    )
+    const element = app.querySelector<HTMLElement>('.bordered')!
+    const style = window.getComputedStyle(element)
+    expect(style.borderStyle).toBe('solid')
+    expect(style.borderTopWidth).toBe('1px')
+    expect(style.borderTopColor).toBe('rgb(179, 176, 173)')
+  })
+})
