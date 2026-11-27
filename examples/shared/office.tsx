@@ -12,6 +12,7 @@ export const office = {
   muted: '#605e5c',
   dim: '#8a8886',
   border: '#d2d0ce',
+  borderStrong: '#b3b0ad',
   borderSoft: '#e1dfdd',
   hover: '#edebe9',
   tint: '#f3f2f1',
@@ -794,6 +795,7 @@ export function BigCommand(props: {
 export function SmallCommand(props: {
   icon: IconName
   label?: string
+  ariaLabel?: string
   onClick?: () => void
   accent: Accent
   active?: boolean
@@ -805,7 +807,7 @@ export function SmallCommand(props: {
     {
       role: 'button',
       tabIndex: 0,
-      'aria-label': props.label,
+      'aria-label': props.ariaLabel ?? props.label ?? props.icon,
       'aria-disabled': props.disabled ? 'true' : 'false',
       onClick: () => {
         if (!props.disabled) props.onClick?.()
@@ -860,11 +862,150 @@ export function Ribbon(props: { children: SceneNode[]; accent: Accent }): SceneN
   )
 }
 
+export function ToolbarButton(props: {
+  icon: IconName
+  label?: string
+  onClick?: () => void
+  accent: Accent
+  active?: boolean
+  disabled?: boolean
+  width?: number
+}): SceneNode {
+  return jsx(
+    'div',
+    {
+      role: 'button',
+      tabIndex: 0,
+      'aria-label': props.label,
+      'aria-disabled': props.disabled ? 'true' : 'false',
+      onClick: () => {
+        if (!props.disabled) props.onClick?.()
+      },
+      style: {
+        width: props.width,
+        height: 27,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        paddingLeft: 6,
+        paddingRight: 7,
+        borderRadius: 3,
+        backgroundColor: props.active ? props.accent.tint : 'transparent',
+        borderWidth: 1,
+        borderColor: props.active ? props.accent.main : 'transparent',
+        opacity: props.disabled ? 0.42 : 1,
+      },
+    },
+    jsx(Icon, { name: props.icon, accent: props.accent.main, size: 16 }),
+    props.label
+      ? jsx(
+          'span',
+          { style: { fontSize: 11, color: office.ink, whiteSpace: 'nowrap' } },
+          props.label
+        )
+      : null
+  )
+}
+
+export function Toolbar(props: {
+  accent: Accent
+  children: SceneNode[]
+  label?: string
+}): SceneNode {
+  return jsx(
+    'div',
+    {
+      style: {
+        height: 39,
+        minHeight: 39,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+        paddingLeft: 8,
+        paddingRight: 8,
+        backgroundColor: office.chromeAlt,
+        borderColor: office.borderSoft,
+        borderWidth: 1,
+      },
+    },
+    props.label
+      ? jsx(
+          'span',
+          {
+            style: {
+              fontSize: 9.5,
+              color: office.muted,
+              marginRight: 6,
+              textTransform: 'uppercase',
+            },
+          },
+          props.label
+        )
+      : null,
+    ...props.children
+  )
+}
+
+export function DesktopApp(props: {
+  app: string
+  initial: string
+  file: string | (() => string)
+  accent: Accent
+  toolbar?: unknown
+  statusLeft?: SceneNode | string
+  statusCenter?: SceneNode | string
+  statusRight?: SceneNode | string
+  zoom?: number | (() => number)
+  children: SceneNode | SceneNode[]
+}): SceneNode {
+  return jsx(
+    'div',
+    {
+      style: {
+        flexGrow: 1,
+        flexDirection: 'column',
+        backgroundColor: office.chrome,
+        color: office.ink,
+        fontSize: 12,
+        fontFamily: 'sans-serif',
+        minHeight: 0,
+      },
+    },
+    jsx(TitleBar, {
+      app: props.app,
+      initial: props.initial,
+      file: props.file,
+      accent: props.accent,
+    }),
+    props.toolbar ?? null,
+    jsx(
+      'div',
+      {
+        style: {
+          flexGrow: 1,
+          flexDirection: 'column',
+          minHeight: 0,
+          backgroundColor: office.chrome,
+        },
+      },
+      ...(Array.isArray(props.children) ? props.children : [props.children])
+    ),
+    jsx(StatusBar, {
+      accent: props.accent,
+      left: props.statusLeft,
+      center: props.statusCenter,
+      right: props.statusRight,
+      zoom: props.zoom,
+    })
+  )
+}
+
 export function StatusBar(props: {
   accent: Accent
   left?: SceneNode | string
   center?: SceneNode | string
   right?: SceneNode | string
+  zoom?: number | (() => number)
 }): SceneNode {
   const content = (value: SceneNode | string | undefined): SceneNode => {
     if (value === undefined) return jsx('span', {})
@@ -895,7 +1036,17 @@ export function StatusBar(props: {
     jsx(
       'div',
       { style: { flexDirection: 'row', alignItems: 'center', gap: 6 } },
-      jsx('span', { style: { color: '#ffffff', fontSize: 10.5 } }, '100%'),
+      jsx(
+        'span',
+        { style: { color: '#ffffff', fontSize: 10.5 } },
+        dynamic(() => {
+          const value =
+            typeof props.zoom === 'function'
+              ? props.zoom()
+              : props.zoom ?? 100
+          return `${Math.round(value)}%`
+        })
+      ),
       jsx('div', {
         style: {
           width: 52,
@@ -928,6 +1079,7 @@ export function OfficeApp(props: {
   statusLeft?: SceneNode | string
   statusCenter?: SceneNode | string
   statusRight?: SceneNode | string
+  zoom?: number | (() => number)
   children: SceneNode | SceneNode[]
 }): SceneNode {
   return jsx(
@@ -975,6 +1127,7 @@ export function OfficeApp(props: {
       left: props.statusLeft,
       center: props.statusCenter,
       right: props.statusRight,
+      zoom: props.zoom,
     })
   )
 }
