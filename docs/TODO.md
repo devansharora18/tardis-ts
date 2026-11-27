@@ -111,7 +111,7 @@ npx tardis-ts screenshot examples/native-counter/app.tsx -o check.png
 
 ## Known honest gaps in claims
 
-- Line count is ~25k framework/examples/site/tests/docs/bench, not 40k. No
+- Line count is ~35k framework/examples/site/tests/docs/bench, not 40k. No
   padding is added.
 - The office-grade UI pass is implemented; the capability gaps above remain and
   are not hidden behind the visual polish.
