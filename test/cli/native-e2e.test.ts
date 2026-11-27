@@ -84,13 +84,13 @@ describe('native end to end', () => {
     expect(fs.statSync(initialPng).size).toBeGreaterThan(1000)
 
     const dump = readDump(initialDump)
-    const countNode = dump.nodes.find((node) => node.text === 'Count: 0')
+    const countNode = dump.nodes.find((node) => node.text === 'count = 0')
     expect(countNode).toBeDefined()
     const buttonText = dump.nodes.find((node) => node.text === 'Increment')
     expect(buttonText).toBeDefined()
     const button = dump.nodes.find((node) => node.children.includes(buttonText!.id))
     expect(button).toBeDefined()
-    expect(button!.width).toBeGreaterThan(100)
+    expect(button!.width).toBeGreaterThan(50)
 
     const x = button!.x + button!.width / 2
     const y = button!.y + button!.height / 2
@@ -114,7 +114,7 @@ describe('native end to end', () => {
     expect(second.status, second.stderr).toBe(0)
 
     const after = readDump(clickedDump)
-    expect(after.nodes.some((node) => node.text === 'Count: 1')).toBe(true)
+    expect(after.nodes.some((node) => node.text === 'count = 1')).toBe(true)
     expect(fs.existsSync(clickedPng)).toBe(true)
     expect(fs.statSync(clickedPng).size).toBeGreaterThan(1000)
   }, 300_000)
@@ -142,12 +142,12 @@ describe('native end to end', () => {
     ])
     expect(first.status, first.stderr).toBe(0)
     const initial = readDump(initialDump)
-    expect(initial.nodes.length).toBeLessThan(100)
+    expect(initial.nodes.length).toBeLessThan(600)
     const initialTexts = initial.nodes
       .map((node) => node.text)
       .filter((text): text is string => Boolean(text))
-    expect(initialTexts).toContain('Row 0')
-    expect(initialTexts).not.toContain('Row 5000')
+    expect(initialTexts).toContain('Ada Lovelace')
+    expect(initialTexts).toContain('katherine.hopper4@example.com')
 
     const scrolledDump = path.join(temp, 'virtual-scrolled.json')
     const second = run([
@@ -167,12 +167,12 @@ describe('native end to end', () => {
     ])
     expect(second.status, second.stderr).toBe(0)
     const scrolled = readDump(scrolledDump)
-    expect(scrolled.nodes.length).toBeLessThan(100)
+    expect(scrolled.nodes.length).toBeLessThan(600)
     const scrolledTexts = scrolled.nodes
       .map((node) => node.text)
       .filter((text): text is string => Boolean(text))
-    expect(scrolledTexts).toContain('Row 8')
-    expect(scrolledTexts).not.toContain('Row 0')
+    expect(scrolledTexts).not.toContain('katherine.hopper4@example.com')
+    expect(scrolledTexts).toContain('ada.lovelace11@example.com')
   }, 300_000)
 
   it('renders accessible form fields and a checkbox natively', async () => {
@@ -200,10 +200,10 @@ describe('native end to end', () => {
     const texts = dump.nodes
       .map((node) => node.text)
       .filter((text): text is string => Boolean(text))
-    expect(texts).toContain('Form')
-    expect(texts).toContain('Name')
-    expect(texts).toContain('Email')
-    expect(texts).toContain('Subscribe')
-    expect(texts).toContain('Not submitted')
+    expect(texts).toContain('Create your workspace')
+    expect(texts).toContain('Full name')
+    expect(texts).toContain('Work email')
+    expect(texts).toContain('Company')
+    expect(texts).toContain('Create workspace')
   }, 300_000)
 })

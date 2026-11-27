@@ -61,7 +61,7 @@ describe('spreadsheet app', () => {
   it('mounts 100k rows and shows formula results', async () => {
     const { dom, app } = await mount('examples/spreadsheet/app.tsx')
     expect(app.textContent).toContain('Q4 Budget.xlsx')
-    expect(app.textContent).toContain('Excel')
+    expect(app.textContent).toContain('Tardis Sheet')
     expect(app.textContent).toContain('Widget Pro')
     expect(app.textContent).toContain('$24,196.50')
 
@@ -81,5 +81,48 @@ describe('word app', () => {
     click(dom, leaf(dom, 'Edit source'))
     expect(app.textContent).toContain('MARKDOWN SOURCE')
     expect(app.textContent).toContain('# Q4 Business Review')
+  }, 120_000)
+})
+
+
+describe('office interactions', () => {
+  it('enters presentation mode from the slides ribbon', async () => {
+    const { dom, app } = await mount('examples/slides/app.tsx')
+    click(dom, leaf(dom, 'Present'))
+    expect(app.textContent).toContain('SLIDE SHOW')
+    expect(app.textContent).toContain('Exit')
+  }, 120_000)
+
+  it('toggles the terms checkbox in the form', async () => {
+    const { dom, app } = await mount('examples/forms/app.tsx')
+    const boxes = app.querySelectorAll<HTMLElement>('[role="checkbox"]')
+    expect(boxes.length).toBe(2)
+    click(dom, boxes[1]!)
+    const after = app.querySelectorAll<HTMLElement>('[role="checkbox"]')
+    expect(after[1]!.getAttribute('aria-checked')).toBe('true')
+  }, 120_000)
+})
+
+describe('office and utility examples', () => {
+  const cases: Array<[string, string[]]> = [
+    ['slides', ['Tardis Slides', 'Tardis TS deck.pptx', 'SLIDES']],
+    ['paint', ['Tardis Paint', 'Untitled.png', 'Save PNG']],
+    ['pdf-editor', ['Tardis PDF', 'Open a PDF', 'Tardis PDF']],
+    ['calendar', ['Tardis Calendar', 'MY CALENDARS', 'Month']],
+    ['contacts', ['Tardis Contacts', 'Ada Lovelace', 'People']],
+    ['kanban', ['Tardis Board', 'Q4 launch', 'Backlog']],
+    ['chat', ['Tardis Chat', 'CONNECTION', 'Local model']],
+    ['calculator', ['Tardis Calculator', 'History', 'Standard']],
+    ['image-viewer', ['Tardis Photos', 'orbits.png', 'DETAILS']],
+    ['forms', ['Tardis Forms', 'Create your workspace', 'Full name']],
+    ['virtual-10k', ['Tardis Directory', 'Ada Lovelace', '10,000 people.csv']],
+    ['native-counter', ['Tardis Counter', 'One signal. Two hosts.']],
+  ]
+
+  it.each(cases)('%s mounts with its shell', async (entry, texts) => {
+    const { app } = await mount(`examples/${entry}/app.tsx`)
+    for (const text of texts) {
+      expect(app.textContent).toContain(text)
+    }
   }, 120_000)
 })
