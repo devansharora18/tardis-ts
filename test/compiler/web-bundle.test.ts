@@ -31,6 +31,7 @@ describe('web bundle', () => {
     expect(html).toContain('id="app"')
     expect(html).toContain('src="./app.js"')
     expect(html).toContain('<title>Tardis TS app</title>')
+    expect(html).toContain('rel="icon"')
 
     const code = fs.readFileSync(outfile, 'utf8')
     const dom = new JSDOM(html, {
@@ -41,7 +42,7 @@ describe('web bundle', () => {
 
     const app = dom.window.document.getElementById('app')!
     expect(app.textContent).toContain('Tardis')
-    expect(app.textContent).toContain('Count: 0')
+    expect(app.textContent).toContain('count = 0')
 
     const increment = Array.from(
       app.querySelectorAll<HTMLElement>('[data-tardis-ts]')
@@ -53,7 +54,7 @@ describe('web bundle', () => {
     increment!.dispatchEvent(
       new dom.window.MouseEvent('pointerup', { bubbles: true })
     )
-    expect(app.textContent).toContain('Count: 1')
+    expect(app.textContent).toContain('count = 1')
   }, 120_000)
 
   it('does not write a shell for the native target', async () => {

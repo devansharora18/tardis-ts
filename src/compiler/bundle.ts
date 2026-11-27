@@ -167,6 +167,7 @@ async function writeShell(
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="dark" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23107c41'/%3E%3Cpath d='M4 5h8v2H9v6H7V7H4z' fill='white'/%3E%3C/svg%3E" />
 <title>${safeTitle}</title>
 ${cssLink}
 <style>
