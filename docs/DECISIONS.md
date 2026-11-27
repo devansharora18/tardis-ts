@@ -101,3 +101,10 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 95 | Dioxus spreadsheet is a rendering baseline, not a feature clone | Isolates the virtualized 100k-row frame path; formula/app parity would measure app code |
 | 96 | Zed comparison reports startup/RSS/size and a feature table, not typing latency | No low-latency input instrumentation that can sample both apps fairly |
 | 97 | The editor highlighter tokenizes each visible line, not the document | Keeps it reactive and cheap for the demo; tree-sitter is the production path |
+| 98 | Native `localStorage` is a JSON file per app under the platform data dir | Examples persist on desktop without a browser; `TARDIS_TS_STORAGE_DIR` overrides it |
+| 99 | Native `fetch` is a synchronous ureq bridge resolved through a Promise shim | Small API surface; the host drains the QuickJS job queue after dispatch |
+| 100 | Pointer events carry local coordinates relative to the hit element | Paint/grid apps need element-local coordinates; both hosts provide them |
+| 101 | PDF editor is web-only | PDF.js rendering, canvas, and Blob downloads are browser APIs; the other 15 examples run on both hosts |
+| 102 | Landing/docs use a light Cobalt material with cut corners and keycaps | Devtool content, one cobalt accent, no gradients/rounded cards/shadows |
+| 103 | Site content is generated from `docs/*.md` at build time | One source of truth; the docs site cannot drift from the repository docs |
+| 104 | Electron benchmark runs the same React workload | Comparability with React web; Electron is measured under Xvfb software rendering |

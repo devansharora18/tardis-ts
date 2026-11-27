@@ -300,3 +300,19 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   60.3 fps (p95 17.0 ms); tie documented in `docs/SHEETS.md`.
 - 156 JS / 21 Rust tests; benchmark harnesses in
   `bench/web-frame/dioxus-sheet` and `bench/sheet-frame`.
+
+## Examples, docs site, React/Electron slice result (2026-11-27)
+
+- 16 examples: 15 run native + web; the PDF editor is web-only. Shared UI/theme
+  kit; each app builds in `test/examples/build.test.ts`.
+- Native host now exposes `localStorage` (JSON file) and `fetch` (ureq) with a
+  QuickJS job-queue drain, so desktop API and persistence examples work.
+- Data-URL PNG decoding in the native renderer; local pointer coordinates.
+- Documentation site generated from the real `docs/*.md` (17 sections) with
+  search, sidebar, TOC, prev/next, tables, and code blocks.
+- Cobalt landing page built with Tardis TS: asymmetric hero, ledger, full-bleed
+  band, diptych, example grid, benchmark table, colophon.
+- React 18 frame benchmark: Tardis 8.3 fps vs Dioxus 12.3 vs React 6.0 vs React
+  in Electron 4.1. Electron startup 605 ms, RSS 1.7 GB, dist 263 MB.
+- Agent skill expanded into 8 reference documents.
+- 17 example build tests; 158+ JS tests.

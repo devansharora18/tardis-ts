@@ -95,6 +95,9 @@ same scene patches.
 - **Tardis Sheet** (`examples/spreadsheet`) — 100,000 × 8 virtualized grid with
   selection, formula bar, arithmetic, and SUM/AVERAGE/MIN/MAX. Compared with a
   Dioxus virtualized grid in [docs/SHEETS.md](docs/SHEETS.md).
+- **14 more** — paint, markdown word processor, slides, kanban, calendar,
+  contacts, calculator, weather and chat APIs, image gallery, and a web-only
+  PDF editor. See `examples/` and the docs site.
 
 ## How it works
 
@@ -184,9 +187,11 @@ startup/size and native paint, and virtualized lists update in 0.55 ms. See
 
 Virtualized spreadsheet scrolling with 100,000 rows is a tie: **Tardis 60.2 fps
 (p95 17.5 ms) vs Dioxus 60.3 fps (p95 17.0 ms)**. The editor comparison with Zed
-1.30.2: **410 ms / 45.5 MiB startup+RSS vs 624 ms / 363 MiB**. Zed wins on
-features by a wide margin; Tardis wins on startup, memory, size, and web support.
-See [docs/SHEETS.md](docs/SHEETS.md) and [docs/EDITORS.md](docs/EDITORS.md).
+1.30.2: **410 ms / 45.5 MiB startup+RSS vs 624 ms / 363 MiB**. On the same
+fully-mounted 10k browser update: Tardis 8.3 fps, Dioxus 12.3, React 6.0, and
+React in Electron 4.1 fps. Zed wins on features; Tardis wins startup, memory,
+size, and web support. See [docs/SHEETS.md](docs/SHEETS.md),
+[docs/EDITORS.md](docs/EDITORS.md), and [docs/ELECTRON.md](docs/ELECTRON.md).
 
 ## Server rendering
 
@@ -222,6 +227,19 @@ hydrate(App, document.getElementById('app')!)
 into a staging host, compares text content, warns on mismatch, then replaces the
 server nodes with the live client tree. It is not node adoption and there is no
 streaming yet.
+
+## Docs site
+
+Build the landing page and documentation site into `site/dist`:
+
+```sh
+npm run build
+node scripts/build-site.mjs
+npx http-server site/dist   # any static server
+```
+
+The landing page and docs site are Tardis TS apps; the docs content is generated
+from `docs/*.md` by `scripts/build-docs-content.mjs`.
 
 ## Commands
 
@@ -284,6 +302,8 @@ Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 - [Editor vs Zed](docs/EDITORS.md)
 - [100k spreadsheet comparison](docs/SHEETS.md)
 - [Packaging and signing](docs/PACKAGING.md)
+- [Electron/React comparison](docs/ELECTRON.md)
+- [Docs site source](site/docs/app.tsx) and [landing source](site/landing/app.tsx)
 - [ADR 0003 — TSX-only v2](docs/adr/0003-tsx-only-v2.md)
 - [ADR 0004 — web DOM adapter](docs/adr/0004-web-dom-adapter.md)
 - [ADR 0005 — engine and performance strategy](docs/adr/0005-runtime-engine-and-performance.md)

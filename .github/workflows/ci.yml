@@ -37,6 +37,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: node scripts/build-site.mjs
       - run: cargo fmt --all --check
         working-directory: native
       - run: cargo clippy --workspace --all-targets -- -D warnings
