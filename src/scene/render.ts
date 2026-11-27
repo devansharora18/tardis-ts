@@ -128,10 +128,12 @@ export function dispatchEvent(event: SceneEvent): void {
     const target = typeof event.node === 'number' ? event.node : null
     if (event.phase === 'down') {
       pressed = target
+      // Resolve the handler before moving focus: a focus-triggered rebuild must
+      // not destroy the pressed node before it sees the pointer down.
+      const onDown =
+        target !== null ? nearestHandler(target, 'onPointerDown') : null
       setFocus(focusableAncestor(target))
-      if (target !== null) {
-        nearestHandler(target, 'onPointerDown')?.handler(event)
-      }
+      onDown?.handler(event)
       flushNow()
       return
     }
