@@ -87,7 +87,7 @@ export const UNITLESS_PROPERTIES = new Set([
 ])
 
 export const BASE_CSS = [
-  '[data-tardis-ts]{box-sizing:border-box;border-width:0;border-style:solid;border-color:transparent}',
+  ':where([data-tardis-ts]){box-sizing:border-box;border-width:0;border-style:solid;border-color:transparent}',
   '[data-tardis-ts="0"]{width:100%;min-height:100vh}',
   'button[data-tardis-ts]{border:0;font:inherit;cursor:pointer}',
   'ul[data-tardis-ts]{margin:0;padding:0;list-style:none}',
