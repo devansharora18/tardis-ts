@@ -32,15 +32,18 @@ export function parseRef(ref: string): { row: number; column: number } | null {
 }
 
 function numeric(ref: string, cells: Cells, depth: number): number {
+  return numericOption(ref, cells, depth) ?? 0
+}
+
+function numericOption(ref: string, cells: Cells, depth: number): number | null {
   const raw = (cells[ref] ?? '').trim()
-  if (raw === '') return 0
+  if (raw === '') return null
   if (raw.startsWith('=')) {
     const value = evaluateRaw(raw.slice(1), cells, depth + 1)
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : 0
+    return Number.isFinite(value) ? value : null
   }
   const parsed = Number(raw)
-  return Number.isFinite(parsed) ? parsed : 0
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 class Parser {
@@ -152,6 +155,8 @@ class Parser {
         return valid.length === 0 ? 0 : Math.min(...valid)
       case 'MAX':
         return valid.length === 0 ? 0 : Math.max(...valid)
+      case 'COUNT':
+        return valid.length
       default:
         throw new Error(`unknown function ${name}`)
     }
@@ -178,7 +183,8 @@ class Parser {
         column += 1
       ) {
         if (this.depth > 16) throw new Error('cycle')
-        values.push(numeric(cellRef(row, column), this.cells, this.depth))
+        const value = numericOption(cellRef(row, column), this.cells, this.depth)
+        if (value !== null) values.push(value)
       }
     }
     return values
@@ -200,5 +206,21 @@ export function displayCell(ref: string, cells: Cells): string {
     return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(6)))
   } catch (reason) {
     return String(reason).includes('cycle') ? '#CYCLE!' : '#ERROR!'
+  }
+}
+
+/** Numeric value of a cell, or null when it is empty or not numeric. */
+export function cellValue(ref: string, cells: Cells): number | null {
+  const raw = (cells[ref] ?? '').trim()
+  if (raw === '') return null
+  if (!raw.startsWith('=')) {
+    const parsed = Number(raw)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  try {
+    const value = evaluateRaw(raw.slice(1), cells, 0)
+    return Number.isFinite(value) ? value : null
+  } catch {
+    return null
   }
 }

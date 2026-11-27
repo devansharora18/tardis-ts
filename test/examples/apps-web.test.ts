@@ -60,13 +60,12 @@ describe('editor app', () => {
 describe('spreadsheet app', () => {
   it('mounts 100k rows and shows formula results', async () => {
     const { dom, app } = await mount('examples/spreadsheet/app.tsx')
-    expect(app.textContent).toContain('Tardis Sheet')
-    expect(app.textContent).toContain('100,000 rows')
-    expect(app.textContent).toContain('Widget')
-    expect(app.textContent).toContain('39')
-    expect(app.textContent).toContain('19.5')
+    expect(app.textContent).toContain('Q4 Budget.xlsx')
+    expect(app.textContent).toContain('Excel')
+    expect(app.textContent).toContain('Widget Pro')
+    expect(app.textContent).toContain('$24,196.50')
 
-    click(dom, leaf(dom, '19'))
-    expect(app.textContent).toContain('=B1*C1')
+    click(dom, leaf(dom, '$5,940.00'))
+    expect(app.textContent).toContain('=B2*C2')
   }, 120_000)
 })

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   cellRef,
   columnName,
+  cellValue,
   displayCell,
   parseRef,
   type Cells,
@@ -28,6 +29,8 @@ describe('spreadsheet formulas', () => {
       A7: '=MIN(A1:A2)',
       A8: '=MAX(A1:A2)',
       A9: '=1/0',
+      A10: '=COUNT(A1:A9)',
+      A11: 'text',
     }
     expect(displayCell('A3', cells)).toBe('14')
     expect(displayCell('A4', cells)).toBe('19')
@@ -36,6 +39,10 @@ describe('spreadsheet formulas', () => {
     expect(displayCell('A7', cells)).toBe('2')
     expect(displayCell('A8', cells)).toBe('3')
     expect(displayCell('A9', cells)).toBe('#ERROR!')
+    expect(displayCell('A10', cells)).toBe('8')
+    expect(cellValue('A4', cells)).toBe(19)
+    expect(cellValue('A11', cells)).toBeNull()
+    expect(cellValue('B1', cells)).toBeNull()
   })
 
   it('reports cycles and bad syntax', () => {
