@@ -69,3 +69,17 @@ describe('spreadsheet app', () => {
     expect(app.textContent).toContain('=B2*C2')
   }, 120_000)
 })
+
+
+describe('word app', () => {
+  it('mounts the page and opens the markdown source', async () => {
+    const { dom, app } = await mount('examples/word/app.tsx')
+    expect(app.textContent).toContain('Q4 Business Review.md')
+    expect(app.textContent).toContain('Executive summary')
+    expect(app.textContent).toContain('Revenue closed at')
+
+    click(dom, leaf(dom, 'Edit source'))
+    expect(app.textContent).toContain('MARKDOWN SOURCE')
+    expect(app.textContent).toContain('# Q4 Business Review')
+  }, 120_000)
+})

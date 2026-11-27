@@ -532,7 +532,7 @@ export function Icon(props: {
 export function TitleBar(props: {
   app: string
   initial: string
-  file: string
+  file: string | (() => string)
   accent: Accent
   subtitle?: string
 }): SceneNode {
@@ -594,7 +594,7 @@ export function TitleBar(props: {
           flexShrink: 0,
         },
       },
-      props.file
+      dynamic(() => (typeof props.file === 'function' ? props.file() : props.file))
     ),
     props.subtitle
       ? jsx(
@@ -919,7 +919,7 @@ export function StatusBar(props: {
 export function OfficeApp(props: {
   app: string
   initial: string
-  file: string
+  file: string | (() => string)
   accent: Accent
   tabs: string[]
   activeTab: () => string
