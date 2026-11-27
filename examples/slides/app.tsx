@@ -7,6 +7,7 @@ import {
   TextField,
 } from '@devansharora18/tardis-ts/scene'
 import { Button, Card, Page } from '../shared/ui'
+import type { SceneEvent } from '@devansharora18/tardis-ts/scene'
 import { colors } from '../shared/theme'
 
 interface Slide {
@@ -120,7 +121,7 @@ function App(): ReturnType<typeof jsx> {
       'div',
       {
         tabIndex: 0,
-        onKeyDown: (event) => {
+        onKeyDown: (event: SceneEvent) => {
           if (event.key === 'Escape') setPresenting(false)
           if (event.key === 'ArrowRight' || event.key === ' ') {
             setIndex((value) => Math.min(slides().length - 1, value + 1))

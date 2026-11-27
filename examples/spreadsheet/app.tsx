@@ -278,7 +278,7 @@ function App(): ReturnType<typeof jsx> {
         overscan: 2,
         scrollTop: () => scrollTop(),
         onScroll: setScrollTop,
-        renderRow: (row) =>
+        renderRow: (row: number) =>
           jsx(
             'div',
             {

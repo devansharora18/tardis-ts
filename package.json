@@ -58,7 +58,8 @@
     "bench:sheet": "node bench/sheet-frame/run.mjs",
     "site:content": "node scripts/build-docs-content.mjs",
     "site": "npm run build && node scripts/build-site.mjs",
-    "bench:electron": "node bench/electron/run.mjs"
+    "bench:electron": "node bench/electron/run.mjs",
+    "typecheck:apps": "node scripts/build-docs-content.mjs && tsc -p tsconfig.apps.json"
   },
   "keywords": [
     "tsx",

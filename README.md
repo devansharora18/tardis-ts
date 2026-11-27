@@ -245,19 +245,21 @@ from `docs/*.md` by `scripts/build-docs-content.mjs`.
 
 | Command | What it does |
 |---|---|
-| `tardis-ts init` | Create `app.tsx`, `package.json`, `tsconfig.json` |
+| `tardis-ts create [dir]` | Interactive scaffolder (platforms, styling, template, pm, install, git) |
+| `tardis-ts init` | Create a starter app in the current directory |
 | `tardis-ts build [entry]` | Bundle native (`dist/app.js`) or `--target web` (`dist/web/app.js` + shell) |
 | `tardis-ts run [entry]` | Build and open the native window |
 | `tardis-ts dev [entry]` | Native: restart on change. `--target web`: serve + reload |
 | `tardis-ts screenshot [entry]` | Native headless PNG; `--dump` writes scene JSON |
 | `tardis-ts preview` | Serve a built web app |
 
-Options: `--target native|web`, `--out`, `--minify`, `--width`, `--height`,
-`--port`, `--dump`.
+Options: `--target native|web`, `--out`, `--minify`, `--css`, `--width`,
+`--height`, `--scale`, `--backend softbuffer|wgpu`, `--port`, `--dump`.
+`npm run site` builds the landing page + docs site into `site/dist`.
 
 Entry resolution: `app.tsx`, `src/app.tsx`, `index.tsx`, `src/index.tsx`.
 
-## Limits (v0)
+## Known limits
 
 - Native props are reactive getters: use `props.title()`.
 - Styles are objects, not CSS. Web maps them to CSS; native maps them to taffy.

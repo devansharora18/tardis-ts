@@ -138,7 +138,22 @@ const TAGS: Record<string, TagSpec> = {
 }
 
 export function jsx(
-  type: string | ((props: Record<string, unknown>) => unknown) | typeof Fragment,
+  type: string,
+  props?: Record<string, unknown>,
+  ...children: unknown[]
+): SceneNode
+export function jsx(
+  type: typeof Fragment,
+  props?: Record<string, unknown>,
+  ...children: unknown[]
+): SceneNode
+export function jsx<P>(
+  type: (props: P) => unknown,
+  props?: P,
+  ...children: unknown[]
+): SceneNode
+export function jsx(
+  type: string | ((props: any) => unknown) | typeof Fragment,
   props: Record<string, unknown> = {},
   ...children: unknown[]
 ): SceneNode {

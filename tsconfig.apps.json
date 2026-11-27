@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2020", "DOM"],
+    "types": ["node"],
+    "jsx": "preserve",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@devansharora18/tardis-ts/scene": ["./src/scene/index.ts"],
+      "@devansharora18/tardis-ts/web": ["./src/web/index.ts"],
+      "@devansharora18/tardis-ts/ssr": ["./src/ssr/index.ts"],
+      "@devansharora18/tardis-ts/devtools": ["./src/devtools/index.ts"]
+    }
+  },
+  "include": [
+    "src/**/*.d.ts",
+    "examples/**/*.ts",
+    "examples/**/*.tsx",
+    "site/**/*.ts",
+    "site/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "dist", "native", "site/dist"]
+}

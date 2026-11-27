@@ -146,7 +146,7 @@ export interface FormFieldProps {
   label: MaybeGetter<string>
   error?: MaybeGetter<string | undefined>
   hint?: MaybeGetter<string | undefined>
-  children?: unknown[]
+  children?: unknown
 }
 
 /** Label + control + error/hint, with the same layout on both hosts. */
@@ -159,7 +159,11 @@ export function FormField(props: FormFieldProps): SceneNode {
       { style: { fontSize: 13, color: '#a1a1a1' } },
       read(props.label, '')
     ),
-    ...(props.children ?? []),
+    ...(Array.isArray(props.children)
+      ? props.children
+      : props.children === undefined
+        ? []
+        : [props.children]),
     dynamic(() => {
       const error = read(props.error, undefined)
       if (error) {
