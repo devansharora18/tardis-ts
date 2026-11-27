@@ -8,7 +8,6 @@ import {
   ScrollView,
   TextField,
   writeClipboard,
-  type SceneEvent,
   type SceneNode,
 } from '@devansharora18/tardis-ts/scene'
 import {
@@ -1430,7 +1429,7 @@ function App(): ReturnType<typeof jsx> {
   const canvasHeight = (): number =>
     Math.max(320, viewportH() - (rulerOn() ? 218 : 198))
   return jsx(OfficeApp, {
-    app: 'Word',
+    app: 'Tardis Word',
     initial: 'W',
     file: () => active().title,
     accent: ACCENT,
