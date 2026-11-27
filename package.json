@@ -55,7 +55,10 @@
     "publish:check": "npm run build && npm run typecheck && npm test && npm pack --dry-run",
     "prepublishOnly": "npm run publish:check",
     "bench:web": "node bench/web-frame/run.mjs",
-    "bench:sheet": "node bench/sheet-frame/run.mjs"
+    "bench:sheet": "node bench/sheet-frame/run.mjs",
+    "site:content": "node scripts/build-docs-content.mjs",
+    "site": "npm run build && node scripts/build-site.mjs",
+    "bench:electron": "node bench/electron/run.mjs"
   },
   "keywords": [
     "tsx",
@@ -78,7 +81,11 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/node": "^22.0.0",
+    "fflate": "^0.8.2",
     "jsdom": "^29.1.1",
+    "pdfjs-dist": "^4.10.38",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "rollup": "^4.0.0",
     "tslib": "^2.0.0",
     "vitest": "^1.0.0"
