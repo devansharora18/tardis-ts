@@ -197,4 +197,18 @@ What is still missing:
 - A virtualized browser head-to-head (both should sit at vsync; not yet run).
 - Feature parity: Dioxus has SSR/fullstack, mobile, and a larger ecosystem.
 
+## React and Electron (2026-11-27)
+
+Same 10k mounted-row browser workload, React 18.3.1 added:
+
+| App | Mean frame | p95 | Effective FPS |
+|---|---:|---:|---:|
+| Tardis TS | 120.6 ms | 143.5 ms | 8.3 |
+| Dioxus 0.6.3 | 81.3 ms | 96.0 ms | 12.3 |
+| React 18.3.1 | 167.3 ms | 192.2 ms | 6.0 |
+| React in Electron 33 | 244.4 ms | 279.4 ms | 4.1 |
+
+Electron startup median 605 ms, RSS 1.7 GB, dist 263 MB. See
+[ELECTRON.md](ELECTRON.md) for method and caveats.
+
 No blanket "better than Dioxus" claim is justified.
