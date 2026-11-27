@@ -330,7 +330,7 @@ function isA11yKey(name: string): boolean {
     name === 'role' ||
     name === 'tabIndex' ||
     name === 'className' ||
-    name.startsWith('aria-')
+    name.startsWith('aria-') || name === 'draggable'
   )
 }
 
