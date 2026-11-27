@@ -39,6 +39,7 @@ Mobile is deferred.
 - `native/crates/js` — QuickJS host, `localStorage` and `fetch` bridges
 - `native/crates/cli` — headless PNG + winit/softbuffer/wgpu
 - `examples/` — 15 cross-platform apps + web-only PDF editor
+- `examples/shared/office.tsx` — original light office shell used by the examples
 - `site/` — landing page and docs site (built with Tardis TS)
 - `docs/` — architecture, protocol, benchmarks, comparisons, ADRs
 
