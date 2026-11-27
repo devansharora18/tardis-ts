@@ -9,8 +9,11 @@ const REGULAR: &[u8] = include_bytes!("../assets/LiberationSans-Regular.ttf");
 const BOLD: &[u8] = include_bytes!("../assets/LiberationSans-Bold.ttf");
 const MONO_REGULAR: &[u8] = include_bytes!("../assets/JetBrainsMono-Regular.ttf");
 const MONO_BOLD: &[u8] = include_bytes!("../assets/JetBrainsMono-Bold.ttf");
+const SERIF: &[u8] = include_bytes!("../assets/LiberationSerif-Regular.ttf");
+const SERIF_BOLD: &[u8] = include_bytes!("../assets/LiberationSerif-Bold.ttf");
 const FAMILY: &str = "Liberation Sans";
 const MONO_FAMILY: &str = "JetBrains Mono";
+const SERIF_FAMILY: &str = "Liberation Serif";
 
 pub struct TextEngine {
     pub font_system: FontSystem,
@@ -24,6 +27,8 @@ impl TextEngine {
         font_system.db_mut().load_font_data(BOLD.to_vec());
         font_system.db_mut().load_font_data(MONO_REGULAR.to_vec());
         font_system.db_mut().load_font_data(MONO_BOLD.to_vec());
+        font_system.db_mut().load_font_data(SERIF.to_vec());
+        font_system.db_mut().load_font_data(SERIF_BOLD.to_vec());
         Self {
             font_system,
             swash_cache: SwashCache::new(),
@@ -136,6 +141,7 @@ impl Default for TextEngine {
 fn attrs(weight: u16, family: Option<&str>) -> Attrs<'static> {
     let family = match family {
         Some("monospace") | Some("JetBrains Mono") => MONO_FAMILY,
+        Some("serif") | Some("Liberation Serif") => SERIF_FAMILY,
         _ => FAMILY,
     };
     Attrs::new()

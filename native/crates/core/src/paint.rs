@@ -422,10 +422,14 @@ fn draw_text(
     } else {
         content.to_string()
     };
+    // Taffy rounds measured widths to whole pixels. Shaping at exactly that
+    // width can push the last glyph onto a hidden second line, which paints
+    // below the node and clips the word. One pixel of slack prevents the
+    // spurious wrap without changing the visible layout.
     let layout_width = if style.white_space == WhiteSpace::NoWrap {
         f32::MAX / 4.0
     } else {
-        rect.width
+        rect.width + 1.0
     };
     let buffer = text_engine.buffer(
         &content,
