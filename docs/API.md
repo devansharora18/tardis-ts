@@ -45,6 +45,11 @@ Ctrl/Cmd+A/C/X/V, IME preview/commit, Alt+arrow word movement, Ctrl/Cmd+Home/End
 Enter submits single-line; multiline inserts a newline; Ctrl/Cmd+Enter submits.
 `highlightLine` returns `{ start, end, color?, backgroundColor?, fontWeight? }[]`.
 
+Theme props for light surfaces: `backgroundColor`, `color`, `placeholderColor`,
+`selectionColor`, `caretColor`, `borderColor`, `borderWidth`, `borderRadius`,
+`fontSize`, `lineHeight`, `padding`, `height`. The defaults preserve the
+original dark field.
+
 ### Checkbox, Select, RadioGroup
 
 ```ts

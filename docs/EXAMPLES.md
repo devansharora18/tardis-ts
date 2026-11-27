@@ -8,10 +8,10 @@ is web-only because it depends on PDF.js canvas rendering and Blob downloads.
 | Counter | `examples/native-counter` | signals, button, minimal app |
 | Forms | `examples/forms` | createForm, FormField, validation |
 | Virtual 10k | `examples/virtual-10k` | VirtualList |
-| Tardis Code | `examples/editor` | tabs, command palette, minimap, syntax colors |
-| Tardis Sheet | `examples/spreadsheet` | 100k cells, formulas, formula bar |
+| Tardis Code | `examples/editor` | VS Code-style tabs, command palette, minimap, syntax colors |
+| Tardis Sheet | `examples/spreadsheet` | Excel-style ribbon, 100k cells, formats, sorting, sheets, save/export |
 | Tardis Paint | `examples/paint` | PNG encoder, data URLs, pointer strokes |
-| Tardis Docs | `examples/word` | markdown word processor + preview |
+| Tardis Docs | `examples/word` | Word-style page canvas, navigation, tables, source pane, margins |
 | Tardis Slides | `examples/slides` | slide editor + presentation mode |
 | Tardis Board | `examples/kanban` | columns, cards, inspector, persistence |
 | Tardis Calendar | `examples/calendar` | month grid, events, persistence |
