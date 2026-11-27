@@ -129,7 +129,7 @@ impl LayoutEngine {
                 continue;
             };
             self.tree
-                .set_style(taffy_id, to_taffy(&node.style))
+                .set_style(taffy_id, to_taffy(&node.style, stretch_for(scene, *id)))
                 .map_err(|err| err.to_string())?;
         }
         for id in &changes.texted {
@@ -270,7 +270,7 @@ fn build(
             for child in &node.children {
                 children.extend(build(tree, scene, *child, mapped)?);
             }
-            let style = to_taffy(&node.style);
+            let style = to_taffy(&node.style, false);
             let taffy_id = if children.is_empty() {
                 tree.new_leaf(style)
             } else {
@@ -282,7 +282,7 @@ fn build(
         }
         NodeKind::Text | NodeKind::Image => {
             let taffy_id = tree
-                .new_leaf_with_context(to_taffy(&node.style), id)
+                .new_leaf_with_context(to_taffy(&node.style, stretch_for(scene, id)), id)
                 .map_err(|err| err.to_string())?;
             mapped.insert(id, taffy_id);
             Ok(vec![taffy_id])
@@ -348,8 +348,25 @@ fn dimension(value: Option<f32>) -> Dimension {
     }
 }
 
-fn to_taffy(style: &Style) -> TaffyStyle {
+fn stretch_for(scene: &Scene, id: u32) -> bool {
+    let Some(node) = scene.nodes.get(&id) else {
+        return false;
+    };
+    if !matches!(node.kind, NodeKind::Text | NodeKind::Image) || node.style.width.is_some() {
+        return false;
+    }
+    let Some(parent) = node.parent.and_then(|parent| scene.nodes.get(&parent)) else {
+        return false;
+    };
+    matches!(
+        parent.style.flex_direction,
+        FlexDirection::Column | FlexDirection::ColumnReverse
+    )
+}
+
+fn to_taffy(style: &Style, stretch: bool) -> TaffyStyle {
     TaffyStyle {
+        align_self: stretch.then_some(taffy::style::AlignSelf::Stretch),
         display: if style.display {
             Display::Flex
         } else {

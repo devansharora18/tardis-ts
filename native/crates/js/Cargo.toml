@@ -9,3 +9,8 @@ description = "Embedded QuickJS host for Tardis TS apps"
 tardis-ts-core = { path = "../core" }
 rquickjs = "0.14"
 arboard = "3.7"
+ureq = "2"
+serde_json = "1"
+
+[dev-dependencies]
+tempfile = "3"

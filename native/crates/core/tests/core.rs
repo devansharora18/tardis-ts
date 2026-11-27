@@ -402,3 +402,22 @@ fn parses_transparent_colors() {
     let color = tardis_ts_core::Color::parse("transparent").unwrap();
     assert_eq!(color.a, 0);
 }
+
+#[test]
+fn column_text_stretches_before_wrapping() {
+    let mut engine = Engine::new(200.0, 200.0);
+    apply(
+        &mut engine,
+        r##"[
+          {"op":"create","id":1,"kind":"view","parent":0,"index":0},
+          {"op":"style","id":1,"props":{"width":100,"padding":8}},
+          {"op":"create","id":2,"kind":"text","tag":"span","parent":1,"index":0},
+          {"op":"text","id":2,"value":"A long paragraph that must wrap across more than one line at this width."},
+          {"op":"style","id":2,"props":{"fontSize":14,"lineHeight":22}}
+        ]"##,
+    );
+    let dump = engine.dump().unwrap();
+    let text = dump.nodes.iter().find(|node| node.id == 2).unwrap();
+    assert_eq!(text.width, 84.0);
+    assert!(text.height >= 44.0, "height was {}", text.height);
+}

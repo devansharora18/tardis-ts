@@ -87,12 +87,15 @@ export class WebHost {
       const element = target?.closest?.('[data-tardis-ts]') as HTMLElement | null
       const node = element ? Number(element.getAttribute('data-tardis-ts')) : undefined
       const pointer = event as PointerEvent
+      const rect = element?.getBoundingClientRect()
       dispatchEvent({
         type: 'pointer',
         phase,
         node,
         x: pointer.clientX ?? 0,
         y: pointer.clientY ?? 0,
+        localX: rect ? (pointer.clientX ?? 0) - rect.left : undefined,
+        localY: rect ? (pointer.clientY ?? 0) - rect.top : undefined,
         button: pointer.button ?? 0,
       })
       this.syncIme()
@@ -103,12 +106,15 @@ export class WebHost {
       const target = event.target as Element | null
       const element = target?.closest?.('[data-tardis-ts]') as HTMLElement | null
       const node = element ? Number(element.getAttribute('data-tardis-ts')) : undefined
+      const rect = element?.getBoundingClientRect()
       dispatchEvent({
         type: 'pointer',
         phase: 'move',
         node,
         x: pointer.clientX ?? 0,
         y: pointer.clientY ?? 0,
+        localX: rect ? (pointer.clientX ?? 0) - rect.left : undefined,
+        localY: rect ? (pointer.clientY ?? 0) - rect.top : undefined,
         button: pointer.button ?? 0,
       })
     }

@@ -262,6 +262,27 @@ mod window {
         }
     }
 
+    fn hit_point(host: &JsHost, x: f32, y: f32) -> (String, f32, f32) {
+        let engine = host.engine();
+        let engine = engine.borrow();
+        let hit = engine.hit_test(x, y);
+        let local = hit
+            .and_then(|id| {
+                engine
+                    .layout
+                    .as_ref()
+                    .and_then(|layout| layout.rects.get(&id))
+                    .map(|rect| (x - rect.x, y - rect.y))
+            })
+            .unwrap_or((x, y));
+        (
+            hit.map(|id| id.to_string())
+                .unwrap_or_else(|| "null".to_string()),
+            local.0,
+            local.1,
+        )
+    }
+
     fn update_accessibility(
         adapter: &mut accesskit_winit::Adapter,
         host: &JsHost,
@@ -445,14 +466,10 @@ mod window {
                                 (position.y / scale) as f32,
                             );
                             if mouse_down {
-                                let node = {
-                                    let engine = host.engine();
-                                    let hit = engine.borrow().hit_test(cursor.0, cursor.1);
-                                    hit.map(|id| id.to_string())
-                                        .unwrap_or_else(|| "null".to_string())
-                                };
+                                let (node, local_x, local_y) =
+                                    hit_point(&host, cursor.0, cursor.1);
                                 let event_json = format!(
-                                    r#"{{"type":"pointer","phase":"move","x":{},"y":{},"node":{node}}}"#,
+                                    r#"{{"type":"pointer","phase":"move","x":{},"y":{},"localX":{local_x},"localY":{local_y},"node":{node}}}"#,
                                     cursor.0, cursor.1
                                 );
                                 if let Err(err) = host.dispatch(&event_json) {
@@ -555,14 +572,10 @@ mod window {
                                 (touch.location.y / scale) as f32,
                             );
                             mouse_down = pressed;
-                            let node = {
-                                let engine = host.engine();
-                                let hit = engine.borrow().hit_test(cursor.0, cursor.1);
-                                hit.map(|id| id.to_string())
-                                    .unwrap_or_else(|| "null".to_string())
-                            };
+                            let (node, local_x, local_y) =
+                                hit_point(&host, cursor.0, cursor.1);
                             let event_json = format!(
-                                r#"{{"type":"pointer","phase":"{phase}","x":{},"y":{},"node":{node}}}"#,
+                                r#"{{"type":"pointer","phase":"{phase}","x":{},"y":{},"localX":{local_x},"localY":{local_y},"node":{node}}}"#,
                                 cursor.0, cursor.1
                             );
                             if let Err(err) = host.dispatch(&event_json) {

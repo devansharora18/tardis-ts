@@ -228,9 +228,10 @@ fn scale_rect(rect: Rect, scale: f32) -> Rect {
     }
 }
 
+type ImageCache = (HashMap<String, Option<Pixmap>>, Vec<String>);
+
 thread_local! {
-    static IMAGE_CACHE: RefCell<(HashMap<String, Option<Pixmap>>, Vec<String>)> =
-        RefCell::new((HashMap::new(), Vec::new()));
+    static IMAGE_CACHE: RefCell<ImageCache> = RefCell::new((HashMap::new(), Vec::new()));
 }
 
 const IMAGE_CACHE_LIMIT: usize = 24;

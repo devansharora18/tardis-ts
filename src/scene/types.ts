@@ -8,6 +8,8 @@ export interface SceneEvent {
   node?: number
   x?: number
   y?: number
+  localX?: number
+  localY?: number
   button?: number
   key?: string
   value?: string
