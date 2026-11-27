@@ -14,14 +14,12 @@ import {
 import {
   accents,
   BigCommand,
-  Icon,
   OfficeApp,
   Ribbon,
   RibbonGroup,
   SmallCommand,
   office,
   type Accent,
-  type IconName,
 } from '../shared/office'
 import {
   cellRef,
@@ -1619,24 +1617,28 @@ function homeRibbon(): SceneNode {
               { style: { flexDirection: 'row', gap: 1 } },
               jsx(SmallCommand, {
                 icon: 'bold',
+                ariaLabel: 'Bold',
                 onClick: toggleBold,
                 accent: ACCENT,
                 active: activeFormat().bold,
               }),
               jsx(SmallCommand, {
                 icon: 'italic',
+                ariaLabel: 'Italic',
                 onClick: toggleItalic,
                 accent: ACCENT,
                 active: activeFormat().italic,
               }),
               jsx(SmallCommand, {
                 icon: 'underline',
+                ariaLabel: 'Underline',
                 onClick: toggleUnderline,
                 accent: ACCENT,
                 active: activeFormat().underline,
               }),
               jsx(SmallCommand, {
                 icon: 'fill',
+                ariaLabel: 'Fill',
                 onClick: () => applyFormat({ fill: ACCENT.tint }),
                 accent: ACCENT,
                 active: activeFormat().fill === ACCENT.tint,
@@ -1657,18 +1659,21 @@ function homeRibbon(): SceneNode {
               { style: { flexDirection: 'row', gap: 1 } },
               jsx(SmallCommand, {
                 icon: 'alignLeft',
+                ariaLabel: 'Align left',
                 onClick: () => align('left'),
                 accent: ACCENT,
                 active: activeFormat().align === 'left',
               }),
               jsx(SmallCommand, {
                 icon: 'alignCenter',
+                ariaLabel: 'Align center',
                 onClick: () => align('center'),
                 accent: ACCENT,
                 active: activeFormat().align === 'center',
               }),
               jsx(SmallCommand, {
                 icon: 'alignRight',
+                ariaLabel: 'Align right',
                 onClick: () => align('right'),
                 accent: ACCENT,
                 active: activeFormat().align === 'right',
@@ -2026,8 +2031,8 @@ function renderRibbon(tabName: string): SceneNode {
 
 function App(): ReturnType<typeof jsx> {
   return jsx(OfficeApp, {
-    app: 'Excel',
-    initial: 'X',
+    app: 'Tardis Sheet',
+    initial: 'S',
     file: 'Q4 Budget.xlsx',
     accent: ACCENT,
     tabs: ['File', 'Home', 'Insert', 'Formulas', 'Data', 'View'],
