@@ -108,3 +108,9 @@ Assumptions and choices made during the TSX-native rewrite, newest first.
 | 102 | Landing/docs use a light Cobalt material with cut corners and keycaps | Devtool content, one cobalt accent, no gradients/rounded cards/shadows |
 | 103 | Site content is generated from `docs/*.md` at build time | One source of truth; the docs site cannot drift from the repository docs |
 | 104 | Electron benchmark runs the same React workload | Comparability with React web; Electron is measured under Xvfb software rendering |
+| 105 | Example apps use an original Fluent-class light desktop system with per-app accents | Excel/Word/Slides-class interaction models, but no vendor icons, artwork, or trademarks are copied; the app names are Tardis Sheet/Word/Slides |
+| 106 | Web borders default to `border-style: solid`, `border-color: transparent`, `border-width: 0` | A width set by an app was previously invisible on web because the default style is `none`; the zero default keeps layout stable |
+| 107 | Pointer handlers resolve before focus moves on pointer down | Focus-triggered rebuilds could destroy the pressed control before it saw the event, breaking checkboxes and segmented controls inside forms |
+| 108 | TextField's initial value read is untracked | A dynamic region around a field was subscribing to the field's value, rebuilding the field on every keystroke and losing focus; the field's own render still tracks the value |
+| 109 | Images accept `draggable: false` as a host attribute | Prevents the browser's native image drag from cancelling pointer streams in canvas apps; native ignores the hint |
+| 110 | The web shell ships an inline SVG favicon | Keeps app consoles free of the generic `/favicon.ico` 404 without adding a binary asset |

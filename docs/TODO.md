@@ -64,9 +64,15 @@ npx tardis-ts screenshot examples/native-counter/app.tsx -o check.png
 - **Editor** — replace the per-line highlighter with tree-sitter/LSP, and add
   find/replace, multi-cursor, undo, Git, and a terminal. Current UI: activity
   bar, explorer, tabs, breadcrumbs, command palette, minimap, status bar.
-- **Spreadsheet** — direct cell typing, horizontal scrolling, scroll-to-active,
-  clipboard ranges, CSV import/export, and undo. Current app edits through the
-  formula bar and has arithmetic + SUM/AVERAGE/MIN/MAX.
+- **Spreadsheet** — direct in-cell typing, horizontal scrolling, scroll-to-active,
+  and CSV import. Clipboard ranges, CSV export, undo/redo, formatting, sorting,
+  and multiple sheets are implemented.
+- **Word** — rich text, page breaks, comments, DOCX import/export. Markdown
+  source, tables, margins, spacing, and export are implemented.
+- **Slides** — transitions, animations, charts, and image placeholders.
+- **Paint** — layers, shape tools, selection, and native file dialogs.
+- **PDF** — a desktop build and native file dialogs (web-only today).
+- **Weather / Chat** — streaming responses and retry/cancel controls.
 - **Zed typing latency** — not measured; only startup, RSS, size, and features.
 
 ## Performance
@@ -99,14 +105,16 @@ npx tardis-ts screenshot examples/native-counter/app.tsx -o check.png
 - Playwright end-to-end tests for the web app in CI (the benchmark runner uses
   Playwright but is not a UI regression suite).
 - Devtools time travel, owner/component view, and a network/resource panel.
-- Documentation site rebuilt on TSX and API reference generation.
+- API reference generation from the TypeScript declarations (the site itself is
+  already built in Tardis TS).
 - Migration note from `.tardis` blueprints to TSX (v1 remains in git history).
 
 ## Known honest gaps in claims
 
 - Line count is ~25k framework/examples/site/tests/docs/bench, not 40k. No
   padding is added.
-- "Production-grade" is not claimed while the items above are open.
+- The office-grade UI pass is implemented; the capability gaps above remain and
+  are not hidden behind the visual polish.
 - The Dioxus web full-list benchmark is a measured loss, published in
   [BENCHMARKS.md](BENCHMARKS.md). The 100k virtualized sheet comparison is a tie,
   published in [SHEETS.md](SHEETS.md). The editor beats Zed on startup/memory/

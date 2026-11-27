@@ -88,16 +88,48 @@ same scene patches.
 
 ## Example applications
 
-- **Tardis Code** (`examples/editor`) — VS Code-style activity bar, explorer,
-  tabs, breadcrumbs, command palette (Ctrl/Cmd+Shift+P), minimap, line/column
-  status, minimap, and a working editor on native and web. Compared with Zed in
-  [docs/EDITORS.md](docs/EDITORS.md).
-- **Tardis Sheet** (`examples/spreadsheet`) — 100,000 × 8 virtualized grid with
-  selection, formula bar, arithmetic, and SUM/AVERAGE/MIN/MAX. Compared with a
-  Dioxus virtualized grid in [docs/SHEETS.md](docs/SHEETS.md).
-- **14 more** — paint, markdown word processor, slides, kanban, calendar,
-  contacts, calculator, weather and chat APIs, image gallery, and a web-only
-  PDF editor. See `examples/` and the docs site.
+Sixteen apps share one original light desktop system
+(`examples/shared/office.tsx`): title bar, ribbon or toolbar, status bar, drawn
+icons, and a per-app accent. No vendor icons or artwork are copied. The editor
+keeps its own dark VS Code-like shell.
+
+- **Tardis Sheet** (`examples/spreadsheet`) — Excel-class ribbon, 100,000 × 10
+  virtualized grid, range selection, number formats, fill, undo/redo, sorting,
+  multiple sheets, save/open, and CSV export. Compared with a Dioxus grid in
+  [docs/SHEETS.md](docs/SHEETS.md).
+- **Tardis Word** (`examples/word`) — Word-class page canvas with ruler,
+  navigation pane, tables, lists, quotes, links, margins/spacing, and a live
+  markdown source pane.
+- **Tardis Slides** (`examples/slides`) — PowerPoint-class thumbnails, four
+  themes, title/content layouts, speaker notes, and presentation mode.
+- **Tardis Paint** (`examples/paint`) — paint toolbar, brush/eraser sizes,
+  undo/redo, and PNG export from a pure-TS encoder.
+- **Tardis PDF** (`examples/pdf-editor`, web only) — page thumbnails, reorder,
+  rotate, delete, zoom, annotation, and pdf-lib export.
+- **Tardis Calendar** (`examples/calendar`) — Outlook-style month/agenda views,
+  calendar filters, event inspector, and persistence.
+- **Tardis Contacts** (`examples/contacts`) — People list, contact card, inline
+  editor, search, and CSV export.
+- **Tardis Board** (`examples/kanban`) — Planner-style columns, priorities,
+  owner chips, card inspector, and local persistence.
+- **Tardis Chat** (`examples/chat`) — conversation sidebar, message bubbles,
+  suggestions, connection inspector, OpenAI-compatible endpoint, and a local
+  demo reply.
+- **Tardis Calculator** (`examples/calculator`) — standard keypad, memory keys,
+  expression parser, history, and keyboard input.
+- **Tardis Weather** (`examples/weather`) — live Open-Meteo current conditions,
+  seven-day forecast, saved places, and °C/°F units.
+- **Tardis Photos** (`examples/image-viewer`) — filmstrip, zoom, fit/fill,
+  metadata inspector, and generated PNG samples.
+- **Tardis Forms** (`examples/forms`) — createForm validation, plan selection,
+  checkboxes, async submit, progress steps, and a success state.
+- **Tardis Directory** (`examples/virtual-10k`) — 10,000-row virtualized table
+  with search, row inspector, and only the visible window mounted.
+- **Tardis Counter** (`examples/native-counter`) — minimal signal starter with
+  the same shell, commands, and both-host note.
+- **Tardis Code** (`examples/editor`) — VS Code-like activity bar, explorer,
+  tabs, breadcrumbs, command palette, minimap, and syntax colors. Compared with
+  Zed in [docs/EDITORS.md](docs/EDITORS.md).
 
 ## How it works
 
@@ -118,10 +150,11 @@ app.tsx ─ compiler ─ bundle
 ## Production surface
 
 - **Virtualized lists** — `VirtualList` mounts only the visible window plus
-  overscan. A 10,000-row app holds ~40 scene nodes, not 20,000.
+  overscan. A 10,000-row app holds a few hundred scene nodes, not 20,000.
 - **Router** — `createRouter`, `Router`, `Link`, and `matchPath` work natively
   (memory history) and in the browser (`history` + `popstate`).
-- **Keyboard and focus** — pointer down focuses a node; `onKeyDown`/`onKeyUp`
+- **Keyboard and focus** — pointer handlers resolve before focus moves, so a
+  focus-triggered rebuild cannot swallow the press; `onKeyDown`/`onKeyUp`
   bubble; Enter/Space activates the nearest clickable ancestor; `focusNode(id)`
   sets focus explicitly.
 - **Wheel scrolling** — native winit and DOM wheel events reach `onWheel`.
@@ -129,7 +162,8 @@ app.tsx ─ compiler ─ bundle
 - **Clipping** — `overflow: hidden` clips children in the native renderer, so
   virtual lists and nested content do not bleed.
 - **Borders** — `borderWidth`, `borderColor`, and `borderRadius` draw inset
-  rounded borders; web maps them to CSS.
+  rounded borders; the web base sets `border-style: solid` and a zero default
+  width, so a width is always visible.
 - **Accessible forms** — `TextField` and `Checkbox` with caret editing,
   selection, multiline, word/vertical navigation, IME composition, focus/blur,
   Tab/Shift+Tab traversal, `role`/`aria-*`, copy/cut/paste, and native

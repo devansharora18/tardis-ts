@@ -316,3 +316,20 @@ known costs. No "better than Dioxus" claim without a fair head-to-head.
   in Electron 4.1. Electron startup 605 ms, RSS 1.7 GB, dist 263 MB.
 - Agent skill expanded into 8 reference documents.
 - 17 example build tests; 158+ JS tests.
+
+## Office UI pass result (2026-11-27)
+
+- Shared `examples/shared/office.tsx`: title bar, tabs, ribbon, toolbar, status
+  bar, drawn icon set, per-app accents, themeable form fields.
+- Rebuilt all 16 examples around it. The editor keeps its dark shell by design.
+- Spreadsheet: ranges, formats, fills, number formats, undo/redo, sort,
+  duplicate removal, sheets, save/open, CSV.
+- Word: page canvas, ruler, navigation, tables, source pane, margins/spacing.
+- Slides: four themes, thumbnails, inspector, speaker notes, presenter.
+- Utility suite: calendar (month/agenda), contacts, board, chat, calculator,
+  weather, photos, forms, directory, counter, PDF.
+- Framework fixes found by running: web border-style, pointer-down ordering,
+  TextField untracked initial value, native final-glyph wrapping epsilon,
+  serif font bundling, `draggable` attribute, favicon shell.
+- 204 JS tests; web/native screenshot matrices at 1280×800; Playwright office
+  interactions pass for 14 apps.
