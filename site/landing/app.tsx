@@ -38,16 +38,16 @@ const FEATURES: Array<[string, string, string]> = [
 
 const EXAMPLES = [
   ['Tardis Code', 'VS Code-style editor', 'editor'],
-  ['Tardis Sheet', '100,000 × 8 spreadsheet', 'spreadsheet'],
+  ['Tardis Sheet', '100,000 × 10 spreadsheet', 'spreadsheet'],
   ['Tardis Paint', 'PNG brush canvas', 'paint'],
-  ['Tardis Docs', 'Markdown word processor', 'word'],
+  ['Tardis Word', 'Page canvas + markdown', 'word'],
   ['Tardis Slides', 'Presentation mode', 'slides'],
-  ['Tardis Board', 'Persistent kanban', 'kanban'],
+  ['Tardis Board', 'Planner-style kanban', 'kanban'],
   ['Tardis Calendar', 'Month view + events', 'calendar'],
   ['Tardis Weather', 'Live Open-Meteo API', 'weather'],
   ['Tardis Chat', 'OpenAI-compatible API', 'chat'],
   ['Tardis Contacts', 'CRUD + CSV export', 'contacts'],
-  ['Tardis Images', 'Data-URL gallery', 'image-viewer'],
+  ['Tardis Photos', 'Filmstrip + zoom', 'image-viewer'],
   ['Tardis Calculator', 'Expression parser', 'calculator'],
   ['Tardis PDF', 'PDF.js + pdf-lib · web only', 'pdf-editor'],
   ['Tardis Forms', 'Validation + submits', 'forms'],
@@ -274,8 +274,8 @@ function App(): ReturnType<typeof jsx> {
           'div',
           { className: 'bench-row' },
           jsx('span', {}, '10k mounted rows, browser update'),
-          jsx('span', {}, '7.0 fps'),
-          jsx('span', {}, 'Dioxus 10.7 fps'),
+          jsx('span', {}, '8.3 fps'),
+          jsx('span', {}, 'Dioxus 12.3 fps'),
           jsx('span', {}, 'loss')
         ),
         jsx(
